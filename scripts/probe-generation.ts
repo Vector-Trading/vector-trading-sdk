@@ -66,7 +66,7 @@ try {
   );
   run(process.execPath, [join(temp, 'typescript/dist/probe.mjs'), root], root);
   run(python, ['-c', 'import sys; assert sys.version_info >= (3,12)'], root);
-  run(python, ['-m', 'compileall', '-q', join(temp, 'python/vector_generated')], root);
+  run(python, ['-m', 'compileall', '-q', join(temp, 'python/vector_trading/_generated')], root);
   run(python, [join(root, 'generation/probes/python.py'), root], root, {
     PYTHONPATH: join(temp, 'python'),
   });

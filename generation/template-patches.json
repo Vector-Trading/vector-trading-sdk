@@ -107,7 +107,7 @@
     "edits": [
       {
         "before": "    model_config = ConfigDict(",
-        "after": "    model_config = ConfigDict(\n        allow_inf_nan=False,"
+        "after": "    model_config = ConfigDict(\n        allow_inf_nan=False,\n        hide_input_in_errors=True,"
       },
       {
         "before": "import json",

@@ -8,7 +8,7 @@ The snapshot covers seven REST operations and eight signal actions; its provenan
 recorded in [contracts/source.json](contracts/source.json), and transport behavior is
 described in the [contract guide](docs/contracts.md). The [JavaScript/TypeScript package](typescript/README.md)
 provides the complete public API and has verified local archives for Node.js 22/24.
-Python, Go, Rust, Pine sources, and registry releases remain planned. Reproducible four-language generation and native
+The [Python package](python/README.md) is locally verified on Python 3.12/3.14 with wheel and sdist consumers. Go, Rust, Pine sources, and registry releases remain planned. Reproducible four-language generation and native
 probe commands are available in the [development guide](docs/development.md#generation-and-native-probes). The scope of work and its verified status are
 recorded in the [implementation plan](docs/plans/public-sdk.plan.md).
 
@@ -24,6 +24,9 @@ pnpm typecheck
 pnpm test:typescript
 pnpm build:typescript
 pnpm test:typescript:package
+pnpm test:python
+pnpm build:python
+pnpm test:python:package
 ```
 
 Tool setup and commands are covered in the [development guide](docs/development.md).

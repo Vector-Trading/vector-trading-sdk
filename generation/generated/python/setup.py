@@ -18,7 +18,7 @@ from setuptools import setup, find_packages  # noqa: H301
 #
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
-NAME = "vector-generated"
+NAME = "vector-trading.-generated"
 VERSION = "1.0.0"
 PYTHON_REQUIRES = ">= 3.10"
 REQUIRES = [
@@ -43,5 +43,5 @@ setup(
     long_description="""\
     Public REST API for external integrations built on Vector Trading account API keys. The current version includes bots bundles listing, user search, checkout sessions, and access grants management. Requests from IP addresses outside the key&#39;s optional CIDR masks are rejected.
     """,  # noqa: E501
-    package_data={"vector_generated": ["py.typed"]},
+    package_data={"vector_trading._generated": ["py.typed"]},
 )

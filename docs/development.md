@@ -213,11 +213,62 @@ Select existing Node executables with `SDK_NODE22` and `SDK_NODE24`; defaults ar
 the local nvm `v22.23.2` binary and the current Node 24 executable. Prepare these
 versions explicitly before running the check; it does not install Node globally.
 
+## Python package checks
+
+Python `3.12.9` is pinned by `python/.python-version`; Python `3.14.6` is also verified.
+The package uses `uv` `0.12.1`, Hatchling `1.32.4`, Ruff `0.16.10`, mypy `2.4.0`, and
+pytest `9.1.1`. Exact development versions and transitive dependencies belong to
+`python/uv.lock`. Consumer requirements are compatible ranges for HTTPX and Pydantic;
+they do not inherit the development lockfile. The [package README](../python/README.md)
+owns public methods, model serialization, cancellation, and lifecycle behavior.
+
+From `python/`, with the pinned uv and Python available:
+
+```sh
+uv sync --locked
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy src
+uv run pytest
+uv build
+uv run python scripts/check_package.py
+```
+
+Run `uv run ruff format .` and `uv run ruff check . --fix` separately when fixes are
+needed. Checks keep `uv.lock` unchanged. The cache directory is relative to the current
+working directory (`../.cache/uv` from `python/`); root commands explicitly set the SDK
+cache location. Root `pnpm test:python`, `pnpm build:python`, and
+`pnpm test:python:package` delegate to these native tools through `scripts/python.ts`.
+No Python tests are replaced by JavaScript checks.
+
+For a separate Python 3.14 environment without replacing the pinned default environment:
+
+```sh
+cd python
+UV_PROJECT_ENVIRONMENT=../.cache/python314 uv sync --locked --python 3.14.6
+UV_PROJECT_ENVIRONMENT=../.cache/python314 uv run --locked --python 3.14.6 pytest
+```
+
+Generated models are included from the canonical `generation/generated/python` tree;
+uv cache keys include its manifest. After regeneration, `uv sync --locked` refreshes
+the editable installation. Package archives contain models, metadata, license, and
+`py.typed`; the generated asynchronous trial transport is excluded. `uv build` builds
+wheel from its sdist as well as producing the source archive. The sdist therefore
+builds without the SDK/server checkout. Archives remain in ignored `python/dist/`.
+
+The package checker installs wheel and sdist separately into four clean environments
+on Python 3.12/3.14 without editable installations. It invokes all seven REST methods
+and eight signals, checks installed metadata/dependency graphs, runs strict public-type
+consumers, and imports/checks the examples. Set `SDK_PYTHON312` or `SDK_PYTHON314` to select
+existing interpreters; defaults use `uv python find`, with no interpreter installation.
+Consumer dependency resolution uses PyPI or the local cache; it does not publish anything.
+Tests use localhost and synthetic credentials. Temporary consumer projects are removed.
+
 ## Native tools for later steps
 
-Python, Go, and Rust are not required for current root checks. The following is the
-agreed implementation matrix; TypeScript has a locally verified package, while the
-other packages remain planned:
+Python is required for its package checks; Go and Rust remain native-probe requirements
+until their packages are implemented. The following is the agreed implementation matrix;
+TypeScript and Python packages are locally verified, while other packages remain planned:
 
 | Area                  | Environments and tools                                | Configuration and command owner                                        |
 | --------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -228,9 +279,9 @@ other packages remain planned:
 | Pine Script           | TradingView Pine Editor                               | `pinescript/`, STEP-08; actual editor compilation                      |
 
 Install `uv` for Python using the [official guide](https://docs.astral.sh/uv/getting-started/installation/).
-Once `python/.python-version` exists, `uv python install` in `python/` installs the
-selected Python, and `uv sync --locked` prepares package dependencies. STEP-05 pins
-`uv` and verification tools.
+`python/.python-version` selects the default interpreter; if missing locally, an explicit
+`uv python install` in `python/` prepares it. `uv sync --locked` prepares package dependencies.
+The Python package section above records the pinned uv and verification tools.
 
 Install the required Go version using the [official guide](https://go.dev/doc/install).
 The future `go.mod` minimum is 1.26; STEP-06 pins exact compiler and Staticcheck versions.

@@ -4,7 +4,7 @@
 
 The root `vector-trading-sdk-workspace` package is private shared tooling.
 It contains formatting, linting, typechecking, and Vitest configuration;
-the JavaScript/TypeScript package is implemented locally. Shared contract/generation tests and native
+JavaScript/TypeScript and Python packages are implemented locally. Shared contract/generation tests and native
 probe harnesses exist.
 Commands and version pins are covered in the [development guide](development.md).
 
@@ -18,7 +18,7 @@ does not qualify as an accepted snapshot.
 
 pnpm manages root JavaScript/TypeScript tooling. Only the `typescript` directory is
 reserved in `pnpm-workspace.yaml`; Python, Go, and Rust packages will use their native
-tools. The `typescript/` package exists; other language package directories remain planned; generated trial sources are internal
+tools. The `typescript/` and `python/` packages exist; Go and Rust package directories remain planned; generated trial sources are internal
 artifacts in `generation/generated/`.
 
 ## Responsibilities
@@ -49,16 +49,19 @@ from dependencies required by SDK consumers.
 The internal Go sources already use only the standard library. The stale
 `validator.v2` probe requirement was removed; the probe checks the module graph and
 compiles with dependency downloads disabled. There is no placeholder `go.sum`.
-Python's current generated code also uses `python-dateutil` and `typing-extensions`;
-STEP-05 reviews these direct requirements, and dependencies needed transitively by
-`httpx` or Pydantic remain part of the consumer's resolved graph.
+Python distributes generated Pydantic models and a synchronous HTTPX adapter. Its only direct
+runtime dependencies are `httpx` and Pydantic. Python 3.12 provides the used typing
+primitives; generation replaces only known typing-backport imports with standard-library
+imports. Generated asynchronous trial transport still uses `python-dateutil` in native
+probes but is excluded from public archives. `pydantic-core` and `typing-extensions` remain
+transitive consumer requirements owned by Pydantic/HTTPX rather than extra SDK declarations.
 Rust currently uses `url` for query encoding and `serde_with` to distinguish an
 omitted nullable response field from explicit null. The unused `serde_repr`
 declaration and probe dependency were removed through a pinned template override.
 The selected asynchronous `reqwest` transport requires a Tokio execution context;
 direct Tokio usage for tests/examples belongs in the appropriate dependency category.
 
-The TypeScript manifest follows this policy; other package manifests remain STEP-05–07 results. They must follow this policy,
+The TypeScript and Python manifests follow this policy; other package manifests remain STEP-06–07 results. They must follow this policy,
 declare compatible consumer requirements, and keep exact development pins in their
 own locks. Changes to the policy require an explicit architectural decision and
 updated generation/package checks.
@@ -77,8 +80,8 @@ named `oneOf` variants, and retains all seven REST paths unchanged. It adds acti
 and grant discriminators for generators; numeric transport models use double
 precision, avoiding Go's default `float32`. The original snapshots are unchanged.
 Tests compare all 40 signal schema outcomes and grant requiredness with the source.
-The generator also emits TypeScript `contract.ts` metadata from those same schemas
-and REST operations. Public runtime validation uses this accepted metadata without
+The generator also emits TypeScript `contract.ts` and Python `contract.json` metadata
+from those same schemas and REST operations. Public runtime validation uses this accepted metadata without
 a runtime schema-validation dependency or a separate handwritten contract.
 
 `generation/template-patches.json` holds eight narrow upstream-template overrides.
@@ -87,7 +90,7 @@ Each override pins the upstream template's SHA-256 and requires a unique match:
 - TypeScript models/runtime preserve `undefined` under strict optional-property
   checking; codecs reject missing required fields, non-nullable `null`, and
   non-finite numbers.
-- Python preserves omitted fields while rejecting explicit `None`/`null` for
+- Python hides private input values in validation-error messages and preserves omitted fields while rejecting explicit `None`/`null` for
   non-nullable fields and non-finite numbers. Field validators also allow valid
   assignment without treating unrelated unset fields as explicit nulls.
 - Go prefixes enum constants, selects disjoint unions by their discriminator,
@@ -120,8 +123,7 @@ Generated transport models do not implement the server's complete business parse
 Schema-valid but parser-invalid TP/SL and price relationships remain explicitly
 recorded in shared fixtures and proven by STEP-02 server tests. Package builders in
 STEP-04–07 implement the agreed validation and run their complete C01–C12 suite;
-these generation probes do not establish installable SDK readiness. The public
-Python client's selected synchronous httpx interface remains a package-step result.
+these generation probes do not establish installable SDK readiness. The public Python client uses synchronous HTTPX; its archive checks separately prove installable package readiness.
 
 ## JavaScript/TypeScript package
 
@@ -146,6 +148,30 @@ The archive allowlist includes only `dist`, MIT license, and the package README.
 The public API, parameter objects, page iterators, and examples are described in
 the [package README](../typescript/README.md). Local archive checks exercise installed
 JavaScript and TypeScript consumers on Node 22/24; there is no registry publication.
+
+## Python package
+
+`python/src/vector_trading/__init__.py` defines public imports. Generated models live once
+under `generation/generated/python/vector_trading/_generated/models`; the generator sets
+that internal namespace. Handwritten REST methods serialize parameters from generated
+operation metadata and decode through generated models. The public transport uses
+synchronous `httpx.Client`; the asynchronous generated HTTP trial is not distributed.
+
+Hatchling force-includes canonical models and metadata in wheel/sdist. The sdist carries
+them under `src/vector_trading/_generated/models` so a clean build needs no neighboring
+checkout. The build hook distinguishes canonical files from files already present in
+the sdist to avoid duplicate entries. Standard-library package path extension supports
+Hatch editable installs where forced models are installed beside handwritten source;
+regular archives contain the complete package. `py.typed` and public model annotations
+are verified by clean mypy consumers. A generated internal namespace does not become a
+second documented public API.
+
+Clients close resources explicitly and support context managers. Retry count is zero;
+redirects and environment proxies are disabled. HTTPX network phases have finite timeouts,
+streaming bodies check elapsed time, and synchronous cancellation uses cooperative
+`threading.Event` checks. URL objects retain wire components but redact their log
+representation, protecting the strategy key without global logger changes.
+The [package README](../python/README.md) owns public signatures and lifecycle details.
 
 ## Planned results
 

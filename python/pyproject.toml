@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling==1.32.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vector-trading-sdk"
+version = "0.1.0"
+description = "Typed Vector Trading REST clients and strategy signal builders"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = ["httpx>=0.28.1,<1", "pydantic>=2.12.5,<3"]
+classifiers = ["Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.14", "Typing :: Typed"]
+
+[project.urls]
+Repository = "https://github.com/Vector-Trading/vector-trading-sdk"
+
+[dependency-groups]
+dev = ["hatchling==1.32.4", "ruff==0.16.10", "mypy==2.4.0", "pytest==9.1.1"]
+
+[tool.uv]
+required-version = "==0.12.1"
+cache-dir = "../.cache/uv"
+cache-keys = [{ file = "pyproject.toml" }, { file = "hatch_build.py" }, { file = "../generation/generated/manifest.json" }]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vector_trading"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "pyproject.toml", "hatch_build.py", "README.md", "LICENSE"]
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/vector_trading/__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src/vector_trading"]
+exclude = ["_generated/models"]
+
+[[tool.mypy.overrides]]
+module = ["vector_trading._generated.models.*"]
+follow_imports = "silent"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

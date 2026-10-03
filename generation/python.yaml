@@ -3,7 +3,7 @@
   'additionalProperties':
     {
       'hideGenerationTimestamp': true,
-      'packageName': 'vector_generated',
+      'packageName': 'vector_trading._generated',
       'library': 'httpx',
       'disallowAdditionalPropertiesIfNotPresent': false,
     },

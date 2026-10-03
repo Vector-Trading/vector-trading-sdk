@@ -1,0 +1,159 @@
+# Vector Trading Python SDK
+
+`vector-trading-sdk` provides typed synchronous clients for seven account-key REST
+operations and eight strategy-key signals. Requires Python 3.12+; locally verified on
+Python 3.12 and 3.14. This package has not been published to PyPI.
+
+Build a local wheel with `uv build` in this directory, then install it in a consumer:
+
+```sh
+uv pip install /path/to/vector_trading_sdk-0.1.0-py3-none-any.whl
+```
+
+Import public clients, types, errors, and builders from `vector_trading`.
+Internal `_generated` modules are implementation details. Runtime requirements are
+`httpx>=0.28.1,<1` and `pydantic>=2.12.5,<3`; development pins in `uv.lock` do not constrain
+consumer versions. `typing-extensions` may be resolved transitively by these libraries;
+the SDK itself uses Python's built-in typing facilities and does not require `python-dateutil`.
+
+## Account-key REST
+
+Account keys are for server-side integrations and differ from strategy keys.
+Always select an explicit HTTPS server address; the REST base URL ends in `/api/rest`.
+Imports and constructors perform no HTTP work.
+
+```python
+from vector_trading import RestClient, SdkError
+
+with RestClient(base_url="https://example.com/api/rest", account_api_key=account_key) as client:
+    try:
+        for page in client.list_bundles_pages(limit=50):
+            names = [bundle.name for bundle in page.bundles]
+    except SdkError as error:
+        if error.status == 429:
+            # The caller decides whether and when another attempt is appropriate.
+            pass
+        else:
+            raise
+```
+
+| Public method         | Parameters                                                                                                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `list_bundles`        | optional keyword `limit`, `cursor`                                                                                                                                                                       |
+| `search_users`        | required keyword `display_name`; optional `limit`, `cursor`                                                                                                                                              |
+| `get_checkout`        | positional `checkout_id`                                                                                                                                                                                 |
+| `list_bundle_users`   | positional `bundle_id`; optional `limit`, `cursor`                                                                                                                                                       |
+| `list_bundle_grants`  | positional `bundle_id`; optional `user_id`, `grant_type`, `source_id`, `starts_after`, `starts_before`, `ends_after`, `ends_before`, `created_after`, `created_before`, `sort`, `dir`, `limit`, `cursor` |
+| `create_bundle_grant` | positional `bundle_id`, request dictionary or `CreateGrantRequest`                                                                                                                                       |
+| `revoke_bundle_grant` | positional `bundle_id`, `grant_id`                                                                                                                                                                       |
+
+All methods accept optional keyword `cancel_event: threading.Event`. Responses are
+Pydantic models with Python field names (`next_cursor`, `user_id`, and so on). Their
+`to_dict()` / `to_json()` codecs use wire names. REST dates are timezone-aware `datetime`
+values and serialize as ISO 8601, possibly normalized to an equivalent representation.
+For raw request dictionaries and date filters, use ISO 8601 strings.
+
+```python
+from vector_trading import CreateGrantRequest
+
+request = CreateGrantRequest.from_dict(
+    {
+        "userId": user_id,
+        "grantType": "paid_external",
+        "sourceId": "invoice:123",
+        "endsAt": "2026-12-01T00:00:00.000Z",
+    }
+)
+with RestClient(base_url=rest_base_url, account_api_key=account_key) as client:
+    result = client.create_bundle_grant(bundle_id, request)
+```
+
+`paid_external` requires `sourceId`; a repeated grant may return `409`. Revocation has
+the server's documented access consequences. No SDK method promises idempotency.
+
+`list_bundles_pages`, `search_users_pages`, `list_bundle_users_pages`, and
+`list_bundle_grants_pages` lazily yield entire pages, preserving filters. An empty
+array with `nextCursor` continues traversal; repeated cursors raise `SdkError`.
+Stopping iteration stops additional requests; the client context closes its resources.
+
+## Offline signals and strategy-key delivery
+
+```python
+from vector_trading import SignalsClient, UpdateSignalPayloadOrder, build_update_signal
+
+message = build_update_signal(
+    version=1.5,
+    market_price=100,
+    order=UpdateSignalPayloadOrder(side="buy", take_profits=[]),
+)
+with SignalsClient(base_url="https://example.com", strategy_api_key=strategy_key) as client:
+    client.send(message)
+```
+
+The eight builders are `build_open_signal`, `build_update_signal`, `build_cancel_signal`,
+`build_close_signal`, `build_start_signal`, `build_pause_signal`, `build_stop_signal`,
+and `build_delete_signal`. Each requires keyword `version`, the strategy version.
+Open/update require `market_price` and `order`; an order can be a generated model or a
+wire dictionary. Open alone accepts `force`. Cancel/close may include `market_price`.
+Every builder accepts optional `timestamp` and `hashtag`; absent timestamps are fixed
+as decimal millisecond strings during construction. `build_signal` takes a complete
+wire dictionary, supplying only an absent timestamp. `serialize_signal` validates and
+serializes a prepared model or dictionary without supplying metadata.
+
+Builders work offline and clone input messages. Sending the same prepared message
+preserves its timestamp; distinct builds within one millisecond need not be unique.
+The SDK rejects non-finite numbers, unsafe timestamps, invalid TP/SL relationships,
+unknown input fields, and bodies larger than 16 KiB of UTF-8. Strategy version is
+independent of SDK version. Internal event IDs and keys are not signal fields.
+
+Omitted `takeProfits` preserves current targets; `[]` clears them; a non-empty list
+replaces them. `None` is rejected for non-nullable signal fields. Generated models
+track unset fields so omission does not become JSON `null`; nullable response fields
+such as `avatar` retain explicit `None`.
+
+`send` returns `None` for webhook `204`: the signal was enqueued, not necessarily
+executed. Automatic retries, polling, and background requests are absent. A timeout
+or lost response leaves the operation's outcome unknown; the SDK does not resend it.
+
+## Transport, lifecycle, and errors
+
+Both clients support `close()` and `with`; closing twice is safe, and a closed client
+raises `SdkError` before another request. The default `timeout` is 10 seconds. HTTPX
+bounds connection, pool, write, and read phases; the SDK also checks elapsed time while
+reading a streaming body. Synchronous cancellation is cooperative: `cancel_event` is
+checked before requests, between body chunks, and between pages. A blocked I/O phase
+returns at its configured timeout; no extra worker or asynchronous API is created.
+
+Production requests require HTTPS. Explicit `allow_local_http=True` allows only
+loopback HTTP for local testing. Redirects are never followed and credentials are
+never forwarded. Environment proxy settings are disabled. Optional `transport` accepts
+an HTTPX `BaseTransport`; supplied transports must honor HTTPX timeout semantics and
+must not introduce retries.
+
+`SdkError` exposes `kind`, optional `status`, `code`, and `request_id`, plus a bounded
+safe message. Kinds include `validation`, `http`, `transport`, `timeout`, `cancelled`,
+`protocol`, `pagination`, and `closed`. HTTP errors handle JSON, non-JSON, empty bodies,
+and rate limits. Private body values, credentials, URLs, and raw transport errors stay
+out of diagnostics. Pydantic model error messages also hide input values.
+HTTPX URL log representations redact private paths and queries;
+actual request components remain intact.
+
+## Development
+
+From this directory with pinned `uv` 0.12.1 and Python 3.12.9 available:
+
+```sh
+uv sync --locked
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy src
+uv run pytest
+uv build
+uv run python scripts/check_package.py
+```
+
+The repository [development guide](../docs/development.md) describes the Python 3.14
+matrix and root commands. Tests use isolated localhost servers and synthetic keys.
+The package check installs wheel and sdist separately into clean environments,
+exercises every public method, checks the dependency graph, and verifies public types
+and examples. The sdist carries derived models and builds without a server or SDK checkout.

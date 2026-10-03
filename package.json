@@ -21,7 +21,10 @@
     "generation:probe": "node scripts/probe-generation.ts",
     "test:typescript": "pnpm --dir typescript test",
     "build:typescript": "pnpm --dir typescript build",
-    "test:typescript:package": "pnpm --dir typescript test:package"
+    "test:typescript:package": "pnpm --dir typescript test:package",
+    "test:python": "node scripts/python.ts test",
+    "build:python": "node scripts/python.ts build",
+    "test:python:package": "node scripts/python.ts package"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

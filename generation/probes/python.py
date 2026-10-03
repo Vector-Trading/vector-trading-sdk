@@ -4,11 +4,11 @@ import sys
 from datetime import datetime
 from pathlib import Path
 import httpx
-from vector_generated import ApiClient, Configuration
-from vector_generated.api.default_api import DefaultApi
-from vector_generated.models.signal_payload import SignalPayload
-from vector_generated.models.create_grant_request import CreateGrantRequest
-from vector_generated.models.update_signal_payload_order import UpdateSignalPayloadOrder
+from vector_trading._generated import ApiClient, Configuration
+from vector_trading._generated.api.default_api import DefaultApi
+from vector_trading._generated.models.signal_payload import SignalPayload
+from vector_trading._generated.models.create_grant_request import CreateGrantRequest
+from vector_trading._generated.models.update_signal_payload_order import UpdateSignalPayloadOrder
 
 root = Path(sys.argv[1])
 fixtures = json.loads((root / "conformance/signals/cases.json").read_text())

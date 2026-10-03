@@ -183,6 +183,11 @@ export async function generate(destination: string): Promise<void> {
     );
     await writeFile(join(destination, 'public.openapi.json'), json(specification));
     await mkdir(join(destination, 'typescript'), { recursive: true });
+    await mkdir(join(destination, 'python'), { recursive: true });
+    await writeFile(
+      join(destination, 'python/contract.json'),
+      json({ schemas: specification.components.schemas, paths: specification.paths }),
+    );
     await writeFile(
       join(destination, 'typescript/contract.ts'),
       '// Generated from the accepted snapshot. Do not edit.\nexport const contract = ' +
@@ -236,7 +241,25 @@ export async function generate(destination: string): Promise<void> {
         if (!/\.(ts|py|go|rs)$/.test(name)) continue;
         const path = join(destination, language, name);
         await mkdir(dirname(path), { recursive: true });
-        await writeFile(path, await readFile(join(output, name)));
+        let bytes = await readFile(join(output, name));
+        if (language === 'python') {
+          // Python 3.12 provides these typing primitives; keep backports out of models.
+          const source = bytes
+            .toString('utf8')
+            .replace(/^from typing_extensions import (.+)$/gm, (_line, names: string) => {
+              if (
+                !names
+                  .split(',')
+                  .every((name) =>
+                    ['Annotated', 'Literal', 'Self', 'NotRequired'].includes(name.trim()),
+                  )
+              )
+                throw new Error('Unsupported Python typing backport: ' + names);
+              return 'from typing import ' + names;
+            });
+          bytes = Buffer.from(source);
+        }
+        await writeFile(path, bytes);
       }
     }
     const inputs = [

@@ -1,0 +1,22 @@
+VTJSON|open-market-buy|{"action":"open","version":1e0,"timestamp":"1780000000000","marketPrice":1e2,"order":{"side":"buy"},"force":false}
+VTJSON|open-limit-buy|{"action":"open","version":1e0,"timestamp":"1780000000000","marketPrice":1e2,"order":{"side":"buy","price":9.5e1,"stop":9e1,"takeProfits":[{"price":1.1e2,"percent":1e2}]}}
+VTJSON|open-trigger-buy|{"action":"open","version":1e0,"timestamp":"1780000000000","marketPrice":1e2,"order":{"side":"buy","triggerPrice":1.05e2}}
+VTJSON|open-trigger-limit-buy|{"action":"open","version":1e0,"timestamp":"1780000000000","marketPrice":1e2,"order":{"side":"buy","price":1.03e2,"triggerPrice":1.05e2}}
+VTJSON|open-market-sell|{"action":"open","version":1e0,"timestamp":"1780000000000","hashtag":"example_1","marketPrice":1e2,"order":{"side":"sell","stop":1.1e2,"amountPerc":5e1,"takeProfits":[{"price":9e1,"percent":4e1},{"price":8e1,"percent":6e1}]}}
+VTJSON|update-preserve|{"action":"update","version":1e0,"timestamp":"1780000000000","marketPrice":1e2,"order":{"side":"buy"}}
+VTJSON|update-clear|{"action":"update","version":1e0,"timestamp":"1780000000000","marketPrice":1e2,"order":{"side":"buy","takeProfits":[]}}
+VTJSON|update-replace|{"action":"update","version":1e0,"timestamp":"1780000000000","marketPrice":1e2,"order":{"side":"buy","takeProfits":[{"price":1.1e2,"percent":5e1}]}}
+VTJSON|update-price-stop|{"action":"update","version":1e0,"timestamp":"1780000000000","marketPrice":1e2,"order":{"side":"buy","price":9.5e1,"stop":9e1}}
+VTJSON|cancel|{"action":"cancel","version":1e0,"timestamp":"1780000000000"}
+VTJSON|cancel-market-price|{"action":"cancel","version":1e0,"timestamp":"1780000000000","marketPrice":1e2}
+VTJSON|close|{"action":"close","version":1e0,"timestamp":"1780000000000"}
+VTJSON|close-market-price|{"action":"close","version":1e0,"timestamp":"1780000000000","marketPrice":1e2}
+VTJSON|start|{"action":"start","version":1e0,"timestamp":"1780000000000"}
+VTJSON|pause|{"action":"pause","version":1e0,"timestamp":"1780000000000"}
+VTJSON|stop|{"action":"stop","version":1e0,"timestamp":"1780000000000"}
+VTJSON|delete|{"action":"delete","version":1e0,"timestamp":"1780000000000"}
+VTQUOTE|unicode|"Quote \" slash \\ tab\t line\n café 😀"
+VTJSON|precision|{"action":"open","version":1.25e0,"timestamp":"0001780000000000","hashtag":"","marketPrice":1.2312345678901234e2,"order":{"side":"buy"}}
+VTJSON|tiny-price|{"action":"open","version":1e0,"timestamp":"1780000000000","marketPrice":1.2345678901234567e-20,"order":{"side":"buy"}}
+VTJSON|tiny-valid-stop|{"action":"open","version":1e0,"timestamp":"1780000000000","marketPrice":1.2345678901234567e-20,"order":{"side":"buy","stop":1e-20}}
+VTJSON|automatic-timestamp|{"action":"start","version":1e0,"timestamp":"1791069211867"}

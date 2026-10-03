@@ -1,0 +1,54 @@
+[
+  {
+    "case": 1,
+    "id": "tp-total-above-100"
+  },
+  {
+    "case": 2,
+    "id": "tp-wrong-side"
+  },
+  {
+    "case": 3,
+    "id": "stop-wrong-side"
+  },
+  {
+    "case": 4,
+    "id": "limit-wrong-side"
+  },
+  {
+    "case": 5,
+    "id": "trigger-wrong-side"
+  },
+  {
+    "case": 6,
+    "id": "required-na-price"
+  },
+  {
+    "case": 7,
+    "id": "zero-price"
+  },
+  {
+    "case": 8,
+    "id": "non-finite-price"
+  },
+  {
+    "case": 9,
+    "id": "invalid-hashtag"
+  },
+  {
+    "case": 10,
+    "id": "unsafe-timestamp"
+  },
+  {
+    "case": 11,
+    "id": "oversized-body"
+  },
+  {
+    "case": 12,
+    "id": "na-target"
+  },
+  {
+    "case": 13,
+    "id": "close-distinct-stop"
+  }
+]

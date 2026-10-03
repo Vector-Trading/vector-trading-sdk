@@ -223,8 +223,20 @@ against localhost with independent locks and checked runtime dependency/features
 The archive allowlist excludes test data, trial transport, and tooling. See the
 [package README](../rust/README.md) and [development commands](development.md#rust-package).
 
+## Pine Script sources
+
+`pinescript/VectorTrading.pine` is the handwritten Pine v6 signal builder. It has no
+transport, credentials, alert calls, or chart-dependent trading decisions. Shared
+signal semantics remain owned by [contracts](contracts.md#signals-recommended-outgoing-payload).
+A deterministic source embedding provides a standalone consumer without requiring
+publication or a fictitious import. Actual Pine Editor compilation and native JSON
+captures are tracked separately from ordinary file/schema checks. See the
+[Pine guide](../pinescript/README.md) for the API, precision limits, alert snapshots,
+and manual publication/update procedures. Registry and TradingView versions remain
+independent of the payload's strategy version.
+
 ## Planned results
 
-Pine sources and release are defined in the
-[plan](plans/public-sdk.plan.md). Their public entry points and package configuration
-will be documented after the corresponding steps are accepted.
+Release tooling and publication procedures are defined in the
+[plan](plans/public-sdk.plan.md). Their commands and configurations will be documented
+after the corresponding steps are implemented.

@@ -1,0 +1,235 @@
+//@version=6
+// SPDX-License-Identifier: MIT
+// Derived embedding; run node pinescript/tools/build.ts --write.
+// Library SHA-256: 5846fa10b316f05cc2364fe33ca905a79f7f0be9e9e5552025f545ecec1fe186
+indicator("Vector Trading SDK conformance", overlay = true)
+// Library declaration removed for source-only embedding.
+
+// @type A target price and percentage of the position.
+// @field price Positive target price.
+// @field percent Positive percentage, at most 100.
+type TakeProfit
+    float price
+    float percent
+
+// Pine v6 booleans cannot represent omission.
+enum Force
+    omitted
+    disabled
+    enabled
+
+// Float comparisons in Pine round operands. log detects a positive difference
+// without losing small prices or close, distinct protective prices.
+vtPositive(float value) =>
+    not na(value) and not na(math.log(value))
+
+vtGreater(float left, float right) =>
+    vtPositive(left - right)
+
+// @function Encode a positive finite number without tick-size or decimal rounding.
+// @param value Positive finite value.
+// @returns A JSON number, retaining Pine's available floating-point precision.
+jsonNumber(float value) =>
+    if not vtPositive(value)
+        runtime.error("Expected a positive finite number")
+    float scaled = value
+    int offset = 0
+    // Keep scientific-format conversion away from its small-number rounding.
+    while math.log10(scaled) < 0
+        scaled *= 1e100
+        offset -= 100
+    string encoded = str.tostring(scaled, "0.################E0")
+    array<string> parts = str.split(encoded, "E")
+    if array.size(parts) != 2 or na(str.tonumber(array.get(parts, 0)))
+        runtime.error("Number cannot be represented as finite JSON")
+    int exponent = int(str.tonumber(array.get(parts, 1))) + offset
+    array.get(parts, 0) + "e" + str.tostring(exponent)
+
+// @function Quote a JSON string, preserving Unicode and escaping supported controls.
+// @param value String; Pine represents na strings as empty strings. Unsupported C0 controls are rejected.
+// @returns A quoted JSON string.
+jsonString(string value) =>
+    string escaped = str.replace_all(value, "\\", "\\\\")
+    escaped := str.replace_all(escaped, "\"", "\\\"")
+    escaped := str.replace_all(escaped, "\n", "\\n")
+    escaped := str.replace_all(escaped, "\t", "\\t")
+    // Reject remaining C0 characters rather than emitting invalid JSON. Outgoing
+    // metadata is ASCII/digits; this helper also accepts ordinary Unicode text.
+    if str.length(str.match(escaped, "[\\x00-\\x1f]")) > 0
+        runtime.error("Unsupported control character in JSON string")
+    "\"" + escaped + "\""
+
+vtMetadata(string action, float version, string timestamp, string hashtag, bool includeHashtag) =>
+    string stamp = timestamp == "auto" ? str.tostring(timenow) : timestamp
+    if na(stamp) or str.length(stamp) == 0 or str.match(stamp, "^[0-9]+$") != stamp
+        runtime.error("Timestamp must contain decimal millisecond digits")
+    float milliseconds = str.tonumber(stamp)
+    if na(milliseconds) or vtGreater(milliseconds, 9007199254740991)
+        runtime.error("Timestamp must represent a safe integer")
+    if not na(hashtag) and str.match(hashtag, "^[a-zA-Z0-9_]*$") != hashtag
+        runtime.error("Invalid hashtag")
+    string message = "{\"action\":" + jsonString(action) + ",\"version\":" + jsonNumber(version) + ",\"timestamp\":" + jsonString(stamp)
+    if includeHashtag or str.length(hashtag) > 0
+        message += ",\"hashtag\":" + jsonString(hashtag)
+    message
+
+vtFinish(string message) =>
+    string result = message + "}"
+    // All signal string fields are validated ASCII, so character count equals
+    // UTF-8 byte count. jsonString is not an arbitrary metadata escape hatch.
+    if str.length(result) > 16384
+        runtime.error("Signal exceeds the 16 KiB UTF-8 limit")
+    result
+
+vtOrder(string side, float marketPrice, float price, float triggerPrice, float stopPrice, array<TakeProfit> takeProfits, float amountPerc) =>
+    if side != "buy" and side != "sell"
+        runtime.error("Side must be buy or sell")
+    string market = jsonNumber(marketPrice)
+    bool buy = side == "buy"
+    float reference = na(triggerPrice) ? marketPrice : triggerPrice
+    float base = not na(price) ? price : reference
+    string order = "{\"side\":" + jsonString(side)
+    if not na(price)
+        string encoded = jsonNumber(price)
+        if buy ? vtGreater(price, reference) : vtGreater(reference, price)
+            runtime.error("Limit price is on the wrong side")
+        order += ",\"price\":" + encoded
+    if not na(triggerPrice)
+        string encoded = jsonNumber(triggerPrice)
+        if buy ? vtGreater(marketPrice, triggerPrice) : vtGreater(triggerPrice, marketPrice)
+            runtime.error("Trigger price is on the wrong side")
+        order += ",\"triggerPrice\":" + encoded
+    if not na(stopPrice)
+        string encoded = jsonNumber(stopPrice)
+        if not (buy ? vtGreater(base, stopPrice) : vtGreater(stopPrice, base))
+            runtime.error("Stop price is on the wrong side")
+        order += ",\"stop\":" + encoded
+    if not na(amountPerc)
+        string encoded = jsonNumber(amountPerc)
+        if vtGreater(amountPerc, 100)
+            runtime.error("Amount percentage exceeds 100")
+        order += ",\"amountPerc\":" + encoded
+    // na array omits targets; an empty array explicitly clears targets.
+    if not na(takeProfits)
+        if array.size(takeProfits) > 10
+            runtime.error("At most ten take-profit targets are allowed")
+        string targets = ""
+        float total = 0
+        for target in takeProfits
+            if na(target)
+                runtime.error("Take-profit target must not be na")
+            string targetPrice = jsonNumber(target.price)
+            string percent = jsonNumber(target.percent)
+            if vtGreater(target.percent, 100) or not (buy ? vtGreater(target.price, base) : vtGreater(base, target.price))
+                runtime.error("Invalid take-profit target")
+            total += target.percent
+            targets += (str.length(targets) == 0 ? "" : ",") + "{\"price\":" + targetPrice + ",\"percent\":" + percent + "}"
+        if vtGreater(total, 100 + 1e-8)
+            runtime.error("Total take-profit percentage exceeds 100")
+        order += ",\"takeProfits\":[" + targets + "]"
+    ",\"marketPrice\":" + market + ",\"order\":" + order + "}"
+
+// @function Build an open signal. Optional na scalars/array omit their fields.
+// @param version Strategy version, independently of the library version.
+// @param marketPrice Current positive finite market price.
+// @param side buy or sell.
+// @param timestamp Decimal milliseconds; "auto" selects timenow; an empty string is invalid.
+// @param hashtag Optional ASCII hashtag.
+// @param price Optional limit price.
+// @param triggerPrice Optional trigger price.
+// @param stopPrice Optional protective stop.
+// @param takeProfits na omits; empty clears; non-empty replaces targets.
+// @param amountPerc Optional positive percentage, at most 100.
+// @param force Omitted, explicitly false, or explicitly true; open only.
+// @param includeHashtag Include an explicitly empty hashtag. Non-empty hashtags are always included.
+// @returns JSON; does not send an alert.
+openSignal(float version, float marketPrice, string side, string timestamp = "auto", string hashtag = na, float price = na, float triggerPrice = na, float stopPrice = na, array<TakeProfit> takeProfits = na, float amountPerc = na, Force force = Force.omitted, bool includeHashtag = false) =>
+    string message = vtMetadata("open", version, timestamp, hashtag, includeHashtag) + vtOrder(side, marketPrice, price, triggerPrice, stopPrice, takeProfits, amountPerc)
+    if force != Force.omitted
+        message += ",\"force\":" + (force == Force.enabled ? "true" : "false")
+    vtFinish(message)
+
+// @function Build an update. Amount changes and force are intentionally unavailable.
+// @returns JSON; omitted/empty/non-empty target arrays remain distinct.
+updateSignal(float version, float marketPrice, string side, string timestamp = "auto", string hashtag = na, float price = na, float triggerPrice = na, float stopPrice = na, array<TakeProfit> takeProfits = na, bool includeHashtag = false) =>
+    vtFinish(vtMetadata("update", version, timestamp, hashtag, includeHashtag) + vtOrder(side, marketPrice, price, triggerPrice, stopPrice, takeProfits, na))
+
+vtTrading(string action, float version, string timestamp, string hashtag, float marketPrice, bool includeHashtag) =>
+    string message = vtMetadata(action, version, timestamp, hashtag, includeHashtag)
+    if not na(marketPrice)
+        message += ",\"marketPrice\":" + jsonNumber(marketPrice)
+    vtFinish(message)
+
+// @function Build a cancellation message without sending it.
+// @returns JSON.
+cancelSignal(float version, string timestamp = "auto", string hashtag = na, float marketPrice = na, bool includeHashtag = false) =>
+    vtTrading("cancel", version, timestamp, hashtag, marketPrice, includeHashtag)
+
+// @function Build a close message without sending it.
+// @returns JSON.
+closeSignal(float version, string timestamp = "auto", string hashtag = na, float marketPrice = na, bool includeHashtag = false) =>
+    vtTrading("close", version, timestamp, hashtag, marketPrice, includeHashtag)
+
+// @function Build a strategy start message without sending it.
+// @returns JSON.
+startSignal(float version, string timestamp = "auto", string hashtag = na, bool includeHashtag = false) =>
+    vtFinish(vtMetadata("start", version, timestamp, hashtag, includeHashtag))
+
+// @function Build a strategy pause message without sending it.
+// @returns JSON.
+pauseSignal(float version, string timestamp = "auto", string hashtag = na, bool includeHashtag = false) =>
+    vtFinish(vtMetadata("pause", version, timestamp, hashtag, includeHashtag))
+
+// @function Build a strategy stop message without sending it.
+// @returns JSON.
+stopSignal(float version, string timestamp = "auto", string hashtag = na, bool includeHashtag = false) =>
+    vtFinish(vtMetadata("stop", version, timestamp, hashtag, includeHashtag))
+
+// @function Build a strategy deletion message without sending it.
+// @returns JSON.
+deleteSignal(float version, string timestamp = "auto", string hashtag = na, bool includeHashtag = false) =>
+    vtFinish(vtMetadata("delete", version, timestamp, hashtag, includeHashtag))
+
+// Select one rejection at a time: the real builder must raise a runtime error.
+int rejection = input.int(0, "Rejection case", minval = 0, maxval = 13)
+if barstate.isfirst
+    log.info("VTJSON|open-market-buy|" + openSignal(force = Force.disabled, marketPrice = 100, timestamp = "1780000000000", version = 1, side = "buy"))
+    log.info("VTJSON|open-limit-buy|" + openSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, price = 95, side = "buy", stopPrice = 90, takeProfits = array.from(TakeProfit.new(110, 100))))
+    log.info("VTJSON|open-trigger-buy|" + openSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, side = "buy", triggerPrice = 105))
+    log.info("VTJSON|open-trigger-limit-buy|" + openSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, price = 103, side = "buy", triggerPrice = 105))
+    log.info("VTJSON|open-market-sell|" + openSignal(hashtag = "example_1", marketPrice = 100, timestamp = "1780000000000", version = 1, amountPerc = 50, side = "sell", stopPrice = 110, takeProfits = array.from(TakeProfit.new(90, 40), TakeProfit.new(80, 60))))
+    log.info("VTJSON|update-preserve|" + updateSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, side = "buy"))
+    log.info("VTJSON|update-clear|" + updateSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, side = "buy", takeProfits = array.new<TakeProfit>()))
+    log.info("VTJSON|update-replace|" + updateSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, side = "buy", takeProfits = array.from(TakeProfit.new(110, 50))))
+    log.info("VTJSON|update-price-stop|" + updateSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, price = 95, side = "buy", stopPrice = 90))
+    log.info("VTJSON|cancel|" + cancelSignal(timestamp = "1780000000000", version = 1))
+    log.info("VTJSON|cancel-market-price|" + cancelSignal(marketPrice = 100, timestamp = "1780000000000", version = 1))
+    log.info("VTJSON|close|" + closeSignal(timestamp = "1780000000000", version = 1))
+    log.info("VTJSON|close-market-price|" + closeSignal(marketPrice = 100, timestamp = "1780000000000", version = 1))
+    log.info("VTJSON|start|" + startSignal(timestamp = "1780000000000", version = 1))
+    log.info("VTJSON|pause|" + pauseSignal(timestamp = "1780000000000", version = 1))
+    log.info("VTJSON|stop|" + stopSignal(timestamp = "1780000000000", version = 1))
+    log.info("VTJSON|delete|" + deleteSignal(timestamp = "1780000000000", version = 1))
+    log.info("VTQUOTE|unicode|" + jsonString("Quote \" slash \\ tab\t line\n café 😀"))
+    log.info("VTJSON|precision|" + openSignal(1.25, 123.12345678901234, "buy", "0001780000000000", "", includeHashtag = true))
+    log.info("VTJSON|tiny-price|" + openSignal(1, 1.2345678901234567e-20, "buy", "1780000000000"))
+    log.info("VTJSON|tiny-valid-stop|" + openSignal(1, 1.2345678901234567e-20, "buy", "1780000000000", stopPrice = 1e-20))
+    log.info("VTJSON|automatic-timestamp|" + startSignal(1))
+    if rejection != 0
+        string rejected = switch rejection
+            1 => updateSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, side = "buy", takeProfits = array.from(TakeProfit.new(110, 60), TakeProfit.new(120, 50)))
+            2 => updateSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, side = "buy", takeProfits = array.from(TakeProfit.new(90, 50)))
+            3 => openSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, side = "buy", stopPrice = 110)
+            4 => openSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, price = 105, side = "buy")
+            5 => openSignal(marketPrice = 100, timestamp = "1780000000000", version = 1, side = "buy", triggerPrice = 95)
+            6 => openSignal(1, na, "buy")
+            7 => openSignal(1, 0, "buy")
+            8 => openSignal(1, 1e308 * 10, "buy")
+            9 => startSignal(1, hashtag = "quote\"slash\\")
+            10 => startSignal(1, timestamp = "9007199254740992")
+            11 => startSignal(1, timestamp = str.repeat("0", 16384))
+            12 => openSignal(1, 100, "buy", takeProfits = array.from(TakeProfit.new(na, 50)))
+            13 => openSignal(1, 100, "buy", stopPrice = 100.00000000001)
+            => ""
+        runtime.error("REJECTION DID NOT OCCUR: " + rejected)
+plot(na)

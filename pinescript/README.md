@@ -1,0 +1,58 @@
+# Pine Script signal sources
+
+Pine v6 sources build the outgoing [signal contract](../docs/contracts.md#signals-recommended-outgoing-payload). This is a JSON builder, not a REST client or trading engine. No dependencies, credentials, HTTP calls, alert conditions, or alert frequency live in the library.
+
+## Source-only use
+
+Copy [`examples/confirmed-cross.pine`](examples/confirmed-cross.pine) into a **new personal script** in Pine Editor and add it to a chart. It embeds the exact library implementation and needs no published import. Signals are disabled by default. The example uses confirmed realtime SMA crosses, an `if`/`else if` pair, and `alert.freq_once_per_bar_close`; it can call at most one signal alert per closing bar. These demonstration conditions are not trading advice or server trading rules.
+
+Edit the canonical [`VectorTrading.pine`](VectorTrading.pine) and the example's [`confirmed-cross.body.pine`](examples/confirmed-cross.body.pine), then run `node pinescript/tools/build.ts --write` from the repository root. Do not edit embedded copies manually. The check without `--write` compares their complete bytes and library SHA-256; it does **not** compile Pine.
+
+## Builder API
+
+| Function                                                   | Required arguments               | Optional order arguments                                                   |
+| ---------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------- |
+| `openSignal`                                               | `version`, `marketPrice`, `side` | `price`, `triggerPrice`, `stopPrice`, `takeProfits`, `amountPerc`, `force` |
+| `updateSignal`                                             | `version`, `marketPrice`, `side` | `price`, `triggerPrice`, `stopPrice`, `takeProfits`                        |
+| `cancelSignal`, `closeSignal`                              | `version`                        | `marketPrice`                                                              |
+| `startSignal`, `pauseSignal`, `stopSignal`, `deleteSignal` | `version`                        | none                                                                       |
+
+Every builder also accepts `timestamp`, `hashtag`, and `includeHashtag`. `version` is the positive finite **strategy version**, independent of SDK/Pine publication versions. `timestamp` defaults to the sentinel `"auto"`, selecting `timenow`; otherwise supply decimal millisecond digits representing a safe integer. Empty timestamps are invalid, and leading zeros are preserved. Non-empty hashtags are included automatically. Pine represents `na` strings as empty strings; set `includeHashtag = true` to explicitly include `""` rather than omit it.
+
+Optional numeric `na` values omit their fields. Required prices/version and target prices/percentages reject `na`, zero, negative, and non-finite values. Optional computed `na` has the same meaning as omission: guard your own calculations if omission is unintended. Typed Pine parameters cannot represent JSON `null`.
+
+Neither `price` nor `triggerPrice` selects market; `price` selects limit; `triggerPrice` selects trigger; both select trigger-limit. Price relationships, SL/TP protection, the ten-target maximum, and percentages follow the linked shared contract. `amountPerc` and `force` are available only on `openSignal`. `Force.omitted`, `Force.disabled`, and `Force.enabled` retain omission, explicit false, and explicit true.
+
+```pine
+// In the embedded example; no import is needed.
+string preserve = updateSignal(1, close, "buy")
+string clear = updateSignal(1, close, "buy", takeProfits = array.new<TakeProfit>())
+array<TakeProfit> targets = array.from(TakeProfit.new(close * 1.02, 50))
+string replace = updateSignal(1, close, "buy", takeProfits = targets)
+```
+
+Pine floats have finite precision and float comparisons round operands. The codec uses scientific JSON numbers, avoids default/tick-size formatting, rescales small numbers before string conversion, and detects positive price differences through logarithms. The verified 17 fixtures and precision probes retain their numeric values exactly; this cannot recover precision already lost by a caller's Pine computation. `jsonString` escapes quotes, backslashes, tabs, and newlines and preserves ordinary Unicode. Other C0 controls are rejected rather than emitted as invalid JSON. Signal string fields are restricted to ASCII/digits, so their character count is their UTF-8 byte count; builders enforce 16 KiB.
+
+## Alerts and webhook setup
+
+1. Verify source, strategy version, chart symbol/timeframe, inputs, and selected conditions. Set **Enable signals** only for an explicitly authorized environment.
+2. Create an alert with the condition **Any alert() function call**. The example's named `alertcondition` entries have static messages and are not the dynamic JSON webhook channel. Frequency is controlled by the `alert()` calls.
+3. Supply the HTTPS webhook URL `https://<your-host>/webhooks/signals/v1/<strategy-key>` in TradingView's webhook field. Put the strategy key there only; never put it in code, JSON, screenshots, logs, or Git. Account REST keys do not belong in Pine. Follow TradingView's current webhook/account requirements, including two-factor authentication.
+4. Test explicitly selected signals against an isolated receiver first. Historical calculations, Pine Logs, and broker-emulator results do not prove webhook delivery or exchange execution. This step's compatibility proof calls the parser only; no running webhook alert was created.
+5. A webhook `204` means enqueue acceptance. It does not guarantee execution or permanent exactly-once delivery. The library adds no retry or background loop.
+
+## Compilation, publication, and updates
+
+Actual Pine Editor verification and source hashes are recorded in [`conformance/verification.json`](conformance/verification.json). Recompile the standalone library and embedded consumer after any source change. For the probe, copy [`conformance/probe.pine`](conformance/probe.pine) into a personal script, open **Pine Logs**, and select rejection cases individually. Export only `VTJSON|...` and `VTQUOTE|...` messages, without timestamp prefixes, into `conformance/editor-output.txt` and run the documented checks. The builder must raise an error for each rejection; the probe's `REJECTION DID NOT OCCUR` error signals a failed test.
+
+The Git repository and any future GitHub source archive are **not** an importable TradingView library. No TradingView publication has been made. When publication is separately authorized:
+
+1. Review credentials/content and compile the exact library in Pine Editor.
+2. Use TradingView's **Publish script** flow manually, following its current publication rules. Libraries expose their source; choose the intended visibility explicitly.
+3. Record the actual author, library URL, numbered TradingView publication version, Pine version, SDK version, Git source commit, and source hash.
+4. Replace embedding in a consumer with an import using the verified `author/Library/numeric-version` path and a chosen alias. Do not invent an executable import before publication. Qualify functions, `TakeProfit`, and `Force` with that alias.
+5. Compile the consumer, test selected signals in an isolated environment, then **recreate running alerts** using the new script and inputs. Existing imports stay pinned, and TradingView running alerts retain a snapshot of their original script/context.
+
+Rollback pins the previous published library version, restores verified consumer inputs, and recreates its alert. It does not automatically undo or reverse any executed trade.
+
+Official references: [Libraries](https://www.tradingview.com/pine-script-docs/concepts/libraries/), [Strings](https://www.tradingview.com/pine-script-docs/concepts/strings/), [Type system](https://www.tradingview.com/pine-script-docs/language/type-system/), [Alerts](https://www.tradingview.com/pine-script-docs/concepts/alerts/), [Pine Logs](https://www.tradingview.com/pine-script-docs/writing/debugging/), [Publishing](https://www.tradingview.com/pine-script-docs/writing/publishing/), [Webhook configuration](https://www.tradingview.com/support/solutions/43000529348-how-to-configure-webhook-alerts/).

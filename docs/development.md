@@ -345,10 +345,39 @@ execute all seven REST operations/eight signals against localhost. They never im
 working `src`. Consumers and servers are removed/closed even on failure; the retained
 artifact is `rust/dist/vector-trading-sdk-0.1.0.crate`.
 
+## Pine Script checks
+
+From the repository root with the pinned Node.js:
+
+```sh
+node pinescript/tools/build.ts --write
+node pinescript/tools/build.ts
+node pinescript/tools/check-output.ts
+node pinescript/tools/check-server.ts /absolute/path/to/vector-trading
+```
+
+The first command updates source embeddings; subsequent checks must not modify
+tracked files. The output checker verifies **captured native Pine JSON**, the 17
+canonical valid fixtures, four signal edge cases, and escaped Unicode. It does not
+execute Pine. The server check requires an explicitly selected checkout with
+installed `packages/types` dependencies; it archives only that package at the
+snapshot's accepted commit into a temporary directory, verifies the parser hash,
+and calls the real parser with a synthetic key. It preserves the server working
+tree and invokes no HTTP endpoint, queue, or exchange. CI needs only file/schema
+checks; neither the neighboring checkout nor browser automation is mandatory CI.
+
+Compile both the library and embedded example manually in TradingView Pine Editor;
+execute the personal conformance probe and record its actual output and rejection
+results. Update source SHA-256 and environment evidence in
+[`pinescript/conformance/verification.json`](../pinescript/conformance/verification.json).
+A stale native compilation receipt is not repaired by regenerating a hash. See the
+[Pine guide](../pinescript/README.md) for the exact workflow and alert configuration.
+No `pnpm verify` or official headless Pine compiler is claimed before STEP-09.
+
 ## Native tools for later steps
 
 Python, Go, and Rust are required for their package checks. The following is the agreed implementation matrix;
-TypeScript, Python, Go, and Rust packages are locally verified; Pine remains planned:
+TypeScript, Python, Go, and Rust packages and Pine sources are locally verified:
 
 | Area                  | Environments and tools                                | Configuration and command owner                    |
 | --------------------- | ----------------------------------------------------- | -------------------------------------------------- |

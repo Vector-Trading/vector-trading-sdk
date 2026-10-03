@@ -8,9 +8,9 @@
 - Based on revision: SDK `3c83ba25ac0a1e642d0327e23b07b320590e43c6`; server `be43459ba348d5dd852269f51a0897fb54668238`, matching local `origin/main` at verification time.
 - Plan root: `/Users/vlad.prychodko/Work/askadias/git/vector-trading-sdk`.
 - Planning context: the first and only SDK working tree, branch `main`, `origin=https://github.com/Vector-Trading/vector-trading-sdk.git`.
-- Workspace state: STEP-01 is integrated into SDK `main` and `origin/main` at commit `3cd3f75e146de2001826f710a4c9f750a8f9b4de`, with its integration receipt in `d2204e25b76b223b2fcbecd4f6ffccb7a6eccf48`. STEP-02 and STEP-03 are integrated into local SDK `main` at `61fc73b860d4b77c15c7192e1d54bd48dfb2fe89`: the accepted server snapshot, English documentation, reproducible generation, four-language probes, and runtime dependency policy are committed and verified. The server source remains local `main` commit `e51366b859926abd5bdc222a5249e99f8080f0f8`. The latest SDK delivery has not been pushed to `origin/main`. STEP-04 is integrated into local SDK `main` at `f510cd2043d6ab4fe033840d7f1f8de76536505b`; STEP-05 is integrated into local SDK `main` at `871aa7c71adfa223aa264f7d7408f225e54980f1`; STEP-06 is integrated into local SDK `main` at `909c9cc0ce679b17d6eed9eb10588b36d03b485e`; STEP-07 is integrated into local SDK `main` at `905a714c80b8766272e13c2762e698d547b30a7f`; STEP-08 remains pending.
+- Workspace state: STEP-01 remains integrated in SDK `main` and `origin/main`, both at `d2204e25b76b223b2fcbecd4f6ffccb7a6eccf48`. At the user's request, all ten unpublished SDK commits through `28058d3d3e1a936cab0f32f90b36eda7cb2c5df7` were preserved on `VT-000/sdk-implementation`, and local `main` was returned to `origin/main`. STEP-02–07 are therefore currently `implemented`, awaiting one future PR into `main`; their earlier local-main receipts below are historical. The server contract remains accepted at `e51366b859926abd5bdc222a5249e99f8080f0f8`. STEP-08 is locally verified and `implemented` on the existing implementation branch; no new branch, commit, push, PR, or publication is authorized by this step.
 - Integration target: the SDK repository's `main` after verified delivery; for canonical export, a separately accepted main-repository commit; for release, confirmed npm, PyPI, crates.io, and public Go tags/proxy.
-- Target branch: `main` in both repositories. Check the current revision before execution; merging server branches does not complete SDK steps.
+- Working branch: SDK `VT-000/sdk-implementation`; integration target remains `main` in both repositories. Check the current revision before execution; merging server branches does not complete SDK steps.
 - Source root: `/Users/vlad.prychodko/Work/askadias/git/vector-trading`; planning base `be43459ba348d5dd852269f51a0897fb54668238`. STEP-02 completion found the prepared changes already bundled with unrelated work in `b094181d0147da0d785bd2d6d92df806f23bbdcc` on `VT-000/demo-entry-review-fixes`. With separate user authorization, only the 19 STEP-02 files/owned documentation hunks were accepted into existing local `main` as `e51366b859926abd5bdc222a5249e99f8080f0f8`. The unrelated branch and its commit were preserved; no server push occurred. A parallel home-demo documentation edit appeared after acceptance and was preserved in the server working tree on `main`; switching back would overlap that edit. The snapshot source is the accepted commit, and all hashed inputs were checked against its committed bytes.
 - Plan file: `docs/plans/public-sdk.plan.md`.
 
@@ -185,9 +185,9 @@ Each step includes every required change, consumer check, documentation update, 
 - Deviations / openings: also created `tsconfig.json`, required for real `typecheck`. pnpm 11 settings reside in `pnpm-workspace.yaml`; the local store and disabled global virtual store give CI and ordinary installations the same structure. Checks do not install dependencies implicitly (`verifyDepsBeforeRun: error`). Dependency versions stay within agreed families; ESLint `10.11.0` requires no release-age exception. Tests, builds, `pnpm verify`, language configuration, and external integration remain later-step results.
 - Blocker: none; STEP-01 local acceptance and delivery to `main`/`origin/main` are confirmed.
 
-### [x] STEP-02 — The server owner exports the public contract with runtime behavior verified
+### [ ] STEP-02 — The server owner exports the public contract with runtime behavior verified
 
-- Implementation status: `integrated`
+- Implementation status: `implemented`
 - Purpose: avoid a second source of truth and incorrect SDK documentation.
 - Depends on: STEP-01.
 - Owners and skills: main server repository and its `server-boundaries`, `trust-boundaries`, `autotrading-flow`, `refactoring-boundaries`, `development-standards`; SDK `sdk-contracts`.
@@ -210,6 +210,8 @@ Each step includes every required change, consumer check, documentation update, 
 
 #### Completion Evidence
 
+- Current integration state (2026-10-04): the user moved unpublished SDK commits to `VT-000/sdk-implementation` for a future combined PR. The following local-main receipts describe prior acceptance; current SDK integration into `main` is pending. Verified implementation and source commits were preserved.
+
 - Revision / implementation context: SDK canonical checkout on `main`, HEAD `d2204e25b76b223b2fcbecd4f6ffccb7a6eccf48`. The user separately authorized finishing STEP-02 and accepting a server-only commit into `main`. Server commit `e51366b859926abd5bdc222a5249e99f8080f0f8` (`[VT-000] Export verified public SDK contracts`) has parent `be43459ba348d5dd852269f51a0897fb54668238` and exactly 19 STEP-02 files/owned hunks. No branches or additional checkouts were created; no server push was performed.
 - Integration evidence: server work is accepted into local server `main` at `e51366b859926abd5bdc222a5249e99f8080f0f8`. SDK commit `61fc73b860d4b77c15c7192e1d54bd48dfb2fe89` is accepted into local SDK `main` and contains the verified five-file snapshot (`status: committed`, `contractVersion: 1.0.0`) and current English documentation. STEP-02 is `integrated` into its local targets. Push to either repository was not part of this delivery; no remote integration is claimed.
 - Changed artifacts (server): `apps/web/hono/routes/rest-api/openapi/{paths.ts,schemas.ts,conformance.spec.ts}`, `rest-api/{conformance.json,rest-api.router.spec.ts}`, `apps/webhook/src/lambda.conformance.spec.ts`, `packages/types/src/{index.ts,signal-payload.ts,signal.schema.ts,signal.conformance.json,signal.conformance.spec.ts}`, `account-api-key.service`/`trading-bundle-access.service` tests, `scripts/export-public-sdk.{mjs,spec.mjs}`, root `package.json`/`pnpm-lock.yaml`, and domain `docs/architecture.md`/`docs/autotrading.md`. Added already transitively pinned `ajv@6.15.0` as a direct validation tool; lockfile changes are only three root-dependency lines.
@@ -221,9 +223,9 @@ Each step includes every required change, consumer check, documentation update, 
 - Deviations / preservation: the prepared server changes had been included in a parallel demo commit. Only SDK paths and owned documentation hunks were transferred into server `main`; its unrelated branch/commit remained intact. A new unrelated home-demo documentation edit appeared after the server commit and was preserved on `main`, so the original branch was not restored across overlapping changes. Migrations, deployment, public document routes, and sitemap were untouched. SDK documents and skills remain English.
 - Blocker / exact remainder: none for STEP-02 implementation or local integration. Remote delivery is separate from the user-authorized local commit. No package publication was performed.
 
-### [x] STEP-03 — Four-language generation is reproducible and preserves transport semantics
+### [ ] STEP-03 — Four-language generation is reproducible and preserves transport semantics
 
-- Implementation status: `integrated`
+- Implementation status: `implemented`
 - Purpose: verify the riskiest mechanism before implementing full packages.
 - Depends on: STEP-02.
 - Owners and skills: shared generation pipeline, `sdk-contracts`, `sdk-clients`.
@@ -246,6 +248,8 @@ Each step includes every required change, consumer check, documentation update, 
 
 #### Completion Evidence
 
+- Current integration state (2026-10-04): the user moved unpublished SDK commits to `VT-000/sdk-implementation` for a future combined PR. The following local-main receipts describe prior acceptance; current SDK integration into `main` is pending. Verified implementation and source commits were preserved.
+
 - Revision / implementation context: canonical SDK checkout on `main`, HEAD `d2204e25b76b223b2fcbecd4f6ffccb7a6eccf48`. STEP-02 prerequisite was reverified from the five-file snapshot at accepted server commit `e51366b859926abd5bdc222a5249e99f8080f0f8`, contract version `1.0.0`; all artifact hashes remain unchanged. Server checkout, routes, and schemas were not modified during STEP-03. No branches, commits, pushes, or public packages were created.
 - Integration evidence: SDK commit `61fc73b860d4b77c15c7192e1d54bd48dfb2fe89` is accepted into local `main`; STEP-03 is `integrated` into that target. All 16 committed input hashes and 154 committed output hashes were reverified through `git show`; the manifest plus outputs contain 155 derived files. Manifest SHA-256: `cc056bd3001a42ef10f1191fc05f20139711702fd7900707f24abd99ce0d25f0`. Latest four-language native probes, five shared regression tests, reproducible generation, formatting, typechecking, and linting passed before this delivery. Push to `origin/main` remains outside the current commit-only request. STEP-04–08 prerequisites are satisfied.
 - Changed artifacts: `generation/generator.json`, four language YAML configurations, `generation/template-patches.json`, `generation/toolchains.json`, internal `generation/generated/` sources/specification/manifest, handwritten native probe sources and pinned Go/Python/Rust dependency inputs under `generation/probes/`; `scripts/{generation,generate,check-generated,check-contracts,setup-generation,probe-generation}.ts`, `scripts/contracts.test.ts`, root scripts/dependencies/lockfile, `tsconfig.json`, current-state navigation in `AGENTS.md`, README, architecture/development guides, and this plan. Separately requested IDE exclusions were added to `.gitignore`; the local `.iml` file was preserved and is now ignored. Existing English translations and other earlier work were retained.
@@ -258,9 +262,9 @@ Each step includes every required change, consumer check, documentation update, 
 - Commit review: 197 SDK files were committed, including all intended snapshot/generation/tooling files and earlier English translations. Caches, environments, archives, and IDE files were excluded. Staged whitespace checks passed for handwritten files; the pinned raw generated tree retains upstream trailing whitespace and blank lines at EOF, with exact committed-byte reproduction verified instead of manual edits.
 - Blocker / exact remainder: none for STEP-03 local implementation or integration. Remote Git delivery, public language packages, Pine consumers, CI, and release remain separate work. STEP-04–08 are ready to execute against the committed local result.
 
-### [x] STEP-04 — The JavaScript/TypeScript package installs and covers the entire public API
+### [ ] STEP-04 — The JavaScript/TypeScript package installs and covers the entire public API
 
-- Implementation status: `integrated`
+- Implementation status: `implemented`
 - Purpose: one npm package for JavaScript and TypeScript with safe server-side key use.
 - Depends on: STEP-03.
 - Owners and skills: `typescript/`, `sdk-clients`, `sdk-contracts`, packaging `sdk-release`.
@@ -283,6 +287,8 @@ Each step includes every required change, consumer check, documentation update, 
 
 #### Completion Evidence
 
+- Current integration state (2026-10-04): the user moved unpublished SDK commits to `VT-000/sdk-implementation` for a future combined PR. The following local-main receipts describe prior acceptance; current SDK integration into `main` is pending. Verified implementation and source commits were preserved.
+
 - Revision / implementation context: canonical SDK checkout on `main`, HEAD `f5e7a9691553e797029195970c53b28e36cca558`. STEP-03 is integrated in the prerequisite commit `61fc73b860d4b77c15c7192e1d54bd48dfb2fe89`. The five accepted snapshot files were compared byte-for-byte with HEAD and retain the STEP-02 hashes and source commit `e51366b859926abd5bdc222a5249e99f8080f0f8`. The neighboring server checkout was not modified.
 - Changed artifacts: `typescript/` now contains `@vector-trading/sdk` version `0.1.0`, public `RestClient` and `SignalsClient`, seven REST methods, four optional page iterators, eight named offline builders plus generic construction/serialization, safe errors, examples, MIT license, strict configuration, tests, and packaging. Root commands, workspace/lockfile, README, instructions, architecture, and development documentation describe the verified package. Shared generation emits `generation/generated/typescript/contract.ts` from the canonical intermediate document; clients consume the existing generated APIs/codecs rather than a copied tree or handwritten contract.
 - C01–C06: local HTTP tests verify offline import/construction, distinct credentials, all 19 REST fixtures and 40 signal fixtures, all four entry-order variants, required strategy version, finite prices and TP/SL relations, absent/null/empty-array distinctions, decimal-string stable timestamps, open-only `force`, and all four page iterators including empty pages, preserved filters, repeated cursors, and cancellation.
@@ -293,9 +299,9 @@ Each step includes every required change, consumer check, documentation update, 
 - Integration evidence: with user authorization, the verified STEP-04 tree was committed into local SDK `main` as `f510cd2043d6ab4fe033840d7f1f8de76536505b` (`[VT-000] Add verified TypeScript SDK package`). The commit contains the package, checks, documentation, and reproducible-generation manifest recorded above. STEP-04 is `integrated` into that target. No push, tag, or publication was performed.
 - Blocker / exact remainder: none for STEP-04 local acceptance. Remote delivery and subsequent STEP-05–12 remain separate work.
 
-### [x] STEP-05 — The typed Python package installs and preserves the shared contract
+### [ ] STEP-05 — The typed Python package installs and preserves the shared contract
 
-- Implementation status: `integrated`
+- Implementation status: `implemented`
 - Purpose: idiomatic Python integration with equivalent coverage and transport semantics.
 - Depends on: STEP-03.
 - Owners and skills: `python/`, `sdk-clients`, `sdk-contracts`, `sdk-release`.
@@ -317,6 +323,8 @@ Each step includes every required change, consumer check, documentation update, 
 
 #### Completion Evidence
 
+- Current integration state (2026-10-04): the user moved unpublished SDK commits to `VT-000/sdk-implementation` for a future combined PR. The following local-main receipts describe prior acceptance; current SDK integration into `main` is pending. Verified implementation and source commits were preserved.
+
 - Revision / implementation context: canonical SDK checkout on `main`, HEAD `a9022052d43077a0012517c22eb80bd8358527e1`, after user-authorized STEP-04 implementation commit `f510cd2043d6ab4fe033840d7f1f8de76536505b` and integration receipt. STEP-03 remains accepted in `61fc73b860d4b77c15c7192e1d54bd48dfb2fe89`. All five snapshot files were compared byte-for-byte with HEAD; STEP-02 hashes and server source `e51366b859926abd5bdc222a5249e99f8080f0f8` remain unchanged. No neighboring server files were modified.
 - Changed artifacts: `python/` contains `vector-trading-sdk` version `0.1.0`, public `vector_trading` imports, seven synchronous REST methods, four page iterators, eight named offline builders plus generic construction/serialization, Pydantic types, safe errors, explicit `close()`/context managers, examples, MIT license, `py.typed`, tests, lockfile, and Hatchling packaging. Root `test:python`, `build:python`, and `test:python:package` delegate through `scripts/python.ts` to native uv commands. README, instructions, architecture, and development documentation describe the actual result.
 - Generation / dependency decision: canonical Python sources now use the internal `vector_trading._generated` namespace. Generation also emits Python `contract.json` from the same projected schemas and operations; handwritten wrappers consume this metadata and generated codecs rather than declaring a second contract or exposing generated asynchronous APIs. A guarded import-only transform replaces the known `Annotated`, `Literal`, `Self`, and `NotRequired` backports with Python 3.12 standard-library imports. The pinned generic-model template hides input values in Pydantic error messages. Wheel/sdist include canonical models and metadata, not the internal asynchronous transport; no generated source was edited manually. TypeScript, Go, and Rust output bytes remain unchanged.
@@ -330,9 +338,9 @@ Each step includes every required change, consumer check, documentation update, 
 - Integration evidence: user-authorized SDK commit `871aa7c71adfa223aa264f7d7408f225e54980f1` is accepted into local `main`. The committed manifest inputs/outputs and five unchanged contract snapshot files were reverified before delivery; all 109 Python tests and formatting passed again. STEP-05 is `integrated` into that target. No push, tag, release, branch, or worktree was created.
 - Blocker / exact remainder: none for STEP-05 local acceptance. Remote delivery and subsequent STEP-06–12 remain separate work.
 
-### [x] STEP-06 — The Go subdirectory module imports and preserves signal intent
+### [ ] STEP-06 — The Go subdirectory module imports and preserves signal intent
 
-- Implementation status: `integrated`
+- Implementation status: `implemented`
 - Purpose: Go consumers import an ordinary module and receive a cancellable HTTP API.
 - Depends on: STEP-03.
 - Owners and skills: `go/`, `sdk-clients`, `sdk-contracts`, `sdk-release`.
@@ -354,6 +362,8 @@ Each step includes every required change, consumer check, documentation update, 
 
 #### Completion Evidence
 
+- Current integration state (2026-10-04): the user moved unpublished SDK commits to `VT-000/sdk-implementation` for a future combined PR. The following local-main receipts describe prior acceptance; current SDK integration into `main` is pending. Verified implementation and source commits were preserved.
+
 - Revision / implementation context: canonical SDK checkout on `main`, HEAD `73d97508db79641c557798afd180db70d5376277`, after user-authorized STEP-05 commit `871aa7c71adfa223aa264f7d7408f225e54980f1` and its integration receipt. STEP-03 remains accepted in `61fc73b860d4b77c15c7192e1d54bd48dfb2fe89`. All five contract/provenance/fixture files were compared byte-for-byte with HEAD; accepted server commit `e51366b859926abd5bdc222a5249e99f8080f0f8` and snapshot hashes remain unchanged. The neighboring server checkout was not modified.
 - Changed artifacts: `go/` contains module `github.com/Vector-Trading/vector-trading-sdk/go`, SDK version `0.1.0`, public package `vectortrading`, generated model aliases, seven REST methods, four lazy page iterators, eight named offline signal builders, generic construction/serialization, strategy-key delivery, bounded safe errors, explicit close/context cancellation, callable examples, tests, MIT license, and native verification/archive tooling. Root `test:go`, `build:go`, and `test:go:package` delegate through `scripts/go.ts` to native Go checks; README, instructions, architecture, and development documentation describe the actual result.
 - Generation / location migration: the single authoritative Go tree moved from `generation/generated/go/` to `go/internal/generated/`; no duplicate model tree or consumer `replace` remains. The generated manifest records logical output names and physical roots. Generate/check commands, stale-output regression tests, and the four-language native probes were migrated together. Go embeds `contract.json` emitted from the same projected schemas/operations and uses standard-library validation rather than a second handwritten schema. Generation formats Go output through `gofmt`. A ninth SHA-256-pinned upstream template override normalizes internal trial HTTP error style and rejects its unused broken `*os.File` decode branch; the public JSON-only transport does not use that branch. No derived file was edited manually. TypeScript, Python, and Rust output bytes remain unchanged.
@@ -365,9 +375,9 @@ Each step includes every required change, consumer check, documentation update, 
 - Integration evidence / boundaries: user-authorized commit `909c9cc0ce679b17d6eed9eb10588b36d03b485e` is accepted into local SDK `main`; STEP-06 is `integrated`. Committed manifest inputs/outputs and the unchanged accepted snapshot were reverified before delivery; native Go checks on both compilers, Staticcheck, formatting, and diff checks passed again. No push, public tag/release, registry publication, live trading request, global tool installation, branch, or worktree was created.
 - Blocker / exact remainder: none for STEP-06 local acceptance. Remote delivery and subsequent STEP-07–12 remain separate work.
 
-### [x] STEP-07 — The Rust library installs as a crate and supports the entire API
+### [ ] STEP-07 — The Rust library installs as a crate and supports the entire API
 
-- Implementation status: `integrated`
+- Implementation status: `implemented`
 - Purpose: Rust consumers receive a typed asynchronous API without serialization differences.
 - Depends on: STEP-03.
 - Owners and skills: `rust/`, `sdk-clients`, `sdk-contracts`, `sdk-release`.
@@ -389,6 +399,8 @@ Each step includes every required change, consumer check, documentation update, 
 
 #### Completion Evidence
 
+- Current integration state (2026-10-04): the user moved unpublished SDK commits to `VT-000/sdk-implementation` for a future combined PR. The following local-main receipts describe prior acceptance; current SDK integration into `main` is pending. Verified implementation and source commits were preserved.
+
 - Revision / implementation context / integration evidence: verified on 2026-10-04 in the only canonical SDK working tree, branch `main`, based on `450336e4de6f61ca40396e86bf9aa4d81a6b3e72`. Before STEP-07, the user-authorized STEP-06 delivery was committed as `909c9cc0ce679b17d6eed9eb10588b36d03b485e`; its local integration receipt is `450336e4de6f61ca40396e86bf9aa4d81a6b3e72`. With user authorization, STEP-07 was committed and accepted into local SDK `main` as `905a714c80b8766272e13c2762e698d547b30a7f`. The committed source bytes and all generation hashes were checked against the previously verified archive; its native acceptance results remain applicable. No branch, worktree, push, tag, public release, registry upload, or server modification was performed.
 - Changed artifacts: `rust/{Cargo.toml,Cargo.lock,rust-toolchain.toml,rustfmt.toml,LICENSE,README.md,src/,tests/,examples/,tools/}`, the single relocated generated tree `rust/generated/`, `scripts/{generation,generate,contracts.test,rust}.ts`, generated manifest, root commands/typecheck configuration, README, AGENTS, architecture/development guides, and this plan. Archives remain ignored under `rust/dist/`.
 - Generation / location migration: Rust's single authoritative full trial tree moved from `generation/generated/rust/` to `rust/generated/`; public compilation/archive include its canonical models and `contract.json`, while native probes continue to compile the full trial transport. Generated metadata comes from the same projected schemas/operations; no duplicated schema or manually edited derived source was added. Manifest roots, staging replacement, stale-output regression tests, and probes moved together. Pinned rustfmt formats all Rust output with Rust 2021 style that is unchanged by either accepted compiler's formatter. Three narrow upstream style exceptions (`unused_imports`, `clippy::derivable_impls`, `clippy::empty_docs`) are scoped only to the generated model module. TypeScript, Python, and Go output bytes are unchanged.
@@ -402,7 +414,7 @@ Each step includes every required change, consumer check, documentation update, 
 
 ### [ ] STEP-08 — Pine sources build compatible JSON and are verified in TradingView
 
-- Implementation status: `pending`
+- Implementation status: `implemented`
 - Purpose: back up Pine code and provide convenient TradingView signal integration.
 - Depends on: STEP-03.
 - Owners and skills: `pinescript/`, `pine-signals`, `sdk-contracts`.
@@ -424,9 +436,13 @@ Each step includes every required change, consumer check, documentation update, 
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: pending.
-- Changed artifacts / verification: pending, including actual Pine Editor verification; deviations and openings: none.
-- Blocker: none; Editor access is required at verification time.
+- Revision / implementation context: existing SDK branch `VT-000/sdk-implementation`, base HEAD `28058d3d3e1a936cab0f32f90b36eda7cb2c5df7`; STEP-08 sources are uncommitted and pinned by SHA-256 in `pinescript/conformance/verification.json`. The STEP-03 prerequisite is preserved in the branch's committed history. Snapshot artifacts, 16 generation inputs and all 160 derived outputs retain their accepted hashes; the manifest remains SHA-256 `9c028029ddd2df4e0ec09fe8c898a666fd5175d440afd6a22fe0a7f84283314f`. No branch, commit, push, PR, tag, package, or TradingView publication was created by STEP-08.
+- Changed artifacts: handwritten `pinescript/VectorTrading.pine`, example body and deterministic embedded consumer, native conformance probe, actual Pine JSON and rejection captures, compilation/hash receipt, `pinescript/README.md`, embedding/output/accepted-parser tooling, root TypeScript inclusion, repository navigation and contract/architecture/development documentation. Existing shared schema/fixtures, four language packages, locks and generated sources were preserved.
+- Actual native acceptance (2026-10-04 Europe/Warsaw): the final standalone library, embedded confirmed-cross example, and personal conformance probe compiled in TradingView Pine Editor v6 in Chrome/macOS. Twenty-one signals generated by Pine itself passed the canonical schema and the real parser from accepted server commit `e51366b859926abd5bdc222a5249e99f8080f0f8`; all 17 canonical valid fixtures matched exactly. These cover eight actions, four order field combinations, TP omission/clear/replacement and false force. Additional native output proves fractional strategy version, leading-zero string timestamp, explicit empty hashtag, automatic `timenow`, price `123.12345678901234`, price `1.2345678901234567e-20` and valid tiny SL; quote/backslash/tab/newline/Unicode escaping also passed. Thirteen real Pine runtime errors prove invalid price/TP/SL relationships, total percentages, required `na`, zero/overflow, invalid hashtag, unsafe timestamp, 16 KiB body limit, `na` target price, and a close but distinct wrong-side stop. The probe's failure sentinel never appeared.
+- Verification: source embeddings reproduced exactly; receipt/capture hashes and schema/fixture replay passed. The explicit server checker archives only accepted `packages/types` sources into a temporary directory, verifies the parser hash, and runs 21 tests with a synthetic key; no HTTP handler, queue or exchange is invoked. Seven existing shared regression tests, root/package typechecking, linting, contract hashes/59 fixture checks, reproducible generated output, formatting and whitespace checks passed. `pnpm verify` remains absent until STEP-09; no official headless Pine compiler or browser automation dependency was added to CI.
+- Boundaries / deviations: Pine's `na` strings are empty strings, so `includeHashtag` preserves an explicit empty hashtag and the default timestamp uses the documented `"auto"` sentinel. Optional numeric/array `na` means omission; required numeric values and supplied target prices reject it. Scientific formatting and logarithmic difference checks avoid Pine's default decimal/comparison rounding; caller computation still has Pine float limits. Unsupported C0 string controls are rejected safely. Library construction has no alert calls; the example controls realtime confirmation/frequency and defaults to disabled signals. It compiled/executed in that disabled state. No running alert or actual webhook delivery was created; the guide documents isolated-receiver checks for later explicitly selected signals. Publication is separately authorized and is not required by this step; a source archive is not an importable library.
+- Integration evidence: `implemented`, awaiting the future combined PR into SDK `main`; `[ ]` remains correct. Earlier STEP-02–07 local-main receipts were annotated as historical after the user moved their unpublished commits to this implementation branch. Server sources and unrelated working-tree changes were not modified.
+- Blocker / exact remainder: none for STEP-08 local acceptance. Commit/push/PR, TradingView publication/import pinning, real alert delivery and later STEP-09–12 work remain outside this execution request.
 
 ### [ ] STEP-09 — CI verifies the entire SDK and package installation without secrets
 

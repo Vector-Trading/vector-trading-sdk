@@ -1,0 +1,42 @@
+{
+  "verifiedAt": "2026-10-03T23:29:25+00:00",
+  "localDate": "2026-10-04",
+  "timezone": "Europe/Warsaw",
+  "sourceBaseCommit": "28058d3d3e1a936cab0f32f90b36eda7cb2c5df7",
+  "sourceState": "Uncommitted STEP-08 implementation on VT-000/sdk-implementation; exact tested bytes are pinned below. The base commit does not contain the Pine sources.",
+  "pineVersion": 6,
+  "environment": "TradingView Pine Editor in Chrome on macOS; actual compilation and personal-script execution, not a simulated codec.",
+  "serverCommit": "e51366b859926abd5bdc222a5249e99f8080f0f8",
+  "sources": {
+    "pinescript/VectorTrading.pine": "5846fa10b316f05cc2364fe33ca905a79f7f0be9e9e5552025f545ecec1fe186",
+    "pinescript/examples/confirmed-cross.pine": "117fa75dfb612efa5f34a252713a6e28e8d8a2cee495db35ce64c894997191ba",
+    "pinescript/conformance/probe.pine": "2fb0cd2dacc33d9c13279b04ce4f0db044c5bbd409b6d21404a37e9ab0ac171c",
+    "pinescript/examples/confirmed-cross.body.pine": "57b2703596c9e99fc98539d838d2cfbe7314a0f0c6a27e5b4bf5720e07b8b8d3",
+    "pinescript/conformance/editor-output.txt": "82629d5707e817d43c2916752e4ee736945c2f10593444f921445320b43f547e",
+    "pinescript/conformance/editor-rejections.json": "a35a785e1ad72a742997a87113ce5f6b32882cd3b8924cd44502817ddc74c665"
+  },
+  "compilation": [
+    {
+      "path": "pinescript/VectorTrading.pine",
+      "result": "passed"
+    },
+    {
+      "path": "pinescript/examples/confirmed-cross.pine",
+      "result": "passed"
+    },
+    {
+      "path": "pinescript/conformance/probe.pine",
+      "result": "passed"
+    }
+  ],
+  "nativeOutput": {
+    "canonicalFixturesMatchedExactly": 17,
+    "signalsAcceptedByCanonicalSchemaAndRealParser": 21,
+    "escapedUnicodeStrings": 1,
+    "rejectionCasesVerified": 13,
+    "rejectionProcedure": "For each case, the probe input declaration was replaced with int rejection = N. Cases 2\u201313 also used indicator title SDK rejection N. All library implementation bytes were unchanged. Recorded errors came from the actual Pine runtime."
+  },
+  "alertBoundary": "The embedded example compiled/executed with enableSignals=false. No running alert or webhook delivery was created/tested; actual delivery requires explicitly selected signals and an isolated receiver. Parser compatibility invokes no queue or exchange.",
+  "publication": "not-published",
+  "integration": "implemented; awaiting the combined PR into main"
+}

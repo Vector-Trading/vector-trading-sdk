@@ -116,6 +116,13 @@ the current time for omitted or non-string `timestamp`, and retains `force` only
 fixtures record schema and parser acceptance separately; the SDK builds the strict
 recommended subset and preserves omission, `null`, and empty-array distinctions.
 
+Pine consumers use the same subset. Their `na` target array omits `takeProfits`, an
+empty array clears, and populated arrays replace; typed parameters cannot emit
+JSON `null`. Pine string and float limitations, explicit empty metadata, and
+actual native compilation/parser evidence are documented in the
+[Pine guide](../pinescript/README.md). The library builds JSON without selecting
+alert conditions, sending it, or changing the shared transport semantics.
+
 ## Webhook: delivery result
 
 `POST /webhooks/signals/v1/{strategyApiKey}` accepts a strategy key and a body of up

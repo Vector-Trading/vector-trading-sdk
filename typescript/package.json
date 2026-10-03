@@ -1,0 +1,46 @@
+{
+  "name": "@vector-trading/sdk",
+  "version": "0.1.0",
+  "description": "Typed Vector Trading REST clients and strategy signal builders",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Vector-Trading/vector-trading-sdk.git",
+    "directory": "typescript"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "lint": "eslint src tests examples tsup.config.ts vitest.config.ts --max-warnings 0",
+    "test": "vitest run --config vitest.config.ts",
+    "build": "tsup",
+    "test:package": "node ../scripts/check-typescript-package.ts"
+  },
+  "devDependencies": {
+    "tsup": "8.5.1"
+  }
+}

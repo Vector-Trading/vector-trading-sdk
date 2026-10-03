@@ -9,3 +9,5 @@ minimumReleaseAgeStrict: true
 verifyDepsBeforeRun: error
 storeDir: .cache/pnpm/store
 enableGlobalVirtualStore: false
+allowBuilds:
+  esbuild: true

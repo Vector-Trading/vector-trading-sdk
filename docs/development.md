@@ -4,17 +4,17 @@
 
 Shared tools are pinned independently of the neighboring application:
 
-| Tool                                 | Version              | Purpose                                                      |
-| ------------------------------------ | -------------------- | ------------------------------------------------------------ |
-| Node.js                              | `24.21.0`            | Shared tools; `.nvmrc` and `engines.node`                    |
-| pnpm                                 | `11.22.0`            | Root package and future TypeScript package; `packageManager` |
-| Prettier                             | `3.9.9`              | Markdown, JSON, YAML, JavaScript, and TypeScript             |
-| ESLint / `@eslint/js`                | `10.11.0` / `10.0.1` | Handwritten JavaScript and configuration checks              |
-| `typescript-eslint`                  | `8.71.0`             | Handwritten TypeScript checks                                |
-| TypeScript                           | `6.0.3`              | Strict typechecking of current configurations                |
-| `@types/node`                        | `24.19.1`            | Node.js 24 types                                             |
-| `globals` / `eslint-config-prettier` | `17.13.0` / `10.1.8` | Node.js globals and formatting compatibility                 |
-| Vitest                               | `5.0.3`              | Configuration for future shared-tooling tests                |
+| Tool                                 | Version              | Purpose                                             |
+| ------------------------------------ | -------------------- | --------------------------------------------------- |
+| Node.js                              | `24.21.0`            | Shared tools; `.nvmrc` and `engines.node`           |
+| pnpm                                 | `11.22.0`            | Root tools and TypeScript package; `packageManager` |
+| Prettier                             | `3.9.9`              | Markdown, JSON, YAML, JavaScript, and TypeScript    |
+| ESLint / `@eslint/js`                | `10.11.0` / `10.0.1` | Handwritten JavaScript and configuration checks     |
+| `typescript-eslint`                  | `8.71.0`             | Handwritten TypeScript checks                       |
+| TypeScript                           | `6.0.3`              | Strict typechecking of current configurations       |
+| `@types/node`                        | `24.19.1`            | Node.js 24 types                                    |
+| `globals` / `eslint-config-prettier` | `17.13.0` / `10.1.8` | Node.js globals and formatting compatibility        |
+| Vitest                               | `5.0.3`              | Shared-tooling and TypeScript tests                 |
 
 Direct dependencies are pinned in `package.json`; the full tree is pinned in
 `pnpm-lock.yaml`. TypeScript `6.0.3` is within the range supported by `typescript-eslint`.
@@ -85,16 +85,15 @@ is stale. Incompatible environments and dependencies are rejected;
 for recently published versions.
 
 `lint` checks maintained JS/TS files, including `eslint.config.mjs` and `vitest.config.ts`;
-warnings are errors. `typecheck` checks these configurations and future shared scripts
-in `scripts/` using the root `tsconfig.json`. Do not fix generated formatting or lint
+warnings are errors. `typecheck` checks these configurations and shared scripts
+in `scripts/` using the root `tsconfig.json`, then checks the TypeScript package. Do not fix generated formatting or lint
 issues manually: `**/generated/**` is excluded from these tools. pnpm owns `pnpm-lock.yaml`.
 Canonical JSON in `contracts/` and `conformance/` is also excluded from Prettier to
 preserve the server export's bytes and SHA-256 hashes.
 
 Vitest runs the shared contract/generation regression tests through `pnpm test`.
-Contract and generation commands are described below. Public package `build`,
-`verify`, and language commands remain later-step results; current checks do not
-prove installable language SDK readiness.
+Contract and generation commands are described below. The TypeScript package commands and installed-archive checks are described below.
+The combined `verify` command and other language packages remain later-step results.
 
 ## Updating the contract snapshot
 
@@ -181,10 +180,44 @@ Run root formatting, typechecking, linting, contract/generation checks, regressi
 tests, and native probes after changing generation. Full `pnpm verify` remains a
 STEP-09 result.
 
+## JavaScript/TypeScript package checks
+
+The `typescript/` workspace package has no external runtime dependencies. `tsup`
+`8.5.1` is a development dependency; pnpm explicitly allows esbuild's install script
+and pins its resolved version in the lockfile. Root lint includes handwritten package
+sources, tests, examples, and configurations; root typecheck also runs package
+typechecking. Generated sources remain excluded from formatting/linting and are
+checked through reproducible generation and strict compilation.
+
+```sh
+pnpm --dir typescript typecheck
+pnpm --dir typescript lint
+pnpm test:typescript
+pnpm build:typescript
+pnpm test:typescript:package
+```
+
+`pnpm test` still owns shared contract/tooling regression tests. Run both suites.
+Package tests bind an isolated loopback HTTP server and use synthetic credentials;
+an execution sandbox must permit localhost listeners. No trading environment is used.
+Builds create ESM, CommonJS, and both declaration formats under ignored `typescript/dist/`.
+`pnpm --dir typescript pack` creates a local archive without publishing.
+
+The archive check packs the existing build into ignored `.cache/packages/`, inspects
+the allowlist and dependency metadata, and installs it offline into six temporary
+consumer projects: JavaScript ESM, JavaScript CommonJS, and TypeScript on Node 22/24.
+TypeScript consumers compile both `.mts` and `.cts` entry points. Every installed
+consumer invokes all seven REST methods and eight signals against localhost; runtime
+graphs contain only the SDK. Temporary consumer projects and npm caches are removed.
+Select existing Node executables with `SDK_NODE22` and `SDK_NODE24`; defaults are
+the local nvm `v22.23.2` binary and the current Node 24 executable. Prepare these
+versions explicitly before running the check; it does not install Node globally.
+
 ## Native tools for later steps
 
 Python, Go, and Rust are not required for current root checks. The following is the
-agreed implementation matrix, not verified support for finished packages:
+agreed implementation matrix; TypeScript has a locally verified package, while the
+other packages remain planned:
 
 | Area                  | Environments and tools                                | Configuration and command owner                                        |
 | --------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------- |

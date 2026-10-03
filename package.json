@@ -12,13 +12,16 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "typecheck": "tsc --project tsconfig.json --noEmit && pnpm --dir typescript typecheck",
     "generation:setup": "node scripts/setup-generation.ts",
     "contracts:check": "node scripts/check-contracts.ts",
     "generate": "node scripts/generate.ts",
     "generated:check": "node scripts/check-generated.ts",
     "test": "vitest run",
-    "generation:probe": "node scripts/probe-generation.ts"
+    "generation:probe": "node scripts/probe-generation.ts",
+    "test:typescript": "pnpm --dir typescript test",
+    "build:typescript": "pnpm --dir typescript build",
+    "test:typescript:package": "pnpm --dir typescript test:package"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

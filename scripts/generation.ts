@@ -182,6 +182,13 @@ export async function generate(destination: string): Promise<void> {
       await readJson(join(root, 'contracts/signals.schema.json')),
     );
     await writeFile(join(destination, 'public.openapi.json'), json(specification));
+    await mkdir(join(destination, 'typescript'), { recursive: true });
+    await writeFile(
+      join(destination, 'typescript/contract.ts'),
+      '// Generated from the accepted snapshot. Do not edit.\nexport const contract = ' +
+        json({ schemas: specification.components.schemas, paths: specification.paths }).trim() +
+        ' as const;\n',
+    );
     const templateDir = join(staging, 'templates');
     const patches = await readJson<
       { template: string; sha256: string; edits: { before: string; after: string }[] }[]

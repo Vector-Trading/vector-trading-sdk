@@ -13,9 +13,9 @@
     "generation/template-patches.json": "de60ef8808932e205612b6e67c709fbb724eb6188c69d4b8fe7a7fae1b01b17f",
     "generation/toolchains.json": "9ebec1258705e5bc2965bff0707673fc53df7c364d117e2a0cfb87921c42bc04",
     "generation/typescript.yaml": "3e28779356a594623c0be378a4513def1c2584538b8503f8ba9e0951961ab43f",
-    "package.json": "208934be3da2e1d582b5242d6c61840e61f7a64beac757fdec2089325ebe6566",
-    "pnpm-lock.yaml": "5653e930948840155415d0c47283a3827c29e9af994dc450e52234b5ed6d0a2f",
-    "scripts/generation.ts": "f8dc81623a8c18eecf78fb5dd8f0574970e0af4e3c4fc972faf6c90b6e50ffc8"
+    "package.json": "0bdee8ae6f625dfecaf69e9abd6803099ea199e7625a9138f8e24b5aa964bbed",
+    "pnpm-lock.yaml": "bf22a2a2d08af9f5c250c1a9fbf56875be6ac76dc64281eecbf3be6c852f878c",
+    "scripts/generation.ts": "96d116711bab58dec77666e6e1c52713d9d1b57db19b191f86e6918f0c082622"
   },
   "outputs": {
     "go/api_default.go": "06e73684b52bec1d96a1b66fa50d78da3df782629d2ddbeaa5028069453d6d8c",
@@ -137,6 +137,7 @@
     "rust/src/models/users_search_response.rs": "d6a5c2bc949273117e0c17155ced1948d6ac5f8c07b17a3dbc9fb277fb965d36",
     "typescript/apis/DefaultApi.ts": "0fc5df62d5c98347cfcdec4979d76e388ae94aa430c6c9125b09c47edf341054",
     "typescript/apis/index.ts": "87edcb00a2bbbd22345dc1d742feb3433329d3fbb47829a1a6a8fc5356119d3a",
+    "typescript/contract.ts": "b719e01972c9cc5764f31d852aeef1a8c45352033031a1e98be01e01eb9f5f37",
     "typescript/index.ts": "16b3176030189ccd3d042b28dd517b7298ec0cedf276a60ae7dfdfa8bc785949",
     "typescript/models/AccountApiKeyPermissions.ts": "ff2c11ed9ccf8de206cd951af385e68462c2e15a03dbc399a050924740f7f554",
     "typescript/models/ApiKeyPermissionLevel.ts": "df51b3554e9f1d8e177b5a9e56a24dae0f7b1fd18d050129f9acda8837ea1859",

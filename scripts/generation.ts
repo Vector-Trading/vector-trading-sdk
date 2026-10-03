@@ -10,7 +10,9 @@ export const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const generatedPath = (language: string): string =>
   language === 'go'
     ? join(root, 'go/internal/generated')
-    : join(root, 'generation/generated', language);
+    : language === 'rust'
+      ? join(root, 'rust/generated')
+      : join(root, 'generation/generated', language);
 export const languages = ['typescript', 'python', 'go', 'rust'] as const;
 export interface Schema {
   [key: string]: unknown;
@@ -189,6 +191,11 @@ export async function generate(destination: string): Promise<void> {
     await mkdir(join(destination, 'typescript'), { recursive: true });
     await mkdir(join(destination, 'python'), { recursive: true });
     await mkdir(join(destination, 'go'), { recursive: true });
+    await mkdir(join(destination, 'rust'), { recursive: true });
+    await writeFile(
+      join(destination, 'rust/contract.json'),
+      json({ schemas: specification.components.schemas, paths: specification.paths }),
+    );
     await writeFile(
       join(destination, 'go/contract.json'),
       json({ schemas: specification.components.schemas, paths: specification.paths }),
@@ -281,6 +288,15 @@ export async function generate(destination: string): Promise<void> {
         .filter((name) => name.endsWith('.go'))
         .map((name) => join(destination, 'go', name)),
     ]);
+    execFileSync(process.env['SDK_RUSTFMT'] ?? 'rustfmt', [
+      '--edition',
+      '2021',
+      '--config',
+      'skip_children=true,style_edition=2021',
+      ...(await files(join(destination, 'rust')))
+        .filter((name) => name.endsWith('.rs'))
+        .map((name) => join(destination, 'rust', name)),
+    ]);
     const inputs = [
       'contracts/rest.openapi.json',
       'contracts/signals.schema.json',
@@ -316,7 +332,7 @@ export async function generate(destination: string): Promise<void> {
           go: 'go/internal/generated',
           typescript: 'generation/generated/typescript',
           python: 'generation/generated/python',
-          rust: 'generation/generated/rust',
+          rust: 'rust/generated',
         },
       }),
     );
@@ -337,6 +353,7 @@ export async function compareGenerated(
       const { cp } = await import('node:fs/promises');
       await cp(current, view, { recursive: true });
       await cp(generatedPath('go'), join(view, 'go'), { recursive: true });
+      await cp(generatedPath('rust'), join(view, 'rust'), { recursive: true });
       current = view;
     }
     if (JSON.stringify(expected) !== JSON.stringify(await files(current)))

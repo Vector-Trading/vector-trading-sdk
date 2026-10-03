@@ -4,7 +4,7 @@
 
 The root `vector-trading-sdk-workspace` package is private shared tooling.
 It contains formatting, linting, typechecking, and Vitest configuration;
-JavaScript/TypeScript, Python, and Go packages are implemented locally. Shared contract/generation tests and native
+JavaScript/TypeScript, Python, Go, and Rust packages are implemented locally. Shared contract/generation tests and native
 probe harnesses exist.
 Commands and version pins are covered in the [development guide](development.md).
 
@@ -18,7 +18,7 @@ does not qualify as an accepted snapshot.
 
 pnpm manages root JavaScript/TypeScript tooling. Only the `typescript` directory is
 reserved in `pnpm-workspace.yaml`; Python, Go, and Rust packages will use their native
-tools. The `typescript/`, `python/`, and `go/` packages exist; the Rust package directory remains planned; generated trial sources are internal
+tools. The `typescript/`, `python/`, `go/`, and `rust/` packages exist; generated trial sources are internal
 artifacts in `generation/generated/`.
 
 ## Responsibilities
@@ -55,13 +55,16 @@ primitives; generation replaces only known typing-backport imports with standard
 imports. Generated asynchronous trial transport still uses `python-dateutil` in native
 probes but is excluded from public archives. `pydantic-core` and `typing-extensions` remain
 transitive consumer requirements owned by Pydantic/HTTPX rather than extra SDK declarations.
-Rust currently uses `url` for query encoding and `serde_with` to distinguish an
-omitted nullable response field from explicit null. The unused `serde_repr`
+Rust uses `reqwest` query encoding and `serde_with` (`std` only) to distinguish an
+omitted nullable response field from explicit null. `time` (`std`/`parsing` only)
+validates RFC 3339 dates with MSRV 1.88; this avoids a separate handwritten calendar
+parser. The public crate does not declare `url`; only the internal trial transport
+uses it directly. The unused `serde_repr`
 declaration and probe dependency were removed through a pinned template override.
 The selected asynchronous `reqwest` transport requires a Tokio execution context;
 direct Tokio usage for tests/examples belongs in the appropriate dependency category.
 
-The TypeScript, Python, and Go manifests follow this policy; the Rust manifest remains a STEP-07 result. They must follow this policy,
+All four language manifests follow this policy. They must follow this policy,
 declare compatible consumer requirements, and keep exact development pins in their
 own locks. Changes to the policy require an explicit architectural decision and
 updated generation/package checks.
@@ -80,7 +83,7 @@ named `oneOf` variants, and retains all seven REST paths unchanged. It adds acti
 and grant discriminators for generators; numeric transport models use double
 precision, avoiding Go's default `float32`. The original snapshots are unchanged.
 Tests compare all 40 signal schema outcomes and grant requiredness with the source.
-The generator also emits TypeScript `contract.ts` and Python/Go `contract.json` metadata
+The generator also emits TypeScript `contract.ts` and Python/Go/Rust `contract.json` metadata
 from those same schemas and REST operations. Public runtime validation uses this accepted metadata without
 a runtime schema-validation dependency or a separate handwritten contract.
 
@@ -102,8 +105,8 @@ Each override pins the upstream template's SHA-256 and requires a unique match:
   reject non-finite values. `None` omits TP and `Some(vec![])` preserves clearing.
   The library template also drops the unused `serde_repr` declaration.
 
-TypeScript, Python, and Rust generated sources are checked in under `generation/generated/`, alongside the
-intermediate specification and an input/output hash manifest. Go has one authoritative generated tree under `go/internal/generated/` so its subdirectory module is self-contained. The manifest keeps logical `go/*` output names and records physical roots; generation/checks and native probes use that mapping. No mirrored Go tree or working-tree import replacement remains. Internal generated directories expose no documented public SDK entry point. Go output is formatted with `gofmt` during generation. Regeneration and
+TypeScript and Python generated sources are checked in under `generation/generated/`, alongside the
+intermediate specification and an input/output hash manifest. Go has one authoritative generated tree under `go/internal/generated/` so its subdirectory module is self-contained. The manifest keeps logical `go/*` output names and records physical roots; generation/checks and native probes use that mapping. Rust likewise has one authoritative full generated tree under `rust/generated/`; its crate compiles/packages only the models and metadata, while native probes compile the full trial tree. No mirrored model trees or working-tree import replacements remain. Internal generated directories expose no documented public SDK entry point. Go output is formatted with `gofmt` during generation; Rust uses pinned rustfmt with Rust 2021 style, stable on both accepted compilers. Regeneration and
 `generated:check` compare the complete file inventory and bytes; changes to the
 snapshot, generator, configurations, templates, Node pins, or root lockfile are
 tracked. Handwritten orchestration, tests, and probes are outside this derived tree.
@@ -196,8 +199,32 @@ raw HTTP cause. Four page iterators preserve filters and cancellation, continue 
 empty pages, and reject repeated cursors. See the [package README](../go/README.md) for
 public signatures, cleanup, and future major-version/subdirectory-tag rules.
 
+## Rust package
+
+`rust/` distributes `vector-trading-sdk`, imported as `vector_trading_sdk`. Public
+wrappers expose seven asynchronous REST operations, four lazy page traversals, eight
+offline named signal builders, validated serialization, and a separate strategy-key
+sender. Generated model enums preserve wire discriminators; nullable optional fields
+preserve omission/null, and `Option<Vec<T>>` preserves explicit empty TP arrays.
+Validation consumes generated schema/operation metadata and fails closed for unknown
+snapshot patterns. No generated file is edited by hand.
+
+The managed reqwest client uses HTTPS with verified certificates, HTTP/1, no idle
+connection reuse, no redirects, and an explicit never-retry policy. Total timeouts
+include response bodies; dropping a future cancels local waiting. Errors retain bounded
+redacted diagnostics without raw causes. `close` prevents new calls across clones;
+drop pending futures and all clones to release resources. Tokio is the caller's
+execution context and a direct development-only dependency for examples/tests.
+
+Rust 1.99.0 and MSRV 1.88.0 run formatting, Clippy, fixture/HTTP/HTTPS tests, doctests,
+examples, builds, archive verification, and publication dry runs without uploads.
+Clean consumers install extracted `.crate` sources and exercise the full public API
+against localhost with independent locks and checked runtime dependency/features.
+The archive allowlist excludes test data, trial transport, and tooling. See the
+[package README](../rust/README.md) and [development commands](development.md#rust-package).
+
 ## Planned results
 
-Remaining language clients, Pine sources, and release are defined in the
+Pine sources and release are defined in the
 [plan](plans/public-sdk.plan.md). Their public entry points and package configuration
 will be documented after the corresponding steps are accepted.

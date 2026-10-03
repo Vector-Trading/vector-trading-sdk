@@ -9,7 +9,7 @@
 
 ## Current state and navigation
 
-Shared root tooling, the public contract snapshot in `contracts/`, shared fixtures in `conformance/`, and the contract, architecture, and development guides exist. Reproducible generation, internal derived trial sources, shared regression tests, and four-language probe harnesses also exist. JavaScript/TypeScript, Python, and Go packages exist in `typescript/`, `python/`, and `go/`; Rust and Pine sources, release tooling, and `docs/releasing.md` remain planned. Check each path before using it; do not assume the entire plan has been implemented.
+Shared root tooling, the public contract snapshot in `contracts/`, shared fixtures in `conformance/`, and the contract, architecture, and development guides exist. Reproducible generation, internal derived trial sources, shared regression tests, and four-language probe harnesses also exist. JavaScript/TypeScript, Python, Go, and Rust packages exist in `typescript/`, `python/`, `go/`, and `rust/`; Pine sources, release tooling, and `docs/releasing.md` remain planned. Check each path before using it; do not assume the entire plan has been implemented.
 
 - `contracts/` — pinned public contracts and provenance.
 - `conformance/` — shared JSON requests, responses, and expected outcomes.

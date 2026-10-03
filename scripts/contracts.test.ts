@@ -81,6 +81,7 @@ describe('canonical contract and generation boundaries', () => {
     try {
       await cp(join(root, 'generation/generated'), temp, { recursive: true });
       await cp(generatedPath('go'), join(temp, 'go'), { recursive: true });
+      await cp(generatedPath('rust'), join(temp, 'rust'), { recursive: true });
       const path = join(temp, 'manifest.json');
       const manifest = await readJson<{ inputs: Record<string, string> }>(path);
       manifest.inputs['generation/go.yaml'] = '0'.repeat(64);
@@ -95,10 +96,26 @@ describe('canonical contract and generation boundaries', () => {
     try {
       await cp(join(root, 'generation/generated'), temp, { recursive: true });
       await cp(generatedPath('go'), join(temp, 'go'), { recursive: true });
+      await cp(generatedPath('rust'), join(temp, 'rust'), { recursive: true });
       const path = join(temp, 'go/model_update_signal_payload_order.go');
       await writeFile(path, (await readFile(path, 'utf8')) + '\n// stale\n');
       await expect(compareGenerated(temp)).rejects.toThrow(
         'go/model_update_signal_payload_order.go',
+      );
+    } finally {
+      await rm(temp, { recursive: true, force: true });
+    }
+  }, 30_000);
+  it('detects stale relocated Rust models through the manifest root mapping', async () => {
+    const temp = await mkdtemp(join(tmpdir(), 'vector-sdk-rust-derived-test-'));
+    try {
+      await cp(join(root, 'generation/generated'), temp, { recursive: true });
+      await cp(generatedPath('go'), join(temp, 'go'), { recursive: true });
+      await cp(generatedPath('rust'), join(temp, 'rust'), { recursive: true });
+      const path = join(temp, 'rust/src/models/update_signal_payload_order.rs');
+      await writeFile(path, (await readFile(path, 'utf8')) + '\n// stale\n');
+      await expect(compareGenerated(temp)).rejects.toThrow(
+        'rust/src/models/update_signal_payload_order.rs',
       );
     } finally {
       await rm(temp, { recursive: true, force: true });
@@ -109,6 +126,7 @@ describe('canonical contract and generation boundaries', () => {
     try {
       await cp(join(root, 'generation/generated'), temp, { recursive: true });
       await cp(generatedPath('go'), join(temp, 'go'), { recursive: true });
+      await cp(generatedPath('rust'), join(temp, 'rust'), { recursive: true });
       const path = join(temp, 'typescript/models/UpdateSignalPayload.ts');
       await writeFile(path, (await readFile(path, 'utf8')) + '\n// stale\n');
       await expect(compareGenerated(temp)).rejects.toThrow('Generated file differs');

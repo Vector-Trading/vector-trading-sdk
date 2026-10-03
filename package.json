@@ -27,7 +27,10 @@
     "test:python:package": "node scripts/python.ts package",
     "test:go": "node scripts/go.ts test",
     "build:go": "node scripts/go.ts build",
-    "test:go:package": "node scripts/go.ts package"
+    "test:go:package": "node scripts/go.ts package",
+    "test:rust": "node scripts/rust.ts test",
+    "build:rust": "node scripts/rust.ts build",
+    "test:rust:package": "node scripts/rust.ts package"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

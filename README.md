@@ -8,7 +8,7 @@ The snapshot covers seven REST operations and eight signal actions; its provenan
 recorded in [contracts/source.json](contracts/source.json), and transport behavior is
 described in the [contract guide](docs/contracts.md). The [JavaScript/TypeScript package](typescript/README.md)
 provides the complete public API and has verified local archives for Node.js 22/24.
-The [Python package](python/README.md) is locally verified on Python 3.12/3.14 with wheel and sdist consumers. The [Go module](go/README.md) is locally verified on Go 1.26/1.27 with a clean local-proxy consumer and no external runtime modules. Rust, Pine sources, and registry releases remain planned. Reproducible four-language generation and native
+The [Python package](python/README.md) is locally verified on Python 3.12/3.14 with wheel and sdist consumers. The [Go module](go/README.md) is locally verified on Go 1.26/1.27 with a clean local-proxy consumer and no external runtime modules. The [Rust crate](rust/README.md) is locally verified on Rust 1.99/1.88 with asynchronous HTTPS and clean source-archive consumers. Pine sources and registry releases remain planned. Reproducible four-language generation and native
 probe commands are available in the [development guide](docs/development.md#generation-and-native-probes). The scope of work and its verified status are
 recorded in the [implementation plan](docs/plans/public-sdk.plan.md).
 

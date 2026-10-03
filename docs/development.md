@@ -139,7 +139,7 @@ verifies SHA-256 before retaining it. `OPENAPI_GENERATOR_JAR` can select a predo
 file with the same checksum. `JAVA` may select a Java executable. `generate` builds
 in staging before replacing the internal derived tree; `generated:check` regenerates
 in temporary storage and checks every filename, byte, and recorded input hash.
-Neither command imports the server or contacts trading services. Go output lives once in `go/internal/generated/`; the manifest records its physical root. Select the pinned formatter through `PATH` or `SDK_GOFMT`. Templates and
+Neither command imports the server or contacts trading services. Go output lives once in `go/internal/generated/`; the manifest records its physical root. Rust output lives once in `rust/generated/`, also mapped by the manifest. Select pinned formatters through `PATH`, `SDK_GOFMT`, or `SDK_RUSTFMT`. Templates and
 intermediate-schema decisions are covered in the [architecture](architecture.md#reproducible-generation).
 
 Native probes require Python 3.12 or newer, uv, Go, Rustup/Cargo with toolchains
@@ -312,18 +312,51 @@ server checkout, or live credentials are used. ZIP contents exclude tests, devel
 tools, and build output; temporary consumers/proxies are removed even after failure.
 The examples are callable and perform no import-time network work.
 
+## Rust package
+
+The [Rust library](../rust/README.md) is `vector-trading-sdk` 0.1.0 with minimum
+`rust-version = "1.88"`. Install exact Rustup toolchains `1.99.0` and `1.88.0` with
+`rustfmt` and `clippy`; the crate toolchain file selects 1.99.0. Fetch its lock once:
+
+```sh
+cd rust
+cargo fetch --locked
+cd ..
+pnpm test:rust
+pnpm build:rust
+pnpm test:rust:package
+```
+
+`rust/tools/check.ts` owns the native matrix; root commands delegate to it. `test`
+checks no-diff formatting, Clippy with warnings denied, all native tests, compiled
+examples, and doctests (including README snippets) on both compilers. `build`
+compiles all targets on both versions. The localhost HTTP/HTTPS tests use synthetic
+keys and ephemeral certificates. Standard Cargo/Rustup cache and target settings
+are supported; `SDK_CARGO` selects an isolated Cargo executable.
+
+`package` runs locked Cargo packaging and publication dry runs on both compilers;
+`--allow-dirty` permits a local pre-commit review. Cargo's dry run needs network access
+to read registry metadata but never uploads. Other checks and clean consumers run
+offline after dependency preparation. Repeated `.crate` builds match byte for byte within each Cargo version; file
+payloads match across both versions despite native tar metadata differences; the allowlist includes MIT, README, models/metadata, public wrappers, and examples.
+Two temporary consumer projects install extracted source archives with independent
+locks, verify dependency/features and the actual archive source path, compile, and
+execute all seven REST operations/eight signals against localhost. They never import
+working `src`. Consumers and servers are removed/closed even on failure; the retained
+artifact is `rust/dist/vector-trading-sdk-0.1.0.crate`.
+
 ## Native tools for later steps
 
-Python and Go are required for their package checks; Rust remains a native-probe requirement until its package is implemented. The following is the agreed implementation matrix;
-TypeScript, Python, and Go packages are locally verified, while other packages remain planned:
+Python, Go, and Rust are required for their package checks. The following is the agreed implementation matrix;
+TypeScript, Python, Go, and Rust packages are locally verified; Pine remains planned:
 
-| Area                  | Environments and tools                                | Configuration and command owner                                        |
-| --------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------- |
-| JavaScript/TypeScript | Node.js 22/24, TypeScript, Vitest, `tsup`             | `typescript/`, STEP-04; pnpm workspace package                         |
-| Python                | Python 3.12/3.14, `uv`, Hatchling, Ruff, mypy, pytest | `python/`, STEP-05; `pyproject.toml` and `uv.lock`                     |
-| Go                    | Go 1.26/1.27, `gofmt`, `go vet`, testing, Staticcheck | `go/`, STEP-06; `go.mod` and native checks                             |
-| Rust                  | Cargo, rustfmt, Clippy, built-in tests                | Stable `1.99.0`, MSRV `1.88.0` verified in STEP-03; `rust/` in STEP-07 |
-| Pine Script           | TradingView Pine Editor                               | `pinescript/`, STEP-08; actual editor compilation                      |
+| Area                  | Environments and tools                                | Configuration and command owner                    |
+| --------------------- | ----------------------------------------------------- | -------------------------------------------------- |
+| JavaScript/TypeScript | Node.js 22/24, TypeScript, Vitest, `tsup`             | `typescript/`, STEP-04; pnpm workspace package     |
+| Python                | Python 3.12/3.14, `uv`, Hatchling, Ruff, mypy, pytest | `python/`, STEP-05; `pyproject.toml` and `uv.lock` |
+| Go                    | Go 1.26/1.27, `gofmt`, `go vet`, testing, Staticcheck | `go/`, STEP-06; `go.mod` and native checks         |
+| Rust                  | Cargo, rustfmt, Clippy, built-in tests                | `rust/`, STEP-07; stable `1.99.0`, MSRV `1.88.0`   |
+| Pine Script           | TradingView Pine Editor                               | `pinescript/`, STEP-08; actual editor compilation  |
 
 Install `uv` for Python using the [official guide](https://docs.astral.sh/uv/getting-started/installation/).
 `python/.python-version` selects the default interpreter; if missing locally, an explicit
@@ -335,8 +368,7 @@ The `go/go.mod` minimum is 1.26; `go/toolchains.json` pins exact compiler and St
 Do not create a Go module at the root.
 
 Install Rust through [rustup](https://rust-lang.org/tools/install/). STEP-03 verified stable `1.99.0`
-and MSRV `1.88.0`; use the selected exact version with `rustfmt` and `clippy`. The future
-`rust/rust-toolchain.toml` will select it automatically. Do not substitute unpinned
+and MSRV `1.88.0`; use the selected exact version with `rustfmt` and `clippy`. `rust/rust-toolchain.toml` selects stable automatically. Do not substitute unpinned
 `stable` for the verified project compiler.
 
 Root language commands will delegate to native tools in the corresponding directory.

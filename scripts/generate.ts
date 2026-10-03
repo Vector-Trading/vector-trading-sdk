@@ -8,9 +8,13 @@ await mkdir(cache, { recursive: true });
 const staging = await mkdtemp(join(cache, 'output-'));
 try {
   await generate(staging);
-  await mkdir(join(root, 'go/internal'), { recursive: true });
-  await rm(generatedPath('go'), { recursive: true, force: true });
-  await rename(join(staging, 'go'), generatedPath('go'));
+  for (const language of ['go', 'rust']) {
+    await mkdir(language === 'go' ? join(root, 'go/internal') : join(root, 'rust'), {
+      recursive: true,
+    });
+    await rm(generatedPath(language), { recursive: true, force: true });
+    await rename(join(staging, language), generatedPath(language));
+  }
   const output = join(root, 'generation/generated');
   await rm(output, { recursive: true, force: true });
   await rename(staging, output);

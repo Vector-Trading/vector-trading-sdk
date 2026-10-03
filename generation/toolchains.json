@@ -1,0 +1,8 @@
+{
+  "javaMinimum": 11,
+  "pythonMinimum": "3.12",
+  "pythonTested": "3.12.9",
+  "go": "1.26.0",
+  "rust": "1.99.0",
+  "rustMSRV": "1.88.0"
+}

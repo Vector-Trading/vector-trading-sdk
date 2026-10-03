@@ -10,7 +10,8 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
   "include": ["eslint.config.mjs", "vitest.config.ts", "scripts/**/*.ts", "scripts/**/*.mjs"],
   "exclude": ["node_modules", "**/generated/**", "dist", "build", "coverage"]

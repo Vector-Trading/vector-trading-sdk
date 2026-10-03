@@ -1,126 +1,131 @@
-# Публичный контракт SDK
+# Public SDK contract
 
-## Состояние и происхождение
+## Status and provenance
 
-Канонический владелец — сервер `Vector-Trading/vector-trading`: маршруты
-`apps/web/hono/routes/rest-api/`, анализатор `packages/types/src/signal.ts` и обработчик
-`apps/webhook/src/lambda.ts`. В STEP-02 локально подготовлены серверные схемы, примеры,
-проверки и команда `pnpm sdk:export`; принятого снимка в SDK пока нет.
-Статус и свидетельства находятся в [плане](plans/public-sdk.plan.md#-step-02--публичный-контракт-экспортируется-у-серверного-владельца-и-доказан-проверками-поведения-во-время-выполнения).
+The canonical owner is the `Vector-Trading/vector-trading` server: routes in
+`apps/web/hono/routes/rest-api/`, the parser in `packages/types/src/signal.ts`, and the
+handler in `apps/webhook/src/lambda.ts`. The snapshot was exported from accepted server
+`main` commit `e51366b859926abd5bdc222a5249e99f8080f0f8`, with contract version `1.0.0`.
+Status and evidence are recorded in the [plan](plans/public-sdk.plan.md#--step-02--the-server-owner-exports-the-public-contract-with-runtime-behavior-verified).
 
-После принятия серверного commit экспорт создаёт `contracts/rest.openapi.json`,
-`contracts/signals.schema.json`, `contracts/source.json` и общие примеры в `conformance/`.
-Файл происхождения связывает снимок с точным commit, версией контракта и SHA-256
-исходников и артефактов. Временный экспорт с `--preview` содержит `commit: null` и
-`status: working-tree-preview`; такой результат не является принятым снимком SDK.
-Версия снимка, версия пакета, REST `/v1`, вебхук `/v1` и версия стратегии независимы.
+The snapshot consists of [REST OpenAPI](../contracts/rest.openapi.json),
+[signal JSON Schema](../contracts/signals.schema.json),
+[provenance](../contracts/source.json), [19 REST fixtures](../conformance/rest/cases.json),
+and [40 signal fixtures](../conformance/signals/cases.json).
+The provenance file ties the snapshot to the exact commit and SHA-256 hashes of 187
+source inputs and four exported artifacts. Two normal exports matched byte for byte;
+every source hash was checked against committed content. Preserve exported bytes when
+updating the snapshot; instructions are in the [development guide](development.md#updating-the-contract-snapshot).
+Temporary `--preview` export contains `commit: null` and
+`status: working-tree-preview`; it is not an accepted SDK snapshot.
+Snapshot version, package version, REST `/v1`, webhook `/v1`, and strategy version are independent.
 
-## REST: адрес, ключ и разрешения
+## REST: address, key, and permissions
 
-REST обслуживается под `/api/rest/v1`. Относительный `servers.url: /api/rest` в OpenAPI
-требует явно настроенного абсолютного базового URL клиента вне браузера.
-Ключ аккаунта передаётся как `Authorization: Bearer vt_<id>_<secret>` и предназначен
-для серверной интеграции. Он не заменяет ключ стратегии для вебхука.
+REST is served under `/api/rest/v1`. The relative OpenAPI `servers.url: /api/rest`
+requires an explicitly configured absolute client base URL outside a browser.
+The account key is sent as `Authorization: Bearer vt_<id>_<secret>` and is intended for
+server-side integration. It does not replace the webhook strategy key.
 
-| `operationId`       | Метод и путь относительно `/api/rest`            | Разрешение ключа |
-| ------------------- | ------------------------------------------------ | ---------------- |
-| `listBundles`       | `GET /v1/bundles`                                | `bundles:read`   |
-| `searchUsers`       | `GET /v1/users`                                  | `users:read`     |
-| `getCheckout`       | `GET /v1/checkout/{checkoutId}`                  | `grants:read`    |
-| `listBundleUsers`   | `GET /v1/bundles/{bundleId}/users`               | `grants:read`    |
-| `listBundleGrants`  | `GET /v1/bundles/{bundleId}/grants`              | `grants:read`    |
-| `createBundleGrant` | `POST /v1/bundles/{bundleId}/grants`             | `grants:write`   |
-| `revokeBundleGrant` | `DELETE /v1/bundles/{bundleId}/grants/{grantId}` | `grants:write`   |
+| `operationId`       | Method and path relative to `/api/rest`          | Key permission |
+| ------------------- | ------------------------------------------------ | -------------- |
+| `listBundles`       | `GET /v1/bundles`                                | `bundles:read` |
+| `searchUsers`       | `GET /v1/users`                                  | `users:read`   |
+| `getCheckout`       | `GET /v1/checkout/{checkoutId}`                  | `grants:read`  |
+| `listBundleUsers`   | `GET /v1/bundles/{bundleId}/users`               | `grants:read`  |
+| `listBundleGrants`  | `GET /v1/bundles/{bundleId}/grants`              | `grants:read`  |
+| `createBundleGrant` | `POST /v1/bundles/{bundleId}/grants`             | `grants:write` |
+| `revokeBundleGrant` | `DELETE /v1/bundles/{bundleId}/grants/{grantId}` | `grants:write` |
 
-Разрешение ключа проверяется отдельно от доменных прав. Чтение checkout, пользователей
-и grants, а также отзыв grant требуют точного владения бандлом, включая роли с
-расширенными правами. Создание `owner_grant` использует существующий
-`hasPermission(..., "bundles", "update", { bundleDto })`: владелец или роль с таким
-расширенным правом могут создать доступ. Создание `paid_external`, `referral_reward`
-и `gift` требует точного владения и доступного для продажи бандла. Это подтверждённое
-поведение сервера; STEP-02 не меняет права.
+Key permissions are checked independently of domain permissions. Reading checkout,
+users, or grants and revoking a grant require exact bundle ownership, even for roles
+with expanded permissions. Creating `owner_grant` uses the existing
+`hasPermission(..., "bundles", "update", { bundleDto })`: the owner or a role with that
+expanded permission can create access. Creating `paid_external`, `referral_reward`,
+or `gift` requires exact ownership and a sellable bundle. This is verified server
+behavior; STEP-02 does not change permissions.
 
-## REST: страницы и изменение доступа
+## REST: pagination and access changes
 
-Списки возвращают массив `bundles`, `users` или `grants`, фактический `limit` и
-необязательный `nextCursor`.
-Курсор непрозрачен: передавайте его без преобразований, сохраняя фильтры и сортировку.
-Даже пустая страница может иметь продолжение. Обход заканчивается при отсутствии
-`nextCursor`. Общего количества и `hasMore` в контракте нет.
+Lists return a `bundles`, `users`, or `grants` array, the effective `limit`, and an
+optional `nextCursor`. Cursors are opaque: pass them unchanged, preserving filters
+and sorting. Even an empty page may have a continuation. Traversal ends when
+`nextCursor` is absent. The contract includes neither a total count nor `hasMore`.
 
-Создание доступа принимает строгий объект с `userId`, `grantType` и необязательными
-`endsAt`, `sourceId`. Идентификаторы пользователей и ресурсов — 32 строчных
-шестнадцатеричных символа. `paid_external` требует `sourceId`; повторное значение для
-той же пары бандла/пользователя и типа доступа даёт `409`, а не гарантированную
-идемпотентность. `endsAt` — строка даты ISO 8601. Отсутствие поля означает бессрочный
-доступ; `null` не принимается. Поля `days`, `startsAt` и тип `trial` не входят в запрос.
-Отзыв доступа запускает серверные последствия для подписки; SDK выполняет один HTTP-запрос.
+Access creation accepts a strict object with `userId`, `grantType`, and optional
+`endsAt` and `sourceId`. User and resource IDs are 32 lowercase hexadecimal characters.
+`paid_external` requires `sourceId`; reusing it for the same bundle/user pair and grant
+type returns `409`, rather than guaranteed idempotency. `endsAt` is an ISO 8601 date
+string. Omission means permanent access; `null` is rejected. `days`, `startsAt`, and
+`trial` are not accepted in the request. Revocation triggers server-side subscription
+consequences; the SDK sends one HTTP request.
 
-## REST: ошибки и транспорт
+## REST: errors and transport
 
-Прикладные ошибки обычно содержат `errorCode`, `message` и необязательные `metadata`
-со строковыми значениями и `requestId`. Ошибка ограничения частоты `429` имеет
-отдельную форму `{ "success": false, "error": "..." }`. Посредник или сетевой сбой
-может дать пустое либо не-JSON тело; клиент не должен считать все ошибки одной схемой.
+Application errors normally contain `errorCode`, `message`, optional string-valued
+`metadata`, and optional `requestId`. Rate-limit error `429` has a separate shape:
+`{ "success": false, "error": "..." }`. A proxy or network failure may produce an empty
+or non-JSON body; clients must not assume one schema covers every error.
 
-Неправильный, отозванный ключ или несовпадение CIDR дают `401`; недостаточные права
-аккаунта, ключа или владельца — `403`. JSON-тело ограничено 16 КиБ в UTF-8:
-неверный тип содержимого даёт `415`, превышение размера — `413`, некорректный JSON
-или нарушение схемы — `400`. Секреты, заголовок `Authorization`, ключ стратегии в URL
-и приватные тела не входят в журналы, исключения и общие примеры.
+Invalid or revoked keys and CIDR mismatches return `401`; insufficient account, key,
+or owner permissions return `403`. JSON bodies are limited to 16 KiB of UTF-8:
+unsupported content types return `415`, oversized bodies return `413`, and invalid
+JSON or schema violations return `400`. Secrets, `Authorization` headers, strategy
+keys in URLs, and private bodies must stay out of logs, exceptions, and shared fixtures.
 
-Производственный транспорт использует HTTPS; HTTP допустим для явно выбранного
-локального тестового сервера. При перенаправлении на другой источник секреты не
-передаются. Изменяющие запросы автоматически не повторяются, включая неявные повторы
-HTTP-библиотеки. Создание клиента и импорт пакета не отправляют запросов.
+Production transport uses HTTPS; HTTP is allowed for an explicitly selected local
+test server. Redirects across origins must not forward secrets. Mutations are not
+automatically retried, including implicit HTTP-library retries. Client construction
+and package imports do not send requests.
 
-## Сигналы: рекомендуемое исходящее сообщение
+## Signals: recommended outgoing payload
 
-Внешний `StrategySignalPayload` отделён от внутреннего события: `id` и `apiKey`
-добавляет сервер. Восемь действий: `open`, `update`, `cancel`, `close`, `start`,
-`pause`, `stop`, `delete`. Все исходящие сообщения содержат положительную конечную
-числовую `version` стратегии и цифровую строку миллисекунд `timestamp`, которую
-можно преобразовать в безопасное целое. Версия стратегии не обязана быть целой;
-версия SDK не подставляется в это поле. Необязательный `hashtag` следует каноническому
-регулярному выражению сервера.
+External `StrategySignalPayload` is separate from the internal event: the server adds
+`id` and `apiKey`. The eight actions are `open`, `update`, `cancel`, `close`, `start`,
+`pause`, `stop`, and `delete`. Every outgoing payload contains a positive finite numeric
+strategy `version` and a decimal millisecond string `timestamp` convertible to a safe
+integer. Strategy version need not be an integer; SDK version is not substituted into
+this field. Optional `hashtag` follows the server's canonical regular expression.
 
-`open` и `update` требуют положительный конечный `marketPrice` и объект `order` с
-`side: buy | sell`. Цена `price` означает лимитный ордер, `triggerPrice` — условный;
-если присутствуют обе цены, выбирается условный лимитный ордер. Без обеих цен ордер
-рыночный. Поля `stop`, `takeProfits` задают защиту. `amountPerc` разрешён только у
-`open`, положителен и не превышает 100. `force` — необязательное логическое поле
-только у `open`. `cancel` и `close` могут передать `marketPrice`; управляющие действия
-не передают параметры ордера или цену.
+`open` and `update` require a positive finite `marketPrice` and an `order` object with
+`side: buy | sell`. `price` selects a limit order; `triggerPrice` selects a trigger
+order. Both select a trigger-limit order; neither selects a market order. `stop` and
+`takeProfits` define protection. `amountPerc` is allowed only on `open`, must be positive,
+and must not exceed 100. Optional boolean `force` is available only on `open`.
+`cancel` and `close` may include `marketPrice`; management actions omit order parameters
+and price.
 
-JSON Schema проверяет форму, обязательность и простые числовые границы. Отношения
-цен и сумму процентов дополнительно проверяет настоящий анализатор:
+JSON Schema validates shape, required fields, and simple numeric bounds. The real
+parser additionally validates price relationships and total percentages:
 
-- базовая цена выбирается в порядке `price`, `triggerPrice`, `marketPrice`;
-- без `triggerPrice` лимитная цена для `buy` не выше рыночной, для `sell` не ниже;
-  условная цена для `buy` не ниже рыночной, для `sell` не выше; при обеих ценах
-  лимитная цена для `buy` не выше условной, для `sell` не ниже;
-- SL и TP находятся с нужной стороны базовой цены для `buy` или `sell`;
-- `takeProfits` содержит не больше десяти целей с положительными конечными ценами
-  и процентами; сумма процентов не превышает 100 с допуском `1e-8`;
-- отсутствие `takeProfits` у `update` сохраняет цели, `[]` очищает, непустой массив
-  заменяет; `null` отклоняется.
+- Base price is selected in order: `price`, `triggerPrice`, `marketPrice`.
+- Without `triggerPrice`, a buy limit price must not exceed market price and a sell
+  limit price must not be below it. A buy trigger price must not be below market
+  price and a sell trigger price must not exceed it. When both prices are present,
+  a buy limit price must not exceed its trigger price and a sell limit price must
+  not be below it.
+- SL and TP must be on the correct side of base price for `buy` or `sell`.
+- `takeProfits` contains at most ten targets with positive finite prices and
+  percentages; the total must not exceed 100 with a tolerance of `1e-8`.
+- On `update`, omitted `takeProfits` preserves targets, `[]` clears them, and a
+  non-empty array replaces them. `null` is rejected.
 
-Серверный анализатор принимает более широкий набор: игнорирует неизвестные поля,
-подставляет текущее время при отсутствующем или нестроковом `timestamp`, сохраняет
-`force` только у `open`. `amountPerc` у `update` не означает поддерживаемое изменение
-объёма. Общие примеры отдельно фиксируют принятие схемой и анализатором; SDK формирует
-строгий рекомендуемый набор и сохраняет различия отсутствия, `null` и пустого массива.
+The server parser accepts a wider input set: it ignores unknown fields, substitutes
+the current time for omitted or non-string `timestamp`, and retains `force` only on
+`open`. `amountPerc` on `update` does not imply supported size adjustment. Shared
+fixtures record schema and parser acceptance separately; the SDK builds the strict
+recommended subset and preserves omission, `null`, and empty-array distinctions.
 
-## Вебхук: результат доставки
+## Webhook: delivery result
 
-Запрос `POST /webhooks/signals/v1/{strategyApiKey}` принимает ключ стратегии и тело
-до 16 КиБ в UTF-8; параметры строки запроса запрещены.
-Внешний обработчик проверяет форму ключа из 32 строчных шестнадцатеричных символов;
-наличие стратегии, отзыв ключа и состояние стратегии проверяются дальше в серверном
-контуре. Неверный путь даёт `404`, общий ключ вебхука — `410`, некорректное тело —
-`400`, превышение размера — `413`, другой HTTP-метод — `405`. Ошибка очереди может
-вернуть `500`; формы ошибок вебхука отличаются от REST.
+`POST /webhooks/signals/v1/{strategyApiKey}` accepts a strategy key and a body of up
+to 16 KiB of UTF-8; query parameters are forbidden. The outer handler validates the
+32-character lowercase hexadecimal key shape. Strategy existence, key revocation,
+and strategy state are checked later in the server pipeline. Invalid paths return
+`404`, the shared webhook key returns `410`, invalid bodies return `400`, oversized
+bodies return `413`, and other HTTP methods return `405`. Queue failures may return
+`500`; webhook error shapes differ from REST.
 
-Пустой ответ `204` означает постановку сигнала в очередь. Он не подтверждает сделку
-и не гарантирует постоянную идемпотентность. SDK не повторяет сигнал автоматически
-после ошибки или потери ответа и не запускает скрытый опрос состояния.
+An empty `204` response means the signal was enqueued. It does not confirm a trade or
+guarantee permanent idempotency. The SDK does not automatically resend signals after
+errors or lost responses and does not start hidden state polling.

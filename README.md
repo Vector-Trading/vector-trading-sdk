@@ -1,13 +1,17 @@
 # Vector Trading SDK
 
-Репозиторий SDK Vector Trading для JavaScript/TypeScript, Python, Go и Rust, а также
-исходников формирования сигналов Pine Script. Лицензия — MIT.
+Vector Trading SDK for JavaScript/TypeScript, Python, Go, and Rust, with Pine Script
+sources for building trading signals. Licensed under MIT.
 
-Сейчас подготовлена общая среда разработки. Языковые пакеты, снимок публичного контракта
-и публикации в реестрах ещё не реализованы. Состав работ и их подтверждённый статус
-хранятся в [плане](docs/plans/public-sdk.plan.md).
+The shared development environment and a verified public contract snapshot are ready.
+The snapshot covers seven REST operations and eight signal actions; its provenance is
+recorded in [contracts/source.json](contracts/source.json), and transport behavior is
+described in the [contract guide](docs/contracts.md). Language packages and registry
+releases are not implemented yet. Reproducible four-language generation and native
+probe commands are available in the [development guide](docs/development.md#generation-and-native-probes). The scope of work and its verified status are
+recorded in the [implementation plan](docs/plans/public-sdk.plan.md).
 
-Для работы нужны Node.js из `.nvmrc` и pnpm из `packageManager` в `package.json`:
+Use the Node.js version in `.nvmrc` and the pnpm version in `packageManager` in `package.json`:
 
 ```sh
 source ~/.nvm/nvm.sh
@@ -18,10 +22,9 @@ pnpm lint
 pnpm typecheck
 ```
 
-Установка инструментов и назначение команд описаны в
-[руководстве разработчика](docs/development.md), текущие границы — в
-[архитектуре](docs/architecture.md).
+Tool setup and commands are covered in the [development guide](docs/development.md).
+Current responsibilities are described in the [architecture](docs/architecture.md).
 
-SDK будет выполнять HTTP-запросы и формировать JSON сигналов. Торговые правила,
-авторизация и исполнение принадлежат серверу. Ключ аккаунта для REST предназначен
-для серверных интеграций; ключ стратегии для вебхука — отдельные учётные данные.
+The SDK will send HTTP requests and build JSON signals. Trading rules, authorization,
+and execution belong to the server. REST account API keys are intended for server-side
+integrations; webhook strategy API keys are separate credentials.

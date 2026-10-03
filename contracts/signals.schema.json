@@ -1,0 +1,398 @@
+{
+  "$id": "signals.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "cancel": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "cancel",
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string"
+        },
+        "marketPrice": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "title": "CancelSignalPayload",
+      "type": "object"
+    },
+    "close": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "close",
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string"
+        },
+        "marketPrice": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "title": "CloseSignalPayload",
+      "type": "object"
+    },
+    "delete": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "delete",
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "title": "DeleteSignalPayload",
+      "type": "object"
+    },
+    "open": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "open",
+          "type": "string"
+        },
+        "force": {
+          "type": "boolean"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string"
+        },
+        "marketPrice": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "order": {
+          "additionalProperties": false,
+          "properties": {
+            "amountPerc": {
+              "exclusiveMinimum": 0,
+              "maximum": 100,
+              "type": "number"
+            },
+            "price": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "side": {
+              "enum": [
+                "buy",
+                "sell"
+              ],
+              "type": "string"
+            },
+            "stop": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "takeProfits": {
+              "description": "Omission preserves targets; an empty update array clears them; a non-empty array replaces them.",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "percent": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 100,
+                    "type": "number"
+                  },
+                  "price": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "price",
+                  "percent"
+                ],
+                "type": "object"
+              },
+              "maxItems": 10,
+              "type": "array"
+            },
+            "triggerPrice": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            }
+          },
+          "required": [
+            "side"
+          ],
+          "type": "object"
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp",
+        "marketPrice",
+        "order"
+      ],
+      "title": "OpenSignalPayload",
+      "type": "object"
+    },
+    "pause": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "pause",
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "title": "PauseSignalPayload",
+      "type": "object"
+    },
+    "start": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "start",
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "title": "StartSignalPayload",
+      "type": "object"
+    },
+    "stop": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "stop",
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "title": "StopSignalPayload",
+      "type": "object"
+    },
+    "update": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "const": "update",
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string"
+        },
+        "marketPrice": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        "order": {
+          "additionalProperties": false,
+          "properties": {
+            "price": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "side": {
+              "enum": [
+                "buy",
+                "sell"
+              ],
+              "type": "string"
+            },
+            "stop": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            "takeProfits": {
+              "description": "Omission preserves targets; an empty update array clears them; a non-empty array replaces them.",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "percent": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 100,
+                    "type": "number"
+                  },
+                  "price": {
+                    "exclusiveMinimum": 0,
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "price",
+                  "percent"
+                ],
+                "type": "object"
+              },
+              "maxItems": 10,
+              "type": "array"
+            },
+            "triggerPrice": {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            }
+          },
+          "required": [
+            "side"
+          ],
+          "type": "object"
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp",
+        "marketPrice",
+        "order"
+      ],
+      "title": "UpdateSignalPayload",
+      "type": "object"
+    }
+  },
+  "description": "Recommended outgoing subset, not the complete permissive parser input. Price relationships, total TP percentage and safe timestamp conversion require additional validation by the sender and the canonical parser.",
+  "oneOf": [
+    {
+      "$ref": "#/definitions/open"
+    },
+    {
+      "$ref": "#/definitions/update"
+    },
+    {
+      "$ref": "#/definitions/cancel"
+    },
+    {
+      "$ref": "#/definitions/close"
+    },
+    {
+      "$ref": "#/definitions/start"
+    },
+    {
+      "$ref": "#/definitions/pause"
+    },
+    {
+      "$ref": "#/definitions/stop"
+    },
+    {
+      "$ref": "#/definitions/delete"
+    }
+  ],
+  "title": "StrategySignalPayload"
+}

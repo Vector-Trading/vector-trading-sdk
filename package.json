@@ -12,17 +12,26 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "tsc --project tsconfig.json --noEmit"
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "generation:setup": "node scripts/setup-generation.ts",
+    "contracts:check": "node scripts/check-contracts.ts",
+    "generate": "node scripts/generate.ts",
+    "generated:check": "node scripts/check-generated.ts",
+    "test": "vitest run",
+    "generation:probe": "node scripts/probe-generation.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "24.19.1",
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
     "eslint": "10.11.0",
     "eslint-config-prettier": "10.1.8",
     "globals": "17.13.0",
     "prettier": "3.9.9",
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.0",
-    "vitest": "5.0.3"
+    "vitest": "5.0.3",
+    "yaml": "2.8.1"
   }
 }

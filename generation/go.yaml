@@ -1,0 +1,11 @@
+{
+  'generatorName': 'go',
+  'additionalProperties':
+    {
+      'hideGenerationTimestamp': true,
+      'packageName': 'generated',
+      'enumClassPrefix': true,
+      'useOneOfDiscriminatorLookup': true,
+      'disallowAdditionalPropertiesIfNotPresent': false,
+    },
+}

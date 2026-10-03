@@ -1,0 +1,410 @@
+[
+  {
+    "expectedStatus": 200,
+    "id": "list-bundles",
+    "operationId": "listBundles",
+    "request": {
+      "method": "GET",
+      "path": "/v1/bundles",
+      "query": {}
+    },
+    "response": {
+      "bundles": [
+        {
+          "_id": "2be97361321c46f2bc7300a04fd6d133",
+          "access": "private",
+          "createdAt": "2026-07-19T12:00:00.000Z",
+          "grantedUsersCount": 1,
+          "marketType": "swap",
+          "name": "Example",
+          "quote": "USDT",
+          "status": "active",
+          "updatedAt": "2026-07-19T12:00:00.000Z"
+        }
+      ],
+      "limit": 50
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "empty-bundles-with-continuation",
+    "operationId": "listBundles",
+    "request": {
+      "method": "GET",
+      "path": "/v1/bundles",
+      "query": {}
+    },
+    "response": {
+      "bundles": [],
+      "limit": 50,
+      "nextCursor": "2be97361321c46f2bc7300a04fd6d133"
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "search-users",
+    "operationId": "searchUsers",
+    "request": {
+      "method": "GET",
+      "path": "/v1/users",
+      "query": {
+        "displayName": "Al"
+      }
+    },
+    "response": {
+      "limit": 10,
+      "query": "Al",
+      "users": [
+        {
+          "displayName": "Alice",
+          "userId": "3ce97361321c46f2bc7300a04fd6d244"
+        }
+      ]
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "get-checkout",
+    "operationId": "getCheckout",
+    "request": {
+      "method": "GET",
+      "path": "/v1/checkout/6fe97361321c46f2bc7300a04fd6d577",
+      "query": {}
+    },
+    "response": {
+      "bundleId": "2be97361321c46f2bc7300a04fd6d133",
+      "checkoutId": "6fe97361321c46f2bc7300a04fd6d577",
+      "currency": "USDT",
+      "displayName": "Alice",
+      "price": 49,
+      "userId": "3ce97361321c46f2bc7300a04fd6d244"
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "list-bundle-users",
+    "operationId": "listBundleUsers",
+    "request": {
+      "method": "GET",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/users",
+      "query": {}
+    },
+    "response": {
+      "limit": 50,
+      "users": [
+        {
+          "grantId": "5ee97361321c46f2bc7300a04fd6d466",
+          "grantType": "owner_grant",
+          "user": {
+            "displayName": "Alice",
+            "userId": "3ce97361321c46f2bc7300a04fd6d244"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "empty-bundle-users-with-continuation",
+    "operationId": "listBundleUsers",
+    "request": {
+      "method": "GET",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/users",
+      "query": {}
+    },
+    "response": {
+      "limit": 50,
+      "nextCursor": "scan:5ee97361321c46f2bc7300a04fd6d466",
+      "users": []
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "list-bundle-grants",
+    "operationId": "listBundleGrants",
+    "request": {
+      "method": "GET",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "response": {
+      "grants": [
+        {
+          "createdAt": "2026-07-19T12:00:00.000Z",
+          "grantType": "owner_grant",
+          "id": "5ee97361321c46f2bc7300a04fd6d466",
+          "userId": "3ce97361321c46f2bc7300a04fd6d244"
+        },
+        {
+          "grantType": "gift",
+          "id": "2be97361321c46f2bc7300a04fd6d133"
+        }
+      ],
+      "limit": 50
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "empty-grants-with-continuation",
+    "operationId": "listBundleGrants",
+    "request": {
+      "method": "GET",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "response": {
+      "grants": [],
+      "limit": 50,
+      "nextCursor": "5ee97361321c46f2bc7300a04fd6d466"
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "create-owner_grant",
+    "operationId": "createBundleGrant",
+    "request": {
+      "body": {
+        "grantType": "owner_grant",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      },
+      "method": "POST",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "requestSchema": "CreateGrantRequest",
+    "requestSchemaAccepted": true,
+    "response": {
+      "grant": {
+        "createdAt": "2026-07-19T12:00:00.000Z",
+        "grantType": "owner_grant",
+        "id": "5ee97361321c46f2bc7300a04fd6d466",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      }
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "create-paid_external",
+    "operationId": "createBundleGrant",
+    "request": {
+      "body": {
+        "grantType": "paid_external",
+        "sourceId": "example:invoice:1",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      },
+      "method": "POST",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "requestSchema": "CreateGrantRequest",
+    "requestSchemaAccepted": true,
+    "response": {
+      "grant": {
+        "createdAt": "2026-07-19T12:00:00.000Z",
+        "grantType": "paid_external",
+        "id": "5ee97361321c46f2bc7300a04fd6d466",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      }
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "create-referral_reward",
+    "operationId": "createBundleGrant",
+    "request": {
+      "body": {
+        "grantType": "referral_reward",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      },
+      "method": "POST",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "requestSchema": "CreateGrantRequest",
+    "requestSchemaAccepted": true,
+    "response": {
+      "grant": {
+        "createdAt": "2026-07-19T12:00:00.000Z",
+        "grantType": "referral_reward",
+        "id": "5ee97361321c46f2bc7300a04fd6d466",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      }
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "create-gift",
+    "operationId": "createBundleGrant",
+    "request": {
+      "body": {
+        "grantType": "gift",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      },
+      "method": "POST",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "requestSchema": "CreateGrantRequest",
+    "requestSchemaAccepted": true,
+    "response": {
+      "grant": {
+        "createdAt": "2026-07-19T12:00:00.000Z",
+        "grantType": "gift",
+        "id": "5ee97361321c46f2bc7300a04fd6d466",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      }
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "create-paid-until",
+    "operationId": "createBundleGrant",
+    "request": {
+      "body": {
+        "endsAt": "2026-07-19T12:00:00.000Z",
+        "grantType": "paid_external",
+        "sourceId": "example:invoice:2",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      },
+      "method": "POST",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "requestSchema": "CreateGrantRequest",
+    "requestSchemaAccepted": true,
+    "response": {
+      "grant": {
+        "createdAt": "2026-07-19T12:00:00.000Z",
+        "endsAt": "2026-07-19T12:00:00.000Z",
+        "grantType": "paid_external",
+        "id": "5ee97361321c46f2bc7300a04fd6d466",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      }
+    }
+  },
+  {
+    "expectedStatus": 200,
+    "id": "revoke-grant",
+    "operationId": "revokeBundleGrant",
+    "request": {
+      "method": "DELETE",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants/5ee97361321c46f2bc7300a04fd6d466",
+      "query": {}
+    },
+    "response": {
+      "grant": {
+        "createdAt": "2026-07-19T12:00:00.000Z",
+        "grantType": "owner_grant",
+        "id": "5ee97361321c46f2bc7300a04fd6d466",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      }
+    }
+  },
+  {
+    "expectedStatus": 400,
+    "id": "paid-without-source",
+    "operationId": "createBundleGrant",
+    "request": {
+      "body": {
+        "grantType": "paid_external",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      },
+      "method": "POST",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "requestSchema": "CreateGrantRequest",
+    "requestSchemaAccepted": false,
+    "response": {
+      "errorCode": "errors.vector.invalid_format",
+      "message": "body.sourceId is invalid",
+      "metadata": {}
+    }
+  },
+  {
+    "expectedStatus": 400,
+    "id": "null-ends-at",
+    "operationId": "createBundleGrant",
+    "request": {
+      "body": {
+        "endsAt": null,
+        "grantType": "owner_grant",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      },
+      "method": "POST",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "requestSchema": "CreateGrantRequest",
+    "requestSchemaAccepted": false,
+    "response": {
+      "errorCode": "errors.vector.invalid_format",
+      "message": "body.endsAt is invalid",
+      "metadata": {}
+    }
+  },
+  {
+    "expectedStatus": 400,
+    "id": "legacy-days",
+    "operationId": "createBundleGrant",
+    "request": {
+      "body": {
+        "days": 10,
+        "grantType": "gift",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      },
+      "method": "POST",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "requestSchema": "CreateGrantRequest",
+    "requestSchemaAccepted": false,
+    "response": {
+      "errorCode": "errors.vector.invalid_format",
+      "message": "body is invalid",
+      "metadata": {}
+    }
+  },
+  {
+    "expectedStatus": 400,
+    "id": "trial-not-owner-creatable",
+    "operationId": "createBundleGrant",
+    "request": {
+      "body": {
+        "grantType": "trial",
+        "userId": "3ce97361321c46f2bc7300a04fd6d244"
+      },
+      "method": "POST",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "requestSchema": "CreateGrantRequest",
+    "requestSchemaAccepted": false,
+    "response": {
+      "errorCode": "errors.vector.invalid_format",
+      "message": "body.grantType is invalid",
+      "metadata": {}
+    }
+  },
+  {
+    "expectedStatus": 400,
+    "id": "invalid-user-id",
+    "operationId": "createBundleGrant",
+    "request": {
+      "body": {
+        "grantType": "gift",
+        "userId": "bad"
+      },
+      "method": "POST",
+      "path": "/v1/bundles/2be97361321c46f2bc7300a04fd6d133/grants",
+      "query": {}
+    },
+    "requestSchema": "CreateGrantRequest",
+    "requestSchemaAccepted": false,
+    "response": {
+      "errorCode": "errors.vector.invalid_format",
+      "message": "body.userId is invalid",
+      "metadata": {}
+    }
+  }
+]

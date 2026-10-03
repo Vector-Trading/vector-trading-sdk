@@ -1,542 +1,553 @@
-# Публичные SDK Vector Trading с единым контрактом и проверяемым выпуском
+# Public Vector Trading SDKs with one contract and verifiable releases
 
 ## Plan Metadata
 
 - Status: `in-progress`
 - Created: `2026-10-03`
 - Last updated: `2026-10-03`
-- Based on revision: SDK `3c83ba25ac0a1e642d0327e23b07b320590e43c6`; сервер `be43459ba348d5dd852269f51a0897fb54668238`, совпадающий с локальным `origin/main` на момент проверки.
+- Based on revision: SDK `3c83ba25ac0a1e642d0327e23b07b320590e43c6`; server `be43459ba348d5dd852269f51a0897fb54668238`, matching local `origin/main` at verification time.
 - Plan root: `/Users/vlad.prychodko/Work/askadias/git/vector-trading-sdk`.
-- Planning context: первая и единственная рабочая копия SDK, ветка `main`, `origin=https://github.com/Vector-Trading/vector-trading-sdk.git`.
-- Workspace state: STEP-01 интегрирован в SDK `main` и `origin/main` commit `3cd3f75e146de2001826f710a4c9f750a8f9b4de`; туда же доставлены инструкции, план и документация STEP-02. Серверные схемы, примеры, тесты и экспорт STEP-02 подготовлены локально, но ещё не приняты серверным commit. SDK содержит `docs/contracts.md`, принятого снимка и языковых пакетов пока нет.
-- Integration target: ветка `main` репозитория SDK после проверенной доставки; для канонического экспорта — отдельно принятый commit основного репозитория; для выпуска — подтверждённые npm, PyPI, crates.io и публичные Go-теги/proxy.
-- Target branch: `main` в обоих репозиториях. Перед исполнением сверить актуальную ревизию; merge серверных веток не означает выполнение SDK-шагов.
-- Source root: `/Users/vlad.prychodko/Work/askadias/git/vector-trading`; ветка `main`, HEAD `be43459ba348d5dd852269f51a0897fb54668238`. При планировании обнаружена локальная правка `apps/web/app/features/trading/components/terminal/info/PnLAmount.tsx`. При STEP-02 появились параллельные изменения домашнего демо, панели подписки, E2E-проверок, каталога интерфейса, `ccxt.service.ts` и раздела домашнего демо в `docs/architecture.md`. Все посторонние изменения сохранены и исключены из области SDK. Источник снимка — принятый commit, а не изменённая рабочая копия.
+- Planning context: the first and only SDK working tree, branch `main`, `origin=https://github.com/Vector-Trading/vector-trading-sdk.git`.
+- Workspace state: STEP-01 is integrated into SDK `main` and `origin/main` at commit `3cd3f75e146de2001826f710a4c9f750a8f9b4de`, with its integration receipt in `d2204e25b76b223b2fcbecd4f6ffccb7a6eccf48`. STEP-02 is locally implemented: the server exporter is accepted in local server `main` at `e51366b859926abd5bdc222a5249e99f8080f0f8`, and its verified five-file snapshot is present in this SDK working tree. SDK snapshot/documentation delivery is not yet committed. STEP-03 is locally implemented: pinned four-language generation, shared checks, and native probes are verified. Language packages do not exist yet; SDK changes are uncommitted.
+- Integration target: the SDK repository's `main` after verified delivery; for canonical export, a separately accepted main-repository commit; for release, confirmed npm, PyPI, crates.io, and public Go tags/proxy.
+- Target branch: `main` in both repositories. Check the current revision before execution; merging server branches does not complete SDK steps.
+- Source root: `/Users/vlad.prychodko/Work/askadias/git/vector-trading`; planning base `be43459ba348d5dd852269f51a0897fb54668238`. STEP-02 completion found the prepared changes already bundled with unrelated work in `b094181d0147da0d785bd2d6d92df806f23bbdcc` on `VT-000/demo-entry-review-fixes`. With separate user authorization, only the 19 STEP-02 files/owned documentation hunks were accepted into existing local `main` as `e51366b859926abd5bdc222a5249e99f8080f0f8`. The unrelated branch and its commit were preserved; no server push occurred. A parallel home-demo documentation edit appeared after acceptance and was preserved in the server working tree on `main`; switching back would overlap that edit. The snapshot source is the accepted commit, and all hashed inputs were checked against its committed bytes.
 - Plan file: `docs/plans/public-sdk.plan.md`.
 
-## Цель, границы и текущая реальность
+## Goal, scope, and current state
 
-Пользователь получает устанавливаемый SDK для JavaScript/TypeScript, Python, Go и Rust: семь существующих REST-операций по ключу аккаунта, формирование и отправка всех восьми действий вебхука по ключу стратегии. Pine Script получает версионированные исходники библиотеки формирования JSON и примеры; импортируемая публикация в TradingView остаётся отдельным ручным процессом. Первый выпуск четырёх языков имеет одинаковое функциональное покрытие.
+Users receive an installable SDK for JavaScript/TypeScript, Python, Go, and Rust: seven existing account-key REST operations plus construction and delivery of all eight strategy-key webhook actions. Pine Script receives versioned JSON-building library sources and examples; importable TradingView publication remains a separate manual process. The first release has equivalent functional coverage across all four languages.
 
-Java исключена решением пользователя. Публичные торговые REST-команды, WebSocket, биржевые клиенты, создание API keys через SDK, миграции БД и изменение торгового исполнения не входят в задачу. SDK не заменяет CCXT и не создаёт свою систему преобразования кода между языками.
+Java is excluded by user decision. Public trading REST commands, WebSocket, exchange clients, SDK API-key creation, database migrations, and changes to trading execution are out of scope. The SDK does not replace CCXT or create a custom cross-language code-conversion system.
 
-### Проверенные факты и источники
+### Verified facts and sources
 
-Пути сервера ниже относятся к `Source root`; пути SDK — к `Plan root`. Перед реализацией сверить их с выбранными commits. При обновлении плана проверено: перечисленные файлы реализации REST, вебхука, разбора сигналов и доступа к наборам не изменились между прежней базой `fc9042a75cbfa88e9ec4ebb53d519870d4318f1e` и текущим серверным `main`. Изменения `docs/architecture.md` и `docs/autotrading.md` относятся к интерфейсу и биржевой защите; номера строк ниже — ориентиры первоначального исследования, нужный раздел следует находить по заголовку. Серверные проверки STEP-02 выполнены; их результаты указаны в свидетельствах шага.
+Server paths below are relative to `Source root`; SDK paths are relative to `Plan root`. Check them against selected commits before implementation. Plan updates verified that the listed REST, webhook, signal-parser, and bundle-access implementation files did not change between the previous base `fc9042a75cbfa88e9ec4ebb53d519870d4318f1e` and current server `main`. Changes to `docs/architecture.md` and `docs/autotrading.md` concern UI and exchange protection; line numbers below refer to the initial investigation, so locate relevant sections by heading. STEP-02 server checks have run; their results are recorded in the step evidence.
 
-| Факт                                                                                                                                                                                                                                                      | Источник                                                                                                                                                          |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| REST имеет 7 операций: `GET /bundles`, `GET /users`, `GET /checkout/{checkoutId}`, `GET /bundles/{bundleId}/users`, `GET /bundles/{bundleId}/grants`, `POST /bundles/{bundleId}/grants`, `DELETE /bundles/{bundleId}/grants/{grantId}` под `/api/rest/v1` | `apps/web/hono/routes/rest-api/rest-api.router.ts:55`                                                                                                             |
-| OpenAPI 3.0.3 доступен по `/api/rest/openapi.json`; описание собирается вручную отдельно от Zod; в принятой базе нет `operationId`, локально добавлены семь стабильных ID; `servers` содержит относительный `/api/rest`                                   | `apps/web/hono/routes/rest-api/openapi/document.ts`, `openapi/info.ts`, `openapi/paths.ts`, `schemas/*.schema.ts`                                                 |
-| REST использует `Authorization: Bearer vt_…`, scopes `bundles:read`, `users:read`, `grants:read/write`; checkout требует `grants:read`; ключ предназначен для серверной интеграции                                                                        | `packages/types/src/client/api-key.ts`, `controllers/*.controller.ts`, `middleware/api-key-auth.middleware.ts`, `docs/architecture.md:404`                        |
-| Все списки имеют `limit`/`cursor`/optional `nextCursor`; пустая страница может иметь продолжение                                                                                                                                                          | `openapi/paths.ts:6`, `openapi/schemas.ts`, `schemas/grants.schema.ts`                                                                                            |
-| `paid_external` требует `sourceId`; отсутствие `endsAt` означает бессрочный доступ; повтор источника может дать `409`; отзыв имеет каскадную доменную семантику                                                                                           | `openapi/schemas.ts:139`, `openapi/paths.ts:316`, `packages/services/src/trading-bundle/trading-bundle-access.service.ts`                                         |
-| `429` имеет `{success:false,error:…}`, отличаясь от `ErrorResponse`; ограничения по IP и ключу сейчас 240 запросов/минуту                                                                                                                                 | `apps/web/hono/middleware/rate-limiter.middleware.ts:222`, `openapi/schemas.ts:201`                                                                               |
-| Вебхук `POST /webhooks/signals/v1/{strategyApiKey}` принимает JSON до 16 KiB; действия `open/update/cancel/close/start/pause/stop/delete`; shared key получает `410`                                                                                      | `apps/webhook/src/lambda.ts`, `docs/autotrading.md:74`                                                                                                            |
-| `version` обязателен и является версией стратегии; timestamp распознаётся только как цифровая строка, иначе берётся `Date.now()`; `force` сохраняется только у `open`; `id` и `apiKey` добавляются сервером                                               | `packages/types/src/signal.ts:280`, `packages/services/src/trading-strategy.service.ts:1148`                                                                      |
-| `update.takeProfits`: пропуск сохраняет, `[]` очищает, непустой массив заменяет; тип ордера определяется полями цены/триггера                                                                                                                             | `packages/types/src/signal.ts`, `docs/autotrading.md:95`                                                                                                          |
-| `204` означает enqueue; ID зависит от ключа и исходного payload; завершённая задача удаляется, поэтому постоянной гарантии однократного исполнения нет                                                                                                    | `apps/webhook/src/lambda.ts:188`, `packages/types/src/signal.ts:50`, `packages/types/src/trading/trading-strategy-processing-queue.ts:8`                          |
-| GitHub-репозиторий SDK приватный, `main` не защищена, environments отсутствуют; Actions разрешены все, SHA pinning не требуется; права сценариев GitHub Actions по умолчанию уже `read`, одобрение PR workflow запрещено                                  | Чтение GitHub API `repos/Vector-Trading/vector-trading-sdk`, `actions/permissions`, `actions/permissions/workflow`, `branches/main`, `environments` от 2026-10-03 |
-| API rulesets для текущего приватного репозитория вернул `403` с требованием платного плана либо публичность репозитория                                                                                                                                   | Чтение `repos/Vector-Trading/vector-trading-sdk/rulesets`; это ограничение проверки, не доказательство отсутствия всех возможных организационных правил           |
-| SDK содержит только начальный commit, README и MIT                                                                                                                                                                                                        | `git worktree list --porcelain`, `git status`, `git log`, `gh api .../contents`                                                                                   |
+| Fact                                                                                                                                                                                                                                                        | Source                                                                                                                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| REST has 7 operations under `/api/rest/v1`: `GET /bundles`, `GET /users`, `GET /checkout/{checkoutId}`, `GET /bundles/{bundleId}/users`, `GET /bundles/{bundleId}/grants`, `POST /bundles/{bundleId}/grants`, `DELETE /bundles/{bundleId}/grants/{grantId}` | `apps/web/hono/routes/rest-api/rest-api.router.ts:55`                                                                                                               |
+| OpenAPI 3.0.3 is available at `/api/rest/openapi.json`; it is maintained manually and separately from Zod. The initial base lacked `operationId`; the accepted snapshot contains seven stable IDs. `servers` contains relative `/api/rest`                  | `apps/web/hono/routes/rest-api/openapi/document.ts`, `openapi/info.ts`, `openapi/paths.ts`, `schemas/*.schema.ts`                                                   |
+| REST uses `Authorization: Bearer vt_…`, scopes `bundles:read`, `users:read`, `grants:read/write`; checkout requires `grants:read`. Keys are intended for server-side integration                                                                            | `packages/types/src/client/api-key.ts`, `controllers/*.controller.ts`, `middleware/api-key-auth.middleware.ts`, `docs/architecture.md:404`                          |
+| All lists support `limit`/`cursor`/optional `nextCursor`; an empty page may have a continuation                                                                                                                                                             | `openapi/paths.ts:6`, `openapi/schemas.ts`, `schemas/grants.schema.ts`                                                                                              |
+| `paid_external` requires `sourceId`; omitted `endsAt` means permanent access; repeated sources may return `409`; revocation has cascading domain effects                                                                                                    | `openapi/schemas.ts:139`, `openapi/paths.ts:316`, `packages/services/src/trading-bundle/trading-bundle-access.service.ts`                                           |
+| `429` uses `{success:false,error:…}`, unlike `ErrorResponse`; current IP and key limits are 240 requests/minute                                                                                                                                             | `apps/web/hono/middleware/rate-limiter.middleware.ts:222`, `openapi/schemas.ts:201`                                                                                 |
+| `POST /webhooks/signals/v1/{strategyApiKey}` accepts up to 16 KiB of JSON; actions are `open/update/cancel/close/start/pause/stop/delete`; shared keys return `410`                                                                                         | `apps/webhook/src/lambda.ts`, `docs/autotrading.md:74`                                                                                                              |
+| `version` is required and denotes strategy version; timestamp is recognized only as a decimal string, otherwise `Date.now()` is used; `force` is retained only on `open`; the server adds `id` and `apiKey`                                                 | `packages/types/src/signal.ts:280`, `packages/services/src/trading-strategy.service.ts:1148`                                                                        |
+| `update.takeProfits`: omission preserves, `[]` clears, non-empty arrays replace; order type is inferred from price/trigger fields                                                                                                                           | `packages/types/src/signal.ts`, `docs/autotrading.md:95`                                                                                                            |
+| `204` means enqueue acceptance; IDs depend on the key and original payload; completed jobs are removed, so there is no permanent exactly-once guarantee                                                                                                     | `apps/webhook/src/lambda.ts:188`, `packages/types/src/signal.ts:50`, `packages/types/src/trading/trading-strategy-processing-queue.ts:8`                            |
+| The SDK GitHub repository is private, `main` is unprotected, environments are absent; all Actions are allowed without required SHA pinning; default workflow permissions are already `read`, and workflow PR approval is forbidden                          | GitHub API reads of `repos/Vector-Trading/vector-trading-sdk`, `actions/permissions`, `actions/permissions/workflow`, `branches/main`, `environments` on 2026-10-03 |
+| The current private-repository rulesets API returned `403`, requiring a paid plan or public visibility                                                                                                                                                      | Read of `repos/Vector-Trading/vector-trading-sdk/rulesets`; this limits verification and does not prove the absence of all possible organization rules              |
+| At initial inspection, the SDK contained only the initial commit, README, and MIT license                                                                                                                                                                   | `git worktree list --porcelain`, `git status`, `git log`, `gh api .../contents`                                                                                     |
 
-### Уже подготовлено и не требует реализации заново
+### Already prepared; do not recreate
 
-Корневой `AGENTS.md` и `.agents/skills/{sdk-contracts,sdk-clients,sdk-release,pine-signals}/SKILL.md` созданы для будущей работы. Их целевые пути явно отличают от существующих. Не копировать правила React/FSD, базы данных и фоновых торговых процессов в SDK.
+Root `AGENTS.md` and `.agents/skills/{sdk-contracts,sdk-clients,sdk-release,pine-signals}/SKILL.md` were created for future work. They explicitly distinguish target paths from existing paths. Do not copy React/FSD, database, or background-trading rules into the SDK.
 
-## Решения и общие требования
+## Decisions and shared requirements
 
-### Согласованные решения
+### Agreed decisions
 
-1. Один отдельный репозиторий, четыре языковых пакета; Java исключена.
-2. Репозиторий станет публичным перед первым публичным релизом, после проверки содержимого и истории. Это подтверждено пользователем при планировании. Сейчас visibility не меняется.
-3. Обычная сборка и pull request проверяют результат; публичный выпуск запускается отдельно по релизной версии. Все пакеты выпускаются из одного commit.
-4. GitHub хранит Pine-исходники и историю. Официальный API публикации TradingView не подтверждён; публикация через Pine Editor ручная. Автоматизация интерфейса и внутренние точки входа не входят в CI.
-5. Настройки инструментов, проверки, конфигурация GitHub и реестров включены в этот план. Само планирование не разрешает реализацию и выпуск; запрос исполнения разрешает только выбранные шаги.
+1. One separate repository with four language packages; Java is excluded.
+2. The repository becomes public before the first public release, after content and history review. The user confirmed this during planning. Visibility is not changed now.
+3. Ordinary builds and pull requests verify the result; public release runs separately for a release version. All packages are released from one commit.
+4. GitHub stores Pine sources and history. No official TradingView publication API has been confirmed; Pine Editor publication is manual. UI automation and internal endpoints are excluded from CI.
+5. Tool settings, checks, GitHub configuration, and registries are included in this plan. Planning itself does not authorize implementation or release; an execution request authorizes only selected steps.
+6. Repository documentation, plans, README, agent instructions, and skills are written in English. Conversational replies follow the user's language.
 
-### Выбранная техническая форма
+### Selected technical approach
 
-API-сервер владеет публичной семантикой, SDK — проверенным снимком и производными клиентами. Канонический экспорт и его доказательства создаются в основном репозитории; SDK получает архив/файлы конкретного принятого commit. Генерация и обычные проверки SDK работают без соседней рабочей копии, MongoDB, Redis и рабочих секретов.
+The API server owns public semantics; the SDK owns a verified snapshot and derived clients. Canonical export and its evidence are created in the main repository; the SDK receives an archive/files from a specific accepted commit. Generation and ordinary SDK checks work without a neighboring checkout, MongoDB, Redis, or production secrets.
 
-Целевые каталоги: `contracts/`, `conformance/`, `generation/`, `scripts/`, `typescript/`, `python/`, `go/`, `rust/`, `pinescript/`. Снимок имеет `contracts/source.json` с repository, commit, версией контракта, схемами и SHA-256. Общая версия SDK хранится в `release/version.json`; описания пакетов проверяются на совпадение. Эти два файла описывают разные сущности.
+Target directories: `contracts/`, `conformance/`, `generation/`, `scripts/`, `typescript/`, `python/`, `go/`, `rust/`, `pinescript/`. The snapshot includes `contracts/source.json` with repository, commit, contract version, schemas, and SHA-256. Shared SDK version lives in `release/version.json`; package manifests are checked for agreement. These files describe different entities.
 
-OpenAPI Generator — выбранный исходный механизм для REST и производных моделей сигналов; совместимость конкретной конфигурации проверяется в STEP-03 до полноценных языковых пакетов. JSON Schema сигналов — описание безопасного исходящего набора; сложные межполевые проверки доказываются примерами через серверный анализатор. Если требуется модельная генерация через OpenAPI, промежуточный документ производится из той же схемы и не становится второй ручной истиной. Производный код коммитится в явно обозначенные подпапки и проверяется повторной генерацией. Ручные HTTP-оболочки, кодеки и удобные методы живут отдельно.
+OpenAPI Generator `7.25.0` is the verified mechanism for REST and derived signal models; STEP-03 tested four configurations, narrow template overrides, and native codecs before full language packages. Signal JSON Schema describes the safe outgoing subset; complex cross-field checks are proven with fixtures through the server parser. If model generation requires OpenAPI, derive the intermediate document from the same schema rather than creating another manually maintained truth. Commit derived code in clearly marked subdirectories and verify regeneration. Keep handwritten HTTP wrappers, codecs, and convenience methods separately.
 
-Целевые имена каналов: npm `@vector-trading/sdk`, PyPI `vector-trading-sdk` с импортом `vector_trading`, crates.io `vector-trading-sdk` с импортом `vector_trading_sdk`, Go `github.com/Vector-Trading/vector-trading-sdk/go`. При локальной реализации использовать эти имена, не выдавая их за зарегистрированные или уже опубликованные. Доступность имён и права подтверждаются в STEP-10 перед внешней настройкой и выпуском. Обнаруженный конфликт требует решения пользователя и атомарного обновления метаданных, импортов, примеров и документации; альтернативное публичное имя молча не выбирать.
+The approved runtime dependency policy is owned by [docs/architecture.md](../architecture.md#runtime-dependencies): TypeScript and Go have no external runtime dependencies; Python keeps `httpx` and Pydantic; Rust keeps `reqwest`, `serde`, and `serde_json`. Auxiliary dependencies require actual usage and a compatibility reason. STEP-04–07 must verify the installed package dependency graph; exact probe/development locks do not constrain consumer lockfiles. Java and the generator are development-only tools.
 
-| Область           | Выбранные инструменты и граница                                                                                                                                                                                                                                                                                                       |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Общие инструменты | Node.js `24.21.0` и pnpm `11.22.0` как исходная совместимая база; корневой пакет `private:true`, pnpm workspace только для TypeScript и общих JS-инструментов; Prettier для Markdown/JSON/YAML/TypeScript, ESLint для ручного JS/TS, Vitest для общих инструментов; без Turborepo и пользовательского межъязыкового фреймворка сборки |
-| TypeScript        | TypeScript strict, нативный `fetch`, Vitest, ESLint/Prettier, сборка `tsup` с ESM/CJS и `.d.ts`; Node.js 22 и 24 — проверяемые среды. Ключевой REST-сценарий серверный; браузерное хранение ключа не поддерживается                                                                                                                   |
-| Python            | Python минимум 3.12, `uv`, `pyproject.toml`, Hatchling, `httpx` с синхронным клиентом, Ruff для lint/format, mypy, pytest; Python 3.12 и 3.14 — первоначальная матрица; типы и `py.typed` входят в пакет                                                                                                                              |
-| Go                | Go-модульs, `net/http`, `context`, стандартные testing/httptest, `gofmt`, `go vet`, Staticcheck; первоначально Go 1.26 и 1.27, минимальная версия в `go.mod` 1.26; без обязательной сторонней HTTP-библиотеки                                                                                                                         |
-| Rust              | Cargo library crate, `serde`, `reqwest` с асинхронный API и Tokio для тестов, rustfmt, Clippy, встроенные тесты и локальный HTTP-получатель; точные стабильную версию компилятора и минимальная `rust-version` закрепляются после проверки совместимости генерации в STEP-03                                                          |
-| Контракты         | Проверка OpenAPI и JSON Schema, lint именованных операций, общие тестовые данные, воспроизводимость генерации; конкретные версии инструментов закрепляются lock/config-файлами и не используют `latest` в CI                                                                                                                          |
-| Pine              | Pine Script v6, ручная компиляция в Pine Editor, JSON-примеры общего набора; CI не выдаёт проверку обычных строк за компиляцию Pine                                                                                                                                                                                                   |
-| CI                | GitHub Actions, закреплённые SHA внешних Actions, read-only проверки PR, отдельные задания публикации с точным OIDC-доверием, общий обязательный итоговый check                                                                                                                                                                       |
+Target channel names: npm `@vector-trading/sdk`, PyPI `vector-trading-sdk` imported as `vector_trading`, crates.io `vector-trading-sdk` imported as `vector_trading_sdk`, and Go `github.com/Vector-Trading/vector-trading-sdk/go`. Use these names locally without claiming they are registered or published. STEP-10 verifies availability and permissions before external setup and release. A conflict requires a user decision and atomic updates to metadata, imports, examples, and documentation; do not silently select another public name.
 
-Версии инструментов внутри выбранных семейств фиксируются при создании конфигурации после проверки доступности и совместимости. Это обычная работа соответствующего шага, а не разрешение заменить выбранную архитектуру. Go toolchain и Rust MSRV указываются отдельно от версии SDK.
+| Area           | Selected tools and boundaries                                                                                                                                                                                                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shared tooling | Node.js `24.21.0` and pnpm `11.22.0` as the initial compatible base; root `private:true`, pnpm workspace only for TypeScript and shared JS tooling; Prettier for Markdown/JSON/YAML/TypeScript, ESLint for handwritten JS/TS, Vitest for shared tooling; no Turborepo or custom cross-language build framework               |
+| TypeScript     | Strict TypeScript, native `fetch`, Vitest, ESLint/Prettier, `tsup` builds with ESM/CJS and `.d.ts`; verify Node.js 22 and 24. The primary REST use case is server-side; browser key storage is unsupported                                                                                                                   |
+| Python         | Python minimum 3.12, `uv`, `pyproject.toml`, Hatchling, synchronous `httpx` client and Pydantic models, Ruff lint/format, mypy, pytest; initial Python 3.12/3.14 matrix; include types and `py.typed`                                                                                                                        |
+| Go             | Go modules, `net/http`, `context`, standard testing/httptest, `gofmt`, `go vet`, Staticcheck; initial Go 1.26/1.27, minimum 1.26 in `go.mod`; no external runtime dependencies                                                                                                                                               |
+| Rust           | Cargo library crate, `serde`/`serde_json`, asynchronous `reqwest` API requiring a Tokio execution context; direct Tokio usage for tests/examples, rustfmt, Clippy, built-in tests, and a local HTTP receiver; stable compiler `1.99.0` and minimum `rust-version` `1.88` verified by STEP-03 generation compatibility checks |
+| Contracts      | OpenAPI/JSON Schema validation, named-operation linting, shared fixtures, generation reproducibility; pin tool versions in lock/config files, without `latest` in CI                                                                                                                                                         |
+| Pine           | Pine Script v6, manual Pine Editor compilation, shared JSON fixtures; CI must not present ordinary string checks as Pine compilation                                                                                                                                                                                         |
+| CI             | GitHub Actions, external Actions pinned by SHA, read-only PR checks, separate publication jobs with exact OIDC trust, one required aggregate check                                                                                                                                                                           |
 
-Документы-владельцы: `docs/contracts.md`, `docs/architecture.md`, `docs/development.md`, `docs/releasing.md`. README показывает установку, несколько примеров и ссылки. `.env.example` содержит только фиктивные значения; тесты по умолчанию используют localhost, без реальных токенов. Документы текущего сервера обновляются только при изменении его описанного публичного контракта.
+Pin versions within selected tool families when creating configuration, after checking availability and compatibility. This is ordinary work for the relevant step, not permission to replace the selected architecture. Specify Go toolchain and Rust MSRV independently of SDK version.
 
-### Общие инварианты и матрица проверки
+Documentation owners: `docs/contracts.md`, `docs/architecture.md`, `docs/development.md`, `docs/releasing.md`. README shows installation, a few examples, and links. `.env.example` contains only placeholders; tests default to localhost without real tokens. Update current server documentation only when its documented public contract changes.
 
-Каждый языковой пакет выполняет применимые `C01–C12`; подтверждение серверной семантики `C13` принадлежит STEP-02. Общие тестовые данные описывают наблюдаемый вход/выход, не внутреннюю структуру классов.
+### Shared invariants and verification matrix
 
-| ID  | Наблюдаемый результат                                                                                                                                                                                                                                                                                                                          |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C01 | Импорт и конструирование клиента не выполняют сеть/фоновые задачи; REST-ключ не попадает в вебхук и наоборот                                                                                                                                                                                                                                   |
-| C02 | Все 7 REST-операций сериализуют путь, параметры, тело и заголовок Authorization; даты передаются ISO 8601, `paid_external` сохраняет `sourceId`; удаление не обещает более узкую семантику, чем сервер                                                                                                                                         |
-| C03 | Все 8 сигналов и 4 вида входного ордера совместимы с сервером; `version` стратегии обязателен; внутренняя `id/apiKey` не требуются от пользователя; недопустимые TP/SL и не конечные числа отклоняются                                                                                                                                         |
-| C04 | Пропуск `takeProfits`, `[]`, непустые TP, `null` и ошибочный тип различимы; SDK не создаёт очистку из отсутствующего поля                                                                                                                                                                                                                      |
-| C05 | SDK создаёт цифровой строковый timestamp при построении сообщения; повтор одной доставки сохраняет исходное сообщение, а не создаёт новое время. Не обещается уникальность разных сигналов в одну миллисекунду; пользователь может задавать timestamp явно. `force` доступен только у `open`; версия SDK не подставляется как версия стратегии |
-| C06 | Обход проходит пустую страницу с `nextCursor`, заканчивается при его отсутствии, сохраняет фильтры и отмену; повторённый курсор приводит к явной ошибке                                                                                                                                                                                        |
-| C07 | Обрабатываются JSON/не-JSON/пустые ошибки, `400/401/403/404/409/410/413/429/5xx` при применимости, `requestId`; ключи и чувствительный URL отсутствуют в исключениях/логах/снимках                                                                                                                                                             |
-| C08 | `204` вебхука обозначает принятие в очередь. Таймаут, потеря ответа, `429` и `5xx` не инициируют скрытый повтор изменяющего запроса; клиент не обещает постоянной дедупликации                                                                                                                                                                 |
-| C09 | Таймаут и отмена ограничивают HTTP-операцию, закрывают ресурсы; перенаправление на другой источник не передаёт секрет; тестовый HTTP допускается только при явной настройке локальной среды                                                                                                                                                    |
-| C10 | JSON корректен для Unicode/экранирования; лимит тела сообщения проверяется в байтах UTF-8 до отправки; входные необязательные поля сохраняют намерение, числа не округляются произвольным количеством знаков                                                                                                                                   |
-| C11 | Дополнительные необязательные поля ответа не ломают чтение; несовместимые ответы дают объяснимую ошибку. Все снимки и результаты генерации повторяемы, не зависят от локального абсолютного пути и времени сборки                                                                                                                              |
-| C12 | Собранный архив устанавливается в чистый проект, публичные импорты и примеры работают; лицензия и типы включены, секреты/тестовые артефакты/зависимости сервера исключены                                                                                                                                                                      |
-| C13 | Канонические серверные тесты подтверждают разрешения ключа/владельца/CIDR/отзыв ключа, варианты grants и `409`, каскадный revoke, разбор сигналов и принятие/отказы вебхука. Двойник клиента не считается этим доказательством                                                                                                                 |
+Each language package runs applicable `C01–C12`; STEP-02 owns server-semantics proof `C13`. Shared fixtures describe observable input/output, not internal class structure.
 
-По умолчанию автоматические HTTP-повторы отключены у всех методов. Новая политика повторов требует конкретного безопасного контракта; она не выводится из HTTP-глагола или наличия `sourceId`. Нет новых постоянных серверных фоновых процессов и новых схем БД.
+| ID  | Observable result                                                                                                                                                                                                                                                                                                                                     |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C01 | Import and client construction perform no network/background work; REST keys never enter webhooks or vice versa                                                                                                                                                                                                                                       |
+| C02 | All 7 REST operations serialize paths, parameters, bodies, and Authorization headers; dates use ISO 8601, `paid_external` preserves `sourceId`; deletion does not promise narrower semantics than the server                                                                                                                                          |
+| C03 | All 8 signals and 4 entry-order types are server-compatible; strategy `version` is required; users need not supply internal `id/apiKey`; invalid TP/SL and non-finite numbers are rejected                                                                                                                                                            |
+| C04 | Omitted `takeProfits`, `[]`, non-empty TP, `null`, and invalid types remain distinct; the SDK does not clear targets because a field was omitted                                                                                                                                                                                                      |
+| C05 | Message construction produces a decimal string timestamp; repeating one delivery preserves the original message instead of creating a new timestamp. Distinct signals within one millisecond are not guaranteed unique; users may set timestamps explicitly. `force` is available only on `open`; SDK version is not substituted for strategy version |
+| C06 | Traversal continues through empty pages with `nextCursor`, ends when it is absent, and preserves filters and cancellation; repeated cursors produce explicit errors                                                                                                                                                                                   |
+| C07 | Handle JSON/non-JSON/empty errors, applicable `400/401/403/404/409/410/413/429/5xx`, and `requestId`; keys and sensitive URLs stay out of exceptions/logs/snapshots                                                                                                                                                                                   |
+| C08 | Webhook `204` means enqueue acceptance. Timeouts, lost responses, `429`, and `5xx` do not trigger hidden mutation retries; clients do not promise permanent deduplication                                                                                                                                                                             |
+| C09 | Timeouts and cancellation bound HTTP operations and close resources; cross-origin redirects do not forward secrets; test HTTP requires explicit local-environment configuration                                                                                                                                                                       |
+| C10 | JSON handles Unicode and escaping; message body limits are checked in UTF-8 bytes before sending; optional inputs preserve intent; numbers are not rounded to arbitrary precision                                                                                                                                                                     |
+| C11 | Additional optional response fields do not break parsing; incompatible responses produce understandable errors. Snapshots and generated results are reproducible and independent of absolute local paths and build time                                                                                                                               |
+| C12 | Built archives install in clean projects; public imports and examples work; license and types are included; secrets/test artifacts/server dependencies are excluded                                                                                                                                                                                   |
+| C13 | Canonical server tests prove key/owner/CIDR/revocation permissions, grant variants and `409`, cascading revocation, signal parsing, and webhook acceptance/rejection. A client double is not this proof                                                                                                                                               |
 
-### Выпуск и восстановление
+Automatic HTTP retries are disabled by default for every method. A new retry policy requires a specific safe contract; it cannot be inferred from HTTP verbs or `sourceId`. No new persistent server background processes or database schemas are introduced.
 
-Первый выпуск — `0.1.0`, общий неизменяемый тег `v0.1.0`; Go в подпапке требует также `go/v0.1.0` на том же commit. Переход Go на major 2 требует `/v2` в пути модуля. Корневой Node-пакет не публикуется.
+### Release and recovery
 
-Сначала проходят все проверки и сборки, затем формируется описание выпуска с commit, версиями, контрольными суммами контрактов, контрольными суммами артефактов и исходами каналов. Артефакты передаются между заданиями, не пересобираются другим commit. Нужна проверка уже опубликованных версий после неоднозначного ответа; продолжение публикует только отсутствующий канал. Сбой npm после успешного PyPI — частичный выпуск, а не общий успех или повод удалять опубликованные пакеты. Исправление опубликованного кода получает новую версию; публичные теги не перемещаются.
+The first release is `0.1.0`, with immutable shared tag `v0.1.0`; the Go subdirectory also requires `go/v0.1.0` at the same commit. Go major 2 requires `/v2` in the module path. The root Node package is not published.
 
-Pine `.pine` и примеры обязательны в GitHub Release. Публикация импортируемой библиотеки в TradingView необязательна для первого SDK-релиза, поскольку исходный запрос включает резервное хранение Pine. Если она выполнена вручную, описание выпуска связывает автора, библиотеку и числовую версию с SDK commit; иначе явно указано `source-only` и пример встраивания без выдуманного `import`. Работающие оповещения не обновляются автоматически.
+Run all checks and builds first, then prepare release notes with the commit, versions, contract hashes, artifact hashes, and channel outcomes. Pass artifacts between jobs; do not rebuild from another commit. Verify already-published versions after ambiguous responses; continuation publishes only missing channels. An npm failure after successful PyPI publication is partial success, not overall success or a reason to delete published packages. Fix published code with a new version; do not move public tags.
 
-### Готовность к реализации и последующие условия приёмки
+Pine `.pine` sources and examples are required in GitHub Releases. Publishing an importable TradingView library is optional for the first SDK release because the original request includes Pine backup storage. If manually published, release notes tie the author, library, and numeric version to the SDK commit; otherwise explicitly label `source-only` and provide an embedding example without a fictitious `import`. Running alerts are not updated automatically.
 
-План подготовлен к исполнению: состав SDK, источники семантики, выбранный механизм, границы изменений, порядок и способы проверки определены. STEP-01 не имеет зависимостей и интегрирован в SDK `main`/`origin/main`; его свидетельства записаны ниже. Первый экспорт из принятого серверного commit, пробы `oneOf`/необязательных полей четырёх языков и проверка реестров — результаты STEP-02, STEP-03 и STEP-10, а не условия начала STEP-01. Обновление плана не подтверждает выполнение этих проверок. После начала реализации общий статус — `in-progress`.
+### Implementation readiness and later acceptance conditions
 
-Конкретный отказ обязательной проверки, несовместимость генератора, требующая смены архитектуры, конфликт публичного имени или недоступный внешний доступ фиксируются у соответствующего шага вместе с оставшимся решением. Зависимые шаги не обходят такую границу. Сохраняются все критерии приёмки; статус `ready` означает готовность исполнять согласованный план, а не готовность пакетов к публикации.
+The plan is ready for execution: SDK scope, semantic sources, selected mechanism, change boundaries, ordering, and checks are defined. STEP-01 has no dependencies and is integrated into SDK `main`/`origin/main`; its evidence is below. The first export from an accepted server commit, four-language `oneOf`/optional-field probes, and registry checks are STEP-02, STEP-03, and STEP-10 results, not prerequisites for starting STEP-01. Updating the plan does not prove these checks ran. Overall status is `in-progress` once implementation starts.
 
-В STEP-02 тестами подтверждено расхождение: раздел REST в серверном `docs/architecture.md` обещает строгую проверку владельца при операциях доступа, а `getOwnedBundleForGrantCreation` для `owner_grant` использует `getMutableBundle`/общий `hasPermission`. Фактическое поведение сохранено: владелец и чужая расширенная роль с правом `bundles:update` могут создать `owner_grant`; чужая обычная роль получает `403`, а остальные создаваемые типы требуют точного владения. Серверная документация исправлена локально. Не менять права или поведение во время выполнения молча ради SDK. Запрошенное впоследствии изменение разрешений требует отдельного решения; без такого решения SDK не обещает более строгие права, чем сервер.
+Record specific required-check failures, generator incompatibilities requiring architecture changes, public-name conflicts, or unavailable external access in the affected step with the outstanding decision. Dependent steps cannot bypass that boundary. Preserve all acceptance criteria; `ready` means ready to execute the agreed plan, not ready to publish packages.
 
-Отсутствующие учётные данные, права владельца в реестре и возможности тарифного плана GitHub нельзя заменять фиктивной проверкой. Это условия исполнения внешних шагов, не причина останавливать доступную подготовку. Платные услуги, переписывание истории и торговые тесты в рабочей среде не разрешены этим планом.
+STEP-02 tests confirmed a discrepancy: the REST section in server `docs/architecture.md` promises strict owner checks for access operations, while `getOwnedBundleForGrantCreation` uses `getMutableBundle`/shared `hasPermission` for `owner_grant`. Actual behavior was preserved: the owner and a foreign expanded role with `bundles:update` may create `owner_grant`; a foreign ordinary role receives `403`, and other creatable grant types require exact ownership. Server documentation was corrected in the accepted STEP-02 commit. Do not silently change permissions or runtime behavior for the SDK. A later requested permission change requires a separate decision; without it, the SDK must not promise stricter permissions than the server.
 
-## Зависимости и исполнение
+Missing credentials, registry ownership, and GitHub plan capabilities must not be replaced with fictitious checks. These are external-step execution conditions, not reasons to stop available preparation. Paid services, history rewriting, and production trading tests are not authorized by this plan.
 
-| Шаг     | Зависит от | Параллельность и причина                                                              |
-| ------- | ---------- | ------------------------------------------------------------------------------------- |
-| STEP-01 | нет        | Общий корень и инструменты; один владелец                                             |
-| STEP-02 | STEP-01    | Другой репозиторий/источник контракта; не пересекается с чужими изменениями           |
-| STEP-03 | STEP-02    | Общая схема и генерация; один владелец                                                |
-| STEP-04 | STEP-03    | Пакет TypeScript; можно параллельно STEP-05–08 после закрепления общего контракта     |
-| STEP-05 | STEP-03    | Пакет Python; своя конфигурация и файл фиксации зависимостей                          |
-| STEP-06 | STEP-03    | Пакет Go; собственный модуль и закреплённый компилятор                                |
-| STEP-07 | STEP-03    | Пакет Rust; свою библиотеку Rust и файл фиксации зависимостей                         |
-| STEP-08 | STEP-03    | Pine-исходники; ручная проверка отдельно от языковых сборок                           |
-| STEP-09 | STEP-04–08 | Общая CI-матрица и проверка потребителей; один владелец                               |
-| STEP-10 | STEP-09    | Настройки GitHub/реестров и публичность репозитория; внешние действия последовательны |
-| STEP-11 | STEP-10    | Проверенный сценарий выпуска в режиме без публикации                                  |
-| STEP-12 | STEP-11    | Фактический общий выпуск и внешняя приёмка                                            |
+## Dependencies and execution
 
-Порядок принятия: STEP-01 → STEP-02 → STEP-03 → STEP-04–08 → STEP-09 → STEP-10 → STEP-11 → STEP-12. Параллельные исполнители изменяют только свои каталоги; общие `package.json`, `generation/`, `conformance/`, документы и план имеют одного назначенного владельца интеграции. При отсутствии разрешённой делегации шаги выполняются последовательно.
+| Step    | Depends on | Parallelism and reason                                                              |
+| ------- | ---------- | ----------------------------------------------------------------------------------- |
+| STEP-01 | none       | Shared root and tooling; one owner                                                  |
+| STEP-02 | STEP-01    | Separate repository/contract source; must not overlap others' changes               |
+| STEP-03 | STEP-02    | Shared schema and generation; one owner                                             |
+| STEP-04 | STEP-03    | TypeScript package; may run alongside STEP-05–08 once the shared contract is pinned |
+| STEP-05 | STEP-03    | Python package; own configuration and lockfile                                      |
+| STEP-06 | STEP-03    | Go package; own module and pinned compiler                                          |
+| STEP-07 | STEP-03    | Rust package; own library crate and lockfile                                        |
+| STEP-08 | STEP-03    | Pine sources; manual verification separate from language builds                     |
+| STEP-09 | STEP-04–08 | Shared CI matrix and consumer checks; one owner                                     |
+| STEP-10 | STEP-09    | GitHub/registry settings and public visibility; external actions are sequential     |
+| STEP-11 | STEP-10    | Verified release workflow in non-publishing mode                                    |
+| STEP-12 | STEP-11    | Actual shared release and external acceptance                                       |
 
-### Запуск из проекта SDK
+Acceptance order: STEP-01 → STEP-02 → STEP-03 → STEP-04–08 → STEP-09 → STEP-10 → STEP-11 → STEP-12. Parallel implementers modify only their directories; shared `package.json`, `generation/`, `conformance/`, documentation, and the plan have one assigned integration owner. Execute sequentially when delegation is not authorized.
 
-Открыть проект `/Users/vlad.prychodko/Work/askadias/git/vector-trading-sdk` и начать с `$implement-step docs/plans/public-sdk.plan.md STEP-01`. Если рабочий каталог другой, передать абсолютный путь: `$implement-step /Users/vlad.prychodko/Work/askadias/git/vector-trading-sdk/docs/plans/public-sdk.plan.md STEP-01`. План и инструкции читаются из SDK; доступ к истории разговора не требуется. Подготовленные неотслеживаемые файлы уже существуют и не требуют повторного создания или предварительного commit для локальной реализации.
+### Running from the SDK project
 
-STEP-01 выполняется целиком в SDK. STEP-02 имеет две явно указанные области: канонический экспорт и проверки в сервере, затем снимок в SDK. Соседний репозиторий находить через `Source root`; перед изменением читать его `AGENTS.md` и профильные скиллы. Снимок получать из точного принятого commit, не из произвольного состояния файлов. Потребность в отдельной доставке серверного изменения не переносится на начало STEP-01. После появления снимка генерация, обычная сборка и проверки SDK автономны; сравнение с серверным анализатором при обновлении контракта и проверке Pine выполняется явно.
+Open `/Users/vlad.prychodko/Work/askadias/git/vector-trading-sdk` and begin with `$implement-step docs/plans/public-sdk.plan.md STEP-01`. From another working directory, pass the absolute path: `$implement-step /Users/vlad.prychodko/Work/askadias/git/vector-trading-sdk/docs/plans/public-sdk.plan.md STEP-01`. Read the plan and instructions from the SDK; conversation history is not required. Prepared files already exist and need neither recreation nor a preliminary commit for local implementation.
 
-Исполнение следующих шагов: `$implement-step docs/plans/public-sdk.plan.md STEP-XX`. Без ID выбирается следующий неоконченный шаг, не весь план. Прочитать общие требования, выбранный шаг целиком, свидетельства зависимостей и финальную проверку. Сверить актуальные копии, сохранённые commits, инструкции и чужие изменения; не создавать отдельное резюме. Работать в выбранной копии; создание ветки или изолированной рабочей копии и Git-доставка выполняются при разрешении в задаче исполнения. Если изоляция недоступна, сохранять чужие файлы и ограничивать изменения владельцами выбранного шага.
+STEP-01 runs entirely in the SDK. STEP-02 has two explicit scopes: canonical export and checks in the server, then the SDK snapshot. Locate the neighboring repository through `Source root`; read its `AGENTS.md` and domain skills before editing. Obtain the snapshot from an exact accepted commit, not arbitrary working-tree state. Separate server delivery is not a prerequisite for starting STEP-01. Once the snapshot exists, SDK generation, ordinary builds, and checks are autonomous; explicitly compare against the server parser for contract updates and Pine verification.
 
-Каждый шаг включает все его изменения, проверку потребителей, документацию и свидетельства. Статусы: `pending` — не подтверждён; `implemented` — проверен локально; `integrated` и `[x]` — принят в своей цели интеграции; `blocked` — названная внешняя граница. Не отмечать текущую незафиксированную копию принятой в `main`. Git-доставка и внешние операции выполняются только при их разрешении в задаче исполнения. Уже принятое решение о будущей публичность репозитория не пересогласовывать без новых обстоятельств.
+Run later steps with `$implement-step docs/plans/public-sdk.plan.md STEP-XX`. Without an ID, select the next unfinished step, not the whole plan. Read shared requirements, the complete selected step, dependency evidence, and final verification. Check current working trees, recorded commits, instructions, and others' changes; do not create a separate summary. Work in the selected checkout; creating a branch or isolated working tree and Git delivery require execution-task authorization. If isolation is unavailable, preserve others' files and limit changes to selected-step owners.
 
-## Шаги
+Each step includes every required change, consumer check, documentation update, and evidence. Statuses: `pending` — unverified; `implemented` — locally verified; `integrated` and `[x]` — accepted into its integration target; `blocked` — a named external boundary. Do not mark an uncommitted checkout as accepted into `main`. Git delivery and external operations require authorization in the execution task. Do not reconfirm the already accepted decision to make the repository public unless circumstances change.
 
-### [x] STEP-01 — Общая среда SDK воспроизводимо готовится и проверяется
+## Steps
+
+### [x] STEP-01 — Shared SDK tooling can be prepared and verified reproducibly
 
 - Implementation status: `integrated`
-- Зачем: общие инструменты и инструкции работают из чистой рабочей копии без соседнего приложения.
-- Depends on: нет.
-- Владельцы и скиллы: корень SDK, `sdk-clients`, `sdk-release`; общие стандарты разработки.
-- Подтверждённые пути: `README.md`, `LICENSE`, `AGENTS.md`, `.agents/skills/`.
-- Ожидаемые пути: `.gitignore`, `.gitattributes`, `.editorconfig`, `.nvmrc`, `.npmrc`, `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `eslint.config.mjs`, `.prettierrc.json`, `.prettierignore`, `vitest.config.ts`, `.env.example`, `docs/development.md`, `docs/architecture.md`.
+- Purpose: shared tooling and instructions work from a clean checkout without the neighboring application.
+- Depends on: none.
+- Owners and skills: SDK root, `sdk-clients`, `sdk-release`; shared development standards.
+- Confirmed paths: `README.md`, `LICENSE`, `AGENTS.md`, `.agents/skills/`.
+- Expected paths: `.gitignore`, `.gitattributes`, `.editorconfig`, `.nvmrc`, `.npmrc`, `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `eslint.config.mjs`, `.prettierrc.json`, `.prettierignore`, `vitest.config.ts`, `.env.example`, `docs/development.md`, `docs/architecture.md`.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Создать приватный корневой пакет общих инструментов с закреплёнными Node/pnpm и зависимостями; настроить LF/UTF-8, форматирование и проверки собственных JS/TS-скриптов. Не устанавливать обработчики Git или глобальные инструменты без необходимости.
-2. `.gitignore` исключает `node_modules`, `.venv`, `__pycache__`, кеши, `dist/build`, `target`, отчёты покрытия, локальные `.env`, ключи и временные артефакты выпуска. Не игнорировать `contracts`, `conformance`, скиллы, нужный производный код, файлы фиксации зависимостей и `.env.example`.
-3. Описать установку Node/pnpm/uv/Go/Rust, целевые владельцы команд и матрицу инструментов. Настройки Python/Go/Rust создаются в своих шагах; корневые команды добавляются вместе с настоящими реализациями, без успешных заглушек.
-4. Добавить рабочие `pnpm format`, `pnpm format:check`, `pnpm lint`, `pnpm typecheck` для уже существующих общих файлов. Корневой README ориентирует пользователя на состояние разработки и план, не обещает доступные пока пакеты.
+1. Create a private root shared-tooling package with pinned Node/pnpm and dependencies; configure LF/UTF-8, formatting, and maintained JS/TS script checks. Do not install Git hooks or global tools unnecessarily.
+2. `.gitignore` excludes `node_modules`, `.venv`, `__pycache__`, caches, `dist/build`, `target`, coverage reports, local `.env`, keys, and temporary release artifacts. Do not ignore `contracts`, `conformance`, skills, required derived code, lockfiles, or `.env.example`.
+3. Document Node/pnpm/uv/Go/Rust installation, target command owners, and the tool matrix. Python/Go/Rust settings belong to their own steps; add root commands with actual implementations, without successful stubs.
+4. Add working `pnpm format`, `pnpm format:check`, `pnpm lint`, and `pnpm typecheck` for existing shared files. Root README directs users to development status and the plan without promising available packages.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- `source ~/.nvm/nvm.sh && nvm use`, `pnpm install --frozen-lockfile`, затем `pnpm format:check`, `pnpm lint`, `pnpm typecheck` работают из чистой SDK-копии.
-- `git check-ignore` подтверждает временные артефакты и отсутствие игнорирования контрактов/файл фиксации зависимостейов; установка не меняет отслеживаемые конфигурации. Не добавлять тесты ради проверки текста `.gitignore`.
-- Документация не ссылается на ещё не работающие команды как на выполненные; реальные файлы инструментов не содержат секретов или ссылок на внутренние пакеты сервера.
+- `source ~/.nvm/nvm.sh && nvm use`, `pnpm install --frozen-lockfile`, then `pnpm format:check`, `pnpm lint`, and `pnpm typecheck` work from a clean SDK checkout.
+- `git check-ignore` confirms temporary artifacts are ignored and contracts/lockfiles are retained; installation does not modify tracked configuration. Do not add tests merely to match `.gitignore` text.
+- Documentation does not present not-yet-working commands as completed; real tooling files contain no secrets or references to internal server packages.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: локальная приёмка `2026-10-03` в канонической SDK-копии, ветка `main`, HEAD `3c83ba25ac0a1e642d0327e23b07b320590e43c6`. При первоначальной локальной приёмке commit и push не выполнялись; впоследствии пользователь отдельно разрешил commit/push изменений SDK. Снимок 23 исходных файлов без самого плана: SHA-256 `b7608d3fdfad75700065f3daf58aed1058f782f02e14e35ee3c5303ffe276abe` от отсортированной компактной JSON-карты «относительный путь → SHA-256 содержимого». Сервер не изменялся и не требовался для проверок.
-- Integration evidence: commit `3cd3f75e146de2001826f710a4c9f750a8f9b4de` содержит проверенный результат STEP-01 и текущую документацию STEP-02; `git push origin main` успешен, `git ls-remote --heads origin main` подтвердил тот же SHA. Перед commit повторно прошли `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `git diff --check` и проверка состава индекса. Доставка не включает серверный репозиторий или публикацию пакетов.
-- Changed artifacts / verification: созданы `.gitignore`, `.gitattributes`, `.editorconfig`, `.nvmrc`, `.npmrc`, `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `eslint.config.mjs`, `.prettierrc.json`, `.prettierignore`, `tsconfig.json`, `vitest.config.ts`, `.env.example`, `docs/development.md`, `docs/architecture.md`; обновлены `README.md` и этот план. В четырёх `.agents/skills/*/SKILL.md` Prettier поменял только кавычки YAML-поля `description`; содержание инструкций сохранено, `AGENTS.md` и `LICENSE` не изменены.
-- Tests and checks: Node.js `24.21.0`, pnpm `11.22.0`; `pnpm format`, `pnpm format:check`, `pnpm lint`, `pnpm typecheck` прошли в SDK. В чистом `/private/tmp/vector-sdk-step01-sc6_40oh/source`, без `node_modules`, кеша и соседнего приложения, прошли `source ~/.nvm/nvm.sh && nvm use`, `pnpm install --frozen-lockfile`, `pnpm format:check`, `pnpm lint`, `pnpm typecheck`. pnpm загружен через Corepack во временную область и вызван закреплённым исполняемым файлом; глобальная установка не выполнялась. Контрольные суммы всех 24 исходных файлов до и после установки/проверок совпали.
-- Additional checks: `git check-ignore --no-index` подтвердил 24 исключаемых пути и 14 сохраняемых путей, включая контракты, примеры, скиллы, производный код, файлы фиксации зависимостей и `.env.example`. Все 24 файла проверены на UTF-8, LF и завершающий перевод строки; `git check-attr` подтверждает LF, локальные ссылки текущей документации разрешаются, `git diff --check` прошёл. В конфигурациях нет секретов, внутренних серверных зависимостей или успешных заглушек языковых проверок.
-- Deviations / openings: дополнительно создан `tsconfig.json`, необходимый для настоящего `typecheck`. Настройки pnpm 11 находятся в `pnpm-workspace.yaml`; локальное хранилище и отключённое глобальное виртуальное хранилище обеспечивают одинаковую структуру установки в CI и обычной среде. Проверки не устанавливают зависимости неявно (`verifyDepsBeforeRun: error`). Версии зависимостей выбраны в рамках согласованных семейств; ESLint `10.11.0` не требует исключения по давности публикации. Тесты, сборки, `pnpm verify`, языковые конфигурации и внешняя интеграция остаются результатами следующих шагов.
-- Blocker: нет; локальная приёмка и доставка STEP-01 в `main`/`origin/main` подтверждены.
+- Revision / implementation context / integration evidence: local acceptance on `2026-10-03` in the canonical SDK checkout, branch `main`, HEAD `3c83ba25ac0a1e642d0327e23b07b320590e43c6`. No commit or push occurred during initial local acceptance; the user subsequently authorized SDK commit/push separately. Snapshot of 23 source files excluding the plan: SHA-256 `b7608d3fdfad75700065f3daf58aed1058f782f02e14e35ee3c5303ffe276abe` of a sorted compact JSON map from relative path to content SHA-256. The server was neither changed nor required for checks.
+- Integration evidence: commit `3cd3f75e146de2001826f710a4c9f750a8f9b4de` contains verified STEP-01 work and current STEP-02 documentation; `git push origin main` succeeded, and `git ls-remote --heads origin main` confirmed the same SHA. Before commit, `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `git diff --check`, and index-content review passed again. Delivery excludes the server repository and package publication.
+- Changed artifacts / verification: created `.gitignore`, `.gitattributes`, `.editorconfig`, `.nvmrc`, `.npmrc`, `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `eslint.config.mjs`, `.prettierrc.json`, `.prettierignore`, `tsconfig.json`, `vitest.config.ts`, `.env.example`, `docs/development.md`, `docs/architecture.md`; updated `README.md` and this plan. At STEP-01, Prettier changed only YAML `description` quoting in four `.agents/skills/*/SKILL.md` files; instruction content was preserved, and `AGENTS.md`/`LICENSE` were unchanged.
+- Tests and checks: Node.js `24.21.0`, pnpm `11.22.0`; `pnpm format`, `pnpm format:check`, `pnpm lint`, and `pnpm typecheck` passed in the SDK. In clean `/private/tmp/vector-sdk-step01-sc6_40oh/source`, without `node_modules`, cache, or the neighboring application, `source ~/.nvm/nvm.sh && nvm use`, `pnpm install --frozen-lockfile`, `pnpm format:check`, `pnpm lint`, and `pnpm typecheck` passed. pnpm was downloaded through Corepack into temporary storage and invoked with its pinned executable; no global installation occurred. Hashes of all 24 source files matched before and after installation/checks.
+- Additional checks: `git check-ignore --no-index` confirmed 24 excluded paths and 14 retained paths, including contracts, fixtures, skills, derived code, lockfiles, and `.env.example`. All 24 files passed UTF-8, LF, and trailing-newline checks; `git check-attr` confirmed LF, current local documentation links resolved, and `git diff --check` passed. Configuration contains no secrets, internal server dependencies, or successful language-check stubs.
+- Deviations / openings: also created `tsconfig.json`, required for real `typecheck`. pnpm 11 settings reside in `pnpm-workspace.yaml`; the local store and disabled global virtual store give CI and ordinary installations the same structure. Checks do not install dependencies implicitly (`verifyDepsBeforeRun: error`). Dependency versions stay within agreed families; ESLint `10.11.0` requires no release-age exception. Tests, builds, `pnpm verify`, language configuration, and external integration remain later-step results.
+- Blocker: none; STEP-01 local acceptance and delivery to `main`/`origin/main` are confirmed.
 
-### [ ] STEP-02 — Публичный контракт экспортируется у серверного владельца и доказан проверками поведения во время выполнения
+### [ ] STEP-02 — The server owner exports the public contract with runtime behavior verified
 
-- Implementation status: `blocked`
-- Зачем: SDK не создаёт вторую истину и не закрепляет неверную документацию.
+- Implementation status: `implemented`
+- Purpose: avoid a second source of truth and incorrect SDK documentation.
 - Depends on: STEP-01.
-- Владельцы и скиллы: основной серверный репозиторий — его `server-boundaries`, `trust-boundaries`, `autotrading-flow`, `refactoring-boundaries`, `development-standards`; SDK — `sdk-contracts`.
-- Подтверждённые пути: серверные `rest-api/openapi/*`, `rest-api/schemas/*`, `rest-api/controllers/*`, `packages/types/src/signal.ts`, его тесты, `apps/webhook/src/lambda.ts`, `packages/services/src/trading-bundle/trading-bundle-access.service.ts` и тесты.
-- Ожидаемые пути: именованный экспорт в `scripts/` основного репозитория, каноническая исходящая schema сигналов у публичного владельца; SDK `contracts/{rest.openapi.json,signals.schema.json,source.json}`, `conformance/{rest,signals}/`, `docs/contracts.md`.
+- Owners and skills: main server repository and its `server-boundaries`, `trust-boundaries`, `autotrading-flow`, `refactoring-boundaries`, `development-standards`; SDK `sdk-contracts`.
+- Confirmed paths: server `rest-api/openapi/*`, `rest-api/schemas/*`, `rest-api/controllers/*`, `packages/types/src/signal.ts` and tests, `apps/webhook/src/lambda.ts`, `packages/services/src/trading-bundle/trading-bundle-access.service.ts` and tests.
+- Expected paths: named export in main-repository `scripts/`, canonical outgoing signal schema with the public owner; SDK `contracts/{rest.openapi.json,signals.schema.json,source.json}`, `conformance/{rest,signals}/`, `docs/contracts.md`.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Использовать серверный `main` из метаданных как принятую исходную базу; при его обновлении сначала сверить затронутые публичные файлы и обновить свидетельства. Не включать локальную правку `PnLAmount.tsx` или другие посторонние изменения. Работать по серверным инструкциям в выбранной копии либо в отдельно разрешённой изолированной копии. Добавить стабильные `operationId`, полные фактические ошибки, разрешения ключа и пагинацию без изменения путей API или семантики во время выполнения. Относительный адрес сервера допустим при обязательной рабочей настройке базового URL клиента.
-2. У владельца сигналов определить внешнее сообщение отдельно от внутреннего события. Сохранить текущее поведение; сформировать схему безопасного исходящего набора и тестовые данные, включая восемь действий и смысл частичного обновления TP. Не расширять публичный вебхук новыми полями ради генератора.
-3. Проверить C13 через настоящие серверные правила и исправить расхождения документации со свидетельствами. Для `owner_grant` доказать owner/expanded-role сценарии; изменение прав — отдельное решение, не часть декларативного экспорта.
-4. Создать команду детерминированного экспорта спецификаций и тестовых данных, без импорта серверных пакетов в публикуемый SDK. Принятый серверный commit и контрольные суммы записать в снимок; артефакты грязной рабочей копии не выдавать за принятый commit.
-5. Обновить серверные тематические документы по изменённым описаниям и SDK `docs/contracts.md`; migration/DB/deployment changes исключены. Серверные публичные маршруты документов не меняются, sitemap не затрагивается.
+1. Use server `main` from metadata as the accepted base; if updated, first compare affected public files and update evidence. Exclude local `PnLAmount.tsx` and unrelated changes. Follow server instructions in the selected checkout or a separately authorized isolated checkout. Add stable `operationId`, complete actual errors, key permissions, and pagination without changing API paths or runtime semantics. Relative server addresses are allowed with required working client base URL configuration.
+2. Define external signal payload separately from internal events at the signal owner. Preserve current behavior; create a safe outgoing-subset schema and fixtures, including eight actions and TP patch semantics. Do not expand the public webhook with generator-driven fields.
+3. Verify C13 through real server rules and correct documentation discrepancies with evidence. Prove owner/expanded-role `owner_grant` scenarios; permission changes require a separate decision and are not part of declarative export.
+4. Create deterministic specification/fixture export without importing server packages into the distributed SDK. Record an accepted server commit and hashes in the snapshot; do not present dirty working-tree artifacts as an accepted commit.
+5. Update affected server documentation and SDK `docs/contracts.md`; migrations, database changes, and deployment changes are excluded. Public server document routes and sitemap remain unchanged.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- Экспорт дважды даёт одинаковые bytes/hashes; все 7 REST-операций и 8 сигналов присутствуют, `source.json` указывает действительно принятый commit.
-- Адресные серверные тесты схем/маршрутов/сигналов и соответствующие C13 проходят; invalid JSON, oversized body, revoked key, неверные разрешения ключа/CIDR/владелец не превращаются в успешный пример SDK.
-- После format в сервере выполняются `pnpm typecheck` и `pnpm lint` согласно его `AGENTS.md`; проверить diff после lint. Результат принят отдельно в серверную цель и затем как снимок в SDK.
+- Two exports produce identical bytes/hashes; all 7 REST operations and 8 signals are present; `source.json` points to an actually accepted commit.
+- Targeted server schema/route/signal tests and applicable C13 pass; invalid JSON, oversized bodies, revoked keys, and invalid key/CIDR/owner permissions never become successful SDK fixtures.
+- After formatting, run server `pnpm typecheck` and `pnpm lint` under its `AGENTS.md`; inspect the diff after lint. Accept work separately into the server target, then into the SDK as a snapshot.
 
 #### Completion Evidence
 
-- Revision / implementation context: серверная рабочая копия `main` на `be43459ba348d5dd852269f51a0897fb54668238`; SDK `main` на `3c83ba25ac0a1e642d0327e23b07b320590e43c6`. Зависимость STEP-01 перепроверена: `format:check`, `lint`, `typecheck` SDK проходят. Новые ветки, копии и commit не создавались.
-- Integration evidence: SDK-документация и свидетельства доставлены commit `3cd3f75e146de2001826f710a4c9f750a8f9b4de` в SDK `main`/`origin/main`. Интеграция полного STEP-02 отсутствует: серверные изменения ещё не приняты в commit. Временный экспорт хранится только в `/private/tmp/vector-sdk-step02-export-a` и `-b`, имеет `commit: null`, `baseCommit` текущей базы и `status: working-tree-preview`. Каталоги `contracts/` и `conformance/` SDK пока не созданы; временные файлы не выданы за принятый снимок.
-- Changed artifacts (сервер): `apps/web/hono/routes/rest-api/openapi/{paths.ts,schemas.ts,conformance.spec.ts}`, `rest-api/{conformance.json,rest-api.router.spec.ts}`, `apps/webhook/src/lambda.conformance.spec.ts`, `packages/types/src/{index.ts,signal-payload.ts,signal.schema.ts,signal.conformance.json,signal.conformance.spec.ts}`, тесты `account-api-key.service` и `trading-bundle-access.service`, `scripts/export-public-sdk.{mjs,spec.mjs}`, корневые `package.json`/`pnpm-lock.yaml`, тематические `docs/architecture.md`/`docs/autotrading.md`. Добавлен уже закреплённый транзитивно `ajv@6.15.0` как прямой инструмент проверки; файл фиксации изменён только на три строки корневой зависимости. SDK: `docs/contracts.md`, `docs/architecture.md` и данный план.
-- Proven behavior: семь уникальных REST `operationId`, разрешения ключа, альтернативная ошибка `429`, строгий запрос создания доступа и непрозрачная пагинация; исходящий `StrategySignalPayload` и JSON Schema для восьми действий. Канонические 19 REST-примеров проверяются настоящими Zod-схемами и маршрутом, включая точные тела ошибок; 40 примеров сигналов — настоящим анализатором и обработчиком вебхука. Отдельно доказаны разрешения владельца/расширенной роли для `owner_grant`, запрет чужой расширенной роли для остальных типов, CIDR, отзыв ключа, `409`, каскадный отзыв, ошибки JSON/размера и постановка в очередь. Серверные маршруты, анализаторы, права и торговое исполнение не менялись.
-- Tests and checks (сервер): после форматирования прошли 389 тестов в 11 адресных наборах: `packages/types` — `signal.spec.ts` и `signal.conformance.spec.ts` (105); `apps/web` — REST router, OpenAPI conformance, JSON body и request validation (98); `apps/webhook` — существующий lambda и новый conformance (54); `packages/services` — account API key service/DAO и bundle access service (132). После уточнения REST-примеров повторно прошли 78 тестов маршрута/OpenAPI. `pnpm sdk:export:test` — 3 успешных теста; `node --check` обоих файлов экспортёра проходит. Общий `pnpm lint` проходит, diff после него проверен. Первый общий `pnpm typecheck` остановился на параллельных ошибках неиспользуемых импортов/функции в `apps/web/tests/e2e/index.spec.ts`; после их внешнего исправления повторный общий `pnpm typecheck` прошёл во всех семи пакетах. Чужой E2E-файл не исправлялся в рамках SDK.
-- Export verification: два запуска `sdk:export --output <временный каталог> --preview` дают одинаковые пять файлов; SHA-256 всех четырёх артефактов и 187 исходников проверены. SHA-256 REST OpenAPI: `ec1223b066cbfd97fefc57b23eced19eeef14a40642b64b7417f1215c369feea`; сигналов: `05d628e553082bbc524e70890c4b6a58ba842fceb278d5299d35d74d30b8a78d`. Обычный экспорт из текущих незакоммиченных источников проверенно отклоняется до создания выходного каталога.
-- Tests and checks (SDK): `format:check`, `lint`, `typecheck` проходят после добавления документации. Команда `pnpm verify` ещё не существует (результат STEP-09) и не заявляется успешной. Языковые пакеты, Pine-потребители и генерация пока отсутствуют, их приёмка не подменена серверными тестами.
-- Deviations: только проверяемый временный экспорт до принятия серверного commit. Миграции, развёртывание и публичные маршруты документов не затронуты; изменение sitemap не требуется. Параллельный раздел домашнего демо в серверном `docs/architecture.md` сохранён и не относится к будущему commit STEP-02.
-- Blocker / exact remainder: требуется отдельно разрешённое принятие только 19 серверных файлов/своих фрагментов в локальный commit `main`, затем обычный экспорт из этого commit в SDK, повторная проверка bytes/hashes и запись принятого commit в `source.json`/свидетельства. Скилл `implement-step` запрещает создавать commit без отдельного запроса. Пользователь отдельно разрешил commit/push изменений `vector-trading-sdk`; разрешение не распространяется на серверный `vector-trading`. До принятия серверного commit и проверенного переноса снимка шаг не помечается `implemented` и не удовлетворяет STEP-03.
+- Revision / implementation context: SDK canonical checkout on `main`, HEAD `d2204e25b76b223b2fcbecd4f6ffccb7a6eccf48`. The user separately authorized finishing STEP-02 and accepting a server-only commit into `main`. Server commit `e51366b859926abd5bdc222a5249e99f8080f0f8` (`[VT-000] Export verified public SDK contracts`) has parent `be43459ba348d5dd852269f51a0897fb54668238` and exactly 19 STEP-02 files/owned hunks. No branches or additional checkouts were created; no server push was performed.
+- Integration evidence: server work is accepted into local server `main`. The canonical five-file snapshot is present and verified in the SDK working tree, with `commit: e51366b859926abd5bdc222a5249e99f8080f0f8`, `status: committed`, and `contractVersion: 1.0.0`. STEP-02 is `implemented`, not `integrated`: the snapshot and current SDK documentation have not been committed/delivered to SDK `main`/`origin/main`. Previously delivered SDK documentation at `3cd3f75e146de2001826f710a4c9f750a8f9b4de` does not substitute for snapshot delivery.
+- Changed artifacts (server): `apps/web/hono/routes/rest-api/openapi/{paths.ts,schemas.ts,conformance.spec.ts}`, `rest-api/{conformance.json,rest-api.router.spec.ts}`, `apps/webhook/src/lambda.conformance.spec.ts`, `packages/types/src/{index.ts,signal-payload.ts,signal.schema.ts,signal.conformance.json,signal.conformance.spec.ts}`, `account-api-key.service`/`trading-bundle-access.service` tests, `scripts/export-public-sdk.{mjs,spec.mjs}`, root `package.json`/`pnpm-lock.yaml`, and domain `docs/architecture.md`/`docs/autotrading.md`. Added already transitively pinned `ajv@6.15.0` as a direct validation tool; lockfile changes are only three root-dependency lines.
+- Changed artifacts (SDK): `contracts/{rest.openapi.json,signals.schema.json,source.json}`, `conformance/{rest,signals}/cases.json`, `docs/contracts.md`, `docs/architecture.md`, `docs/development.md`, `README.md`, current-state navigation in `AGENTS.md`, this plan, and `.prettierignore` exclusions preserving canonical JSON bytes. Existing English translations of documentation/skills and the unrelated local IDE file were preserved.
+- Proven behavior: seven unique REST `operationId` values, key permissions, alternate `429` errors, strict access-creation input, and opaque pagination; outgoing `StrategySignalPayload` and eight-action JSON Schema. The 19 canonical REST fixtures run through real Zod schemas and routes, including exact error bodies; 40 signal fixtures run through the real parser and webhook handler. Separately proven: owner/expanded-role `owner_grant` permissions, foreign expanded-role rejection for other grant types, CIDR, key revocation, `409`, cascading revocation, JSON/size errors, and enqueue acceptance. Server routes, parsers, permissions, and trading execution were unchanged.
+- Tests and checks (server): repeated on the isolated 19-file change set in existing `main` before commit: Prettier check passed on all 18 formatter-owned files; 389 tests passed in 11 targeted suites (`packages/types` 105; REST router/OpenAPI/body/request validation 98; webhook 54; account API key service/DAO and bundle access service 132). `pnpm sdk:export:test` passed 3 tests; root `pnpm typecheck` passed all seven tasks and root `pnpm lint` passed all six tasks. Post-lint diff exactly matched the reviewed STEP-02 patch, with all 187 source hashes unchanged. Earlier preparation checks, including rejection of uncommitted canonical export, also passed.
+- Export verification: two normal exports from the accepted server commit into fresh temporary directories produced identical five-file output. Every artifact hash was verified; all 187 input hashes matched `git show` content at the accepted commit. The four exported artifacts matched the previously tested preview byte for byte. All five files were copied into the SDK without reformatting and compared with the accepted export. REST OpenAPI SHA-256: `ec1223b066cbfd97fefc57b23eced19eeef14a40642b64b7417f1215c369feea`; signals: `05d628e553082bbc524e70890c4b6a58ba842fceb278d5299d35d74d30b8a78d`.
+- Tests and checks (SDK): after documentation formatting, `pnpm format:check`, `pnpm lint`, and `pnpm typecheck` pass. Snapshot JSON, source/fixture inventory, hashes, provenance, local documentation links, English text, and `git diff --check` were verified. `pnpm verify` does not exist yet (STEP-09), and is not claimed successful. Language packages, Pine consumers, and generation are absent; server tests do not substitute for their acceptance.
+- Deviations / preservation: the prepared server changes had been included in a parallel demo commit. Only SDK paths and owned documentation hunks were transferred into server `main`; its unrelated branch/commit remained intact. A new unrelated home-demo documentation edit appeared after the server commit and was preserved on `main`, so the original branch was not restored across overlapping changes. Migrations, deployment, public document routes, and sitemap were untouched. SDK documents and skills remain English.
+- Blocker / exact remainder: no STEP-02 implementation blocker or local acceptance remainder. SDK Git delivery is still separate from local implementation; STEP-03 may use this verified local snapshot. No STEP-03 generation work or package publication was performed while completing STEP-02.
 
-### [ ] STEP-03 — Генерация четырёх языков воспроизводима и сохраняет транспортный смысл
+### [ ] STEP-03 — Four-language generation is reproducible and preserves transport semantics
 
-- Implementation status: `pending`
-- Зачем: проверить самый рискованный механизм до реализации полноценных пакетов.
+- Implementation status: `implemented`
+- Purpose: verify the riskiest mechanism before implementing full packages.
 - Depends on: STEP-02.
-- Владельцы и скиллы: общий процесс генерации, `sdk-contracts`, `sdk-clients`.
-- Подтверждённые пути: результаты STEP-01/02.
-- Ожидаемые пути: `generation/{typescript,python,go,rust}.yaml`, закрепление OpenAPI Generator, необходимые узкие шаблоны, `scripts/{generate,check-generated,check-contracts}.*`, тесты общих инструментов, `docs/architecture.md`.
+- Owners and skills: shared generation pipeline, `sdk-contracts`, `sdk-clients`.
+- Confirmed paths: STEP-01/02 results.
+- Expected paths: `generation/{typescript,python,go,rust}.yaml`, OpenAPI Generator pin, necessary narrow templates, `scripts/{generate,check-generated,check-contracts}.*`, shared-tooling tests, `docs/architecture.md`.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Закрепить версию генератора и способ запуска с checksum/digest. Если выбран Java-based CLI, Java используется только как локальная/CI-зависимость инструмента; Java SDK не появляется. Не требовать отдельный сервер генерации.
-2. Сгенерировать и скомпилировать пробные клиенты всех четырёх языков в временной области. Проверить `CreateGrantRequest.oneOf`, даты, аутентификацию Bearer и объединения типов сигналов и модели необязательных полей на настоящих тестовых данных.
-3. Доказать Go/Rust различие отсутствующего TP и пустого массива, Python optional/`None`, TypeScript `undefined` и строковый timestamp. Для общей ошибки генерации исправлять schema/config/template, не создавать четыре несвязанных ручных копии правил.
-4. Определить и закрепить проверенную Rust MSRV/toolchain и требования генерации каждого языка; описать какие файлы производные и какие ручные. Добавить рабочие `pnpm contracts:check`, `pnpm generate`, `pnpm generated:check`.
-5. Если выбранный генератор не сохраняет обязательную семантику после узкой настройки, зафиксировать доказательство и сравнение небольшого альтернативного генератора/ручных транспортных моделей; согласовать архитектурную замену до STEP-04–08. Не расширять задачу до собственного транспайлера.
+1. Pin generator version and execution method with checksum/digest. If using a Java-based CLI, Java is only a local/CI tooling dependency; do not add a Java SDK. Do not require a separate generation server.
+2. Generate and compile trial clients for all four languages in temporary storage. Check `CreateGrantRequest.oneOf`, dates, Bearer authentication, signal unions, and optional-field models against actual fixtures.
+3. Prove omitted TP versus empty arrays in Go/Rust, Python optional/`None`, TypeScript `undefined`, and string timestamp behavior. Fix shared generation issues in schema/config/template instead of creating four unrelated handwritten rule copies.
+4. Select and pin verified Rust MSRV/toolchain and each language's generation requirements; document derived versus handwritten files. Add working `pnpm contracts:check`, `pnpm generate`, and `pnpm generated:check`.
+5. If the selected generator cannot preserve required semantics after narrow configuration, record evidence and compare a small alternative generator/handwritten transport models; approve architecture replacement before STEP-04–08. Do not expand into a custom transpiler.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- C03–C05 и C11 проходят на пробных моделях; C02 проверен для `oneOf` и дат. Четыре компиляции дают реальное свидетельство, не только успешный CLI generation.
-- Повторная генерация не меняет файлы; изменения схемы или параметров обнаруживаются `generated:check`; проверки запускаются без копии исходного сервера и рабочих сервисов.
-- Пробы не остаются публичными пакетами/дублирующими точками входа; временные артефакты удалены. Решение о процессе генерации записано в `docs/architecture.md`.
+- C03–C05 and C11 pass on trial models; C02 is verified for `oneOf` and dates. Four compilations provide real evidence, not just successful generation CLI output.
+- Regeneration leaves files unchanged; schema/configuration changes are detected by `generated:check`; checks run without the source server checkout or live services.
+- Probes do not remain as public packages or duplicate entry points; remove temporary artifacts. Record the generation decision in `docs/architecture.md`.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: ожидают.
-- Changed artifacts / verification: ожидают для всех четырёх проб; отклонения и открытия: нет.
-- Blocker: нет; совместимость генератора устанавливается ограниченными пробами этого шага.
+- Revision / implementation context: canonical SDK checkout on `main`, HEAD `d2204e25b76b223b2fcbecd4f6ffccb7a6eccf48`. STEP-02 prerequisite was reverified from the five-file snapshot at accepted server commit `e51366b859926abd5bdc222a5249e99f8080f0f8`, contract version `1.0.0`; all artifact hashes remain unchanged. Server checkout, routes, and schemas were not modified during STEP-03. No branches, commits, pushes, or public packages were created.
+- Integration evidence: `implemented` locally; no SDK Git delivery has occurred. The generated manifest records 16 input hashes and 154 output hashes, plus its own file (155 derived files total). Generated manifest SHA-256 at final verification: `cc056bd3001a42ef10f1191fc05f20139711702fd7900707f24abd99ce0d25f0`. The local result satisfies STEP-04–08 prerequisites without claiming integration into SDK `main`/`origin/main`.
+- Changed artifacts: `generation/generator.json`, four language YAML configurations, `generation/template-patches.json`, `generation/toolchains.json`, internal `generation/generated/` sources/specification/manifest, handwritten native probe sources and pinned Go/Python/Rust dependency inputs under `generation/probes/`; `scripts/{generation,generate,check-generated,check-contracts,setup-generation,probe-generation}.ts`, `scripts/contracts.test.ts`, root scripts/dependencies/lockfile, `tsconfig.json`, current-state navigation in `AGENTS.md`, README, architecture/development guides, and this plan. Separately requested IDE exclusions were added to `.gitignore`; the local `.iml` file was preserved and is now ignored. Existing English translations and other earlier work were retained.
+- Runtime dependency follow-up (2026-10-03): the approved policy is documented in `docs/architecture.md#runtime-dependencies` and reflected in STEP-04–07 requirements. Go generated imports already used only the standard library; removed the stale `validator.v2` probe requirement and `go.sum`. The probe now rejects external modules and requires the pinned Go binary with `GOTOOLCHAIN=local`, `GOPROXY=off`, and `GOSUMDB=off`. Removed the unused Rust `serde_repr` declaration through an eighth pinned template override and removed only that crate from the probe lock, preserving every other locked package version. Regeneration and all 16 input/154 output hashes were verified; the canonical snapshot remains unchanged. Five shared tests passed, and the updated full native probe passed on TypeScript, Python 3.12.9, Go 1.26.0, Rust 1.99.0, and Rust MSRV 1.88.0. Rust localhost HTTP checks ran with the required sandbox permission; no live services or credentials were used. Public package steps remain pending; no commit or push was performed.
+- Generator decision: retained OpenAPI Generator `7.25.0`, Java CLI executed under Corretto `11.0.24`. Maven's published SHA-1 matched the downloaded JAR; SHA-256 `41ce4f6b07f196676439d710759fa1ced7a08066d06ff1bf314681470289efae` is pinned and checked before each generation. Download is an explicit `generation:setup`; no global generator installation or separate server is needed. `unzip` extracts only the eight pinned upstream templates that receive narrow, unique-match overrides.
+- Verified corrections: the initial generator dropped shared grant fields from `oneOf` branches; the shared derived schema now distributes them into named variants without changing the canonical snapshot. Default Go number models used `float32`, and enum constants collided; double-precision mapping and enum prefixes fixed this. Go unions use disjoint action/grant discriminators. Strict TypeScript optional-property errors were fixed in model/runtime templates. Python omission/explicit `None` handling and finite values were corrected without breaking valid assignment. Rust's tagged wrapper consumed the wire discriminator before branch deserialization; an untagged-template override preserves the branch enums and fields. Non-nullable optional Rust fields reject explicit nulls, and numeric serializers reject non-finite values. No alternative generator or architecture replacement was necessary.
+- Native acceptance: the final `pnpm generation:probe` passed with Node.js `24.21.0`/TypeScript `6.0.3`, Python `3.12.9`, Go `1.26.0`, Rust stable `1.99.0`, and independently installed/tested MSRV `1.88.0`. All four full generated source trees compiled; Rust compiled and ran at both versions. Each codec round-tripped the same 17 schema-and-parser-valid signal fixtures, covering all eight actions/four order types and TP patch cases, and all four creatable grant variants. Probes checked ISO dates, required external `sourceId`, positive strategy-version fixtures, preserved string timestamps, omitted versus empty TP, explicit null/None rejection, non-finite rejection, and an actual generated Bearer request. TS/Python/Go used HTTP doubles; Rust used a localhost server with a synthetic token. Python also tested omission, empty TP construction, explicit `None`, and valid field assignment. Rust numeric equality treats `1` and `1.0` as the same JSON number while retaining double precision; no arbitrary rounding was added.
+- Shared checks: `pnpm contracts:check` verifies accepted-source metadata, artifact hashes, seven REST operations, 19 REST fixtures, and all 40 signal schema outcomes. Five regression tests passed: signal projection preserves every fixture outcome; grant union retains common fields/requiredness/null/strict-object behavior; altered artifact bytes and preview provenance fail; changed configuration provenance fails even with unchanged model bytes; stale derived code fails without modifying the canonical tree. `pnpm generated:check` reproduced every filename and byte; formatting, root `pnpm typecheck`, `pnpm lint`, local documentation links, snapshot/input/output hashes, English documentation, IDE exclusions, and `git diff --check` passed. Native probe sources were formatted with Prettier, Ruff `0.13.0`, Go `gofmt`, and rustfmt `1.99.0`. `pnpm verify` remains absent until STEP-09 and is not reported successful.
+- Boundaries / deviations: generated trial trees contain internal source only, with no public package manifests or SDK entry point. The probe harness creates and removes temporary native projects; preliminary trial projects were also removed. Generation/checks use the pinned SDK snapshot and need neither the neighboring checkout nor live services. Schema-valid but parser-invalid price/TP/SL cases retain their separate recorded outcomes; complete business validation and C01–C12 package acceptance remain the agreed STEP-04–07 builder responsibility, with STEP-02 C13 proof unchanged. Public Python remains planned as synchronous httpx; the internal generated HTTP probe is not an additional public transport mode. Documentation and skills remain English. Native tools were prepared only in isolated temporary caches, with no persistent PATH/profile changes.
+- Blocker / exact remainder: none for STEP-03 local implementation or acceptance. SDK Git delivery, public language packages, Pine consumers, CI, and release remain separate plan steps. STEP-04–08 are ready to execute against this verified local result.
 
-### [ ] STEP-04 — Пакет JavaScript/TypeScript устанавливается и покрывает весь публичный API
+### [ ] STEP-04 — The JavaScript/TypeScript package installs and covers the entire public API
 
 - Implementation status: `pending`
-- Зачем: один npm-пакет для JavaScript и TypeScript с безопасным серверным использованием ключей.
+- Purpose: one npm package for JavaScript and TypeScript with safe server-side key use.
 - Depends on: STEP-03.
-- Владельцы и скиллы: `typescript/`, `sdk-clients`, `sdk-contracts`, упаковка `sdk-release`.
-- Подтверждённые пути: общий контракт, тестовые данные и настройки генерации STEP-03.
-- Ожидаемые пути: `typescript/{package.json,tsconfig.json,tsup.config.ts,src/,tests/,examples/,README.md}`, корневой workspace/файл фиксации зависимостей и профильные команды.
+- Owners and skills: `typescript/`, `sdk-clients`, `sdk-contracts`, packaging `sdk-release`.
+- Confirmed paths: shared contract, fixtures, and STEP-03 generation settings.
+- Expected paths: `typescript/{package.json,tsconfig.json,tsup.config.ts,src/,tests/,examples/,README.md}`, root workspace/lockfile, and package commands.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Создать один пакет с проверяемыми ESM/CJS exports, `.d.ts`, `files` allowlist, метаданные лицензии MIT и репозитория. Генерируемая часть отделена от ручных `RestClient`, `SignalsClient` и builders; точное идиоматичное именование фиксируется примерами.
-2. Реализовать 7 REST-методов, необязательный обход страниц с отменой, 8 функции формирования сигналов и отправку готового сообщения. Клиент получает адрес сервера, учётные данные и время ожидания и настраиваемый `fetch`; нельзя подменять ключ аккаунта ключом стратегии.
-3. Сделать нормализованную безопасную ошибку, управление временем ожидания и AbortSignal и корректное отсутствие автоматических повторов. Публичный способ формировать сигнал работает без сети; metadata фиксируется до отправки.
-4. Настроить строгую проверку типов, ESLint/Prettier и Vitest, проверку реального HTTP-обмена на локальном сервере. Добавить команды `pnpm test:typescript`, `pnpm build:typescript`; общий владелец включает их в корневые lint/typecheck без пересечения параллельных правок.
-5. Примеры показывают серверный REST, сигнал, TP-обновление и ошибки; использование npm не зависит от соседнего серверного репозитория.
+1. Create one package with verified ESM/CJS exports, `.d.ts`, a `files` allowlist, MIT license, and repository metadata. Separate generated code from handwritten `RestClient`, `SignalsClient`, and builders; pin exact idiomatic naming through examples.
+2. Implement 7 REST methods, optional cancellable page traversal, 8 signal builders, and delivery of prepared messages. Clients receive server address, credentials, timeout, and configurable `fetch`; never substitute strategy keys for account keys.
+3. Implement normalized safe errors, timeout/AbortSignal handling, and correct absence of automatic retries. Public signal construction works offline; metadata is fixed before sending.
+4. Configure strict typechecking, ESLint/Prettier, Vitest, and real local-server HTTP exchange tests. Add `pnpm test:typescript` and `pnpm build:typescript`; the shared owner incorporates them into root lint/typecheck without overlapping parallel changes.
+5. Examples show server-side REST, signals, TP updates, and errors; npm usage is independent of the neighboring server repository.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- C01–C12 проходят; рабочие публичные примеры компилируются. `pnpm --dir typescript typecheck`, `lint`, `test`, `build` завершаются после форматирования.
-- `pnpm --dir typescript pack` создаёт архив; чистые JavaScript CJS, JavaScript ESM и TypeScript потребители устанавливают архив и вызывают методы локального сервера на Node 22/24.
-- Проверка содержимого архива подтверждает типы, лицензию и отсутствие внутренних серверных импортов; корневой README пока не утверждает реальную публикацию npm.
+- C01–C12 pass; working public examples compile. `pnpm --dir typescript typecheck`, `lint`, `test`, and `build` finish after formatting.
+- `pnpm --dir typescript pack` creates an archive; clean JavaScript CJS, JavaScript ESM, and TypeScript consumers install it and call local-server methods on Node 22/24.
+- Archive inspection confirms types, license, and absence of internal server imports; root README does not yet claim actual npm publication.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: ожидают.
-- Changed artifacts / verification: ожидают, включая архив и потребительские импорты; отклонения и открытия: нет.
-- Blocker: нет.
+- Revision / implementation context / integration evidence: pending.
+- Changed artifacts / verification: pending, including archive and consumer imports; deviations and openings: none.
+- Blocker: none.
 
-### [ ] STEP-05 — Типизированный Python-пакет устанавливается и сохраняет общий контракт
+### [ ] STEP-05 — The typed Python package installs and preserves the shared contract
 
 - Implementation status: `pending`
-- Зачем: идиоматичная Python-интеграция с тем же покрытием и транспортной семантикой.
+- Purpose: idiomatic Python integration with equivalent coverage and transport semantics.
 - Depends on: STEP-03.
-- Владельцы и скиллы: `python/`, `sdk-clients`, `sdk-contracts`, `sdk-release`.
-- Подтверждённые пути: общий контракт и процесс генерации STEP-03.
-- Ожидаемые пути: `python/{pyproject.toml,uv.lock,.python-version,src/vector_trading/,tests/,examples/,README.md}`, `py.typed`, профильные корневые команды.
+- Owners and skills: `python/`, `sdk-clients`, `sdk-contracts`, `sdk-release`.
+- Confirmed paths: shared contract and STEP-03 generation pipeline.
+- Expected paths: `python/{pyproject.toml,uv.lock,.python-version,src/vector_trading/,tests/,examples/,README.md}`, `py.typed`, and package root commands.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Создать пакет через Hatchling, закрепить разработческие зависимости и настройки uv/Ruff/mypy/pytest; зависимости выполнения не ограничивать файлом фиксации зависимостей потребителя. Синхронный `httpx.Client` имеет явный lifecycle/context manager, никаких дополнительных async-оболочек в первом выпуске.
-2. Реализовать публичные REST-интерфейсы и интерфейсы сигналов и одинаковые тестовые данные; сохранить unset против `None`, пустые списки TP, ISO-даты и строковый timestamp. Не выгружать модель с отсутствующими полями как набор `null`.
-3. Реализовать ошибки, ограниченное время ожидания, остановку обхода и закрытие HTTP-ресурсов; повторы отключены. Pydantic/другие зависимости генератора включать только при реально выбранном и проверенном процессе генерации.
-4. Добавить типы и `py.typed`, примеры и содержание wheel/sdist; корневые команды `pnpm test:python`/`build:python` делегируют нативным инструментам, не заменяют их JS-тестами.
+1. Create a Hatchling package; pin development dependencies and uv/Ruff/mypy/pytest settings without constraining runtime dependencies to the consumer's lockfile. Follow the runtime dependency policy: keep `httpx` and Pydantic, and review generator-specific direct dependencies (`python-dateutil`, `typing-extensions`) against actual usage and Python 3.12+ facilities. The synchronous `httpx.Client` has explicit lifecycle/context-manager support; no additional async wrappers in the first release.
+2. Implement public REST/signal APIs and shared fixtures; preserve unset versus `None`, empty TP lists, ISO dates, and string timestamps. Do not dump omitted model fields as `null`.
+3. Implement errors, bounded timeouts, traversal stopping, and HTTP-resource cleanup; retries are disabled. Retain auxiliary dependencies only when the verified generated implementation needs them; do not confuse direct requirements with dependencies pulled in transitively by `httpx` or Pydantic.
+4. Add types, `py.typed`, examples, and wheel/sdist contents; root `pnpm test:python`/`build:python` delegate to native tools rather than replacing them with JS tests.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- В `python/`: `uv sync --locked`, `uv run ruff format --check .`, `uv run ruff check .`, `uv run mypy src`, `uv run pytest`, `uv build`.
-- C01–C12 и примеры проверены на Python 3.12/3.14; wheel и sdist устанавливаются по очереди в чистые окружения без editable-install, импорт `vector_trading` и настоящий HTTP-обмен с локальным сервером работают.
-- Wheel содержит лицензию и типы, зависимости разрешаются у чистого потребителя; `uv.lock` не изменяется обычной проверкой.
+- In `python/`: `uv sync --locked`, `uv run ruff format --check .`, `uv run ruff check .`, `uv run mypy src`, `uv run pytest`, `uv build`.
+- C01–C12 and examples are verified on Python 3.12/3.14; wheel and sdist are installed separately in clean environments without editable installs; `vector_trading` imports and actual local-server HTTP exchange work.
+- Wheel includes license and types; dependencies resolve for clean consumers; ordinary checks do not change `uv.lock`. Inspect installed metadata and the dependency graph against the approved policy; justify each auxiliary direct requirement.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: ожидают.
-- Changed artifacts / verification: ожидают, включая wheel/sdist; отклонения и открытия: нет.
-- Blocker: нет.
+- Revision / implementation context / integration evidence: pending.
+- Changed artifacts / verification: pending, including wheel/sdist; deviations and openings: none.
+- Blocker: none.
 
-### [ ] STEP-06 — Go-модуль подключается из подпапки и сохраняет намерение сигналов
+### [ ] STEP-06 — The Go subdirectory module imports and preserves signal intent
 
 - Implementation status: `pending`
-- Зачем: Go-потребители подключают обычный module и получают cancellable HTTP API.
+- Purpose: Go consumers import an ordinary module and receive a cancellable HTTP API.
 - Depends on: STEP-03.
-- Владельцы и скиллы: `go/`, `sdk-clients`, `sdk-contracts`, `sdk-release`.
-- Подтверждённые пути: общий контракт и процесс генерации STEP-03.
-- Ожидаемые пути: `go/{go.mod,go.sum,*.go,*_test.go,examples/,README.md}`, закрепление Staticcheck, профильные корневые команды.
+- Owners and skills: `go/`, `sdk-clients`, `sdk-contracts`, `sdk-release`.
+- Confirmed paths: shared contract and STEP-03 generation pipeline.
+- Expected paths: `go/{go.mod,*.go,*_test.go,examples/,README.md}`, Staticcheck pin, and package root commands.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Создать library module `github.com/Vector-Trading/vector-trading-sdk/go`, минимальный Go 1.26, явный `http.Client`, методы с `context.Context`. HTTP при выполнении остаётся стандартной библиотекой.
-2. Реализовать полный REST/signal API; необязательное TP-поле выражает пропуск отдельно от пустого массива. Не полагаться на обычный `omitempty` у slice без доказательства C04. Не вводить новую серверную семантику ради Go zero values.
-3. Добавить ошибки, таймаут/отмену, закрытие тел HTTP-ответов и безопасные перенаправления; пагинация сохраняет контекст отмены и фильтры. Закрепить Staticcheck, добавить gofmt/vet/стандартные тесты и примеры.
-4. Описать подпапочные теги и будущее изменение `/v2`; корневые команды `pnpm test:go`/`build:go` используют нативные проверки. Если зависимости выполнения отсутствуют, не создавать пустой `go.sum` как заглушку.
+1. Create library module `github.com/Vector-Trading/vector-trading-sdk/go`, minimum Go 1.26, explicit `http.Client`, and `context.Context` methods. The complete runtime remains standard-library based, including model validation; do not add third-party validators or HTTP libraries.
+2. Implement the complete REST/signal API; optional TP must distinguish omission from empty arrays. Do not rely on ordinary slice `omitempty` without C04 proof. Do not introduce server semantics to accommodate Go zero values.
+3. Add errors, timeout/cancellation, HTTP response-body cleanup, and safe redirects; pagination preserves cancellation context and filters. Pin Staticcheck and add gofmt/vet/standard tests and examples.
+4. Document subdirectory tags and the future `/v2` change; root `pnpm test:go`/`build:go` use native checks. Do not create a placeholder `go.sum`; this library has no external runtime dependencies. Keep any third-party development tools outside the consumer module dependency graph.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- В `go/`: `gofmt` с проверкой отсутствия diff, `go vet ./...`, закреплённый `staticcheck ./...`, `go test -race ./...`, `go build ./...`; C01–C12 на Go 1.26/1.27.
-- Чистый module потребителя компилирует публичный пример через временный локальный module proxy/архив с тем же путь модуля; простой `replace` на рабочий каталог не является единственной проверкой упаковки. Настоящий GitHub/proxy import подтверждается в STEP-12.
-- `go mod tidy` не оставляет diff; массив Go сериализуется в отсутствующее поле/`[]`/непустой массив ровно согласно тестовым данным.
+- In `go/`: `gofmt` with no-diff verification, `go vet ./...`, pinned `staticcheck ./...`, `go test -race ./...`, `go build ./...`; C01–C12 on Go 1.26/1.27.
+- A clean consumer module compiles the public example through a temporary local module proxy/archive with the same module path; a working-tree `replace` is not the only packaging check. STEP-12 confirms actual GitHub/proxy imports.
+- `go mod tidy` leaves no diff; `go list -m all` reports only the main module, and package/tests compile with module downloads disabled after toolchain preparation. Go arrays serialize as omitted fields/`[]`/non-empty arrays exactly according to fixtures.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: ожидают.
-- Changed artifacts / verification: ожидают, включая module archive; отклонения и открытия: нет.
-- Blocker: нет.
+- Revision / implementation context / integration evidence: pending.
+- Changed artifacts / verification: pending, including module archive; deviations and openings: none.
+- Blocker: none.
 
-### [ ] STEP-07 — Rust-библиотека устанавливается как crate и поддерживает весь API
+### [ ] STEP-07 — The Rust library installs as a crate and supports the entire API
 
 - Implementation status: `pending`
-- Зачем: Rust-потребитель получает типизированный асинхронный API без расхождения сериализации.
+- Purpose: Rust consumers receive a typed asynchronous API without serialization differences.
 - Depends on: STEP-03.
-- Владельцы и скиллы: `rust/`, `sdk-clients`, `sdk-contracts`, `sdk-release`.
-- Подтверждённые пути: общий контракт и процесс генерации, Rust MSRV/toolchain из STEP-03.
-- Ожидаемые пути: `rust/{Cargo.toml,Cargo.lock,rust-toolchain.toml,src/,tests/,examples/,README.md}`, профильные корневые команды.
+- Owners and skills: `rust/`, `sdk-clients`, `sdk-contracts`, `sdk-release`.
+- Confirmed paths: shared contract and generation pipeline, STEP-03 Rust MSRV/toolchain.
+- Expected paths: `rust/{Cargo.toml,Cargo.lock,rust-toolchain.toml,src/,tests/,examples/,README.md}`, and package root commands.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Создать library crate, закреплённую стабильную версию компилятора, `rust-version`, метаданные библиотеки Rust и MIT. Зависимости выполнения — выбранные в STEP-03 serde/reqwest, асинхронный API; Tokio/зависимости локальных HTTP-тестов используются тестами и примерами в нужных категориях.
-2. Реализовать REST-интерфейсы и интерфейсы сигналов, ошибки, асинхронное ожидание с ограничением времени и отменой и управляемый HTTP-клиент. Сериализация `Option` сохраняет отсутствие, `Some(vec![])` и непустой массив; `None` не выводится как `null`.
-3. Проверить размеченные объединения serde и `oneOf` на реальных JSON; совместимость перечислений и ответов не должна зависеть от случайной формы генератора. Добавить тесты документации и примеры, fmt/Clippy и корневые команды `pnpm test:rust`/`build:rust`.
-4. Проверить набор возможностей и `Cargo.lock` для воспроизводимой разработки; у потребителя зависимости разрешаются его manifest/lock, библиотека не требует lock собственного checkout.
+1. Create a library crate with pinned stable compiler, `rust-version`, crate metadata, and MIT license. Follow the runtime dependency policy: keep `serde`, `serde_json`, and asynchronous `reqwest`; retain auxiliary crates only where actually needed. The transport requires a Tokio execution context; direct Tokio/local HTTP-test dependencies serve tests and examples in their appropriate categories.
+2. Implement REST/signal APIs, errors, bounded/cancellable async waiting, and a managed HTTP client. `Option` serialization preserves omission, `Some(vec![])`, and non-empty arrays; `None` is not emitted as `null`.
+3. Check serde tagged unions and `oneOf` against actual JSON; enum/response compatibility must not depend on accidental generator shape. Add doctests, examples, fmt/Clippy, and root `pnpm test:rust`/`build:rust`.
+4. Check features and `Cargo.lock` for reproducible development; consumers resolve dependencies through their own manifest/lock rather than requiring the library checkout's lockfile. Review `cargo tree` and enabled features; remove unused direct crates and unnecessary features without replacing maintained HTTP/TLS or JSON implementations.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- В `rust/`: `cargo fmt --check`, `cargo clippy --locked --all-targets --all-features -- -D warnings`, `cargo test --locked --all-features`, `cargo build --locked`, `cargo package --locked`.
-- C01–C12, examples и doctests проходят на выбранной MSRV и закреплённой stable версии. Архив `.crate` устанавливается/собирается чистым потребителем из локального реестра или архива исходников без импорта рабочего `src`; `cargo publish --dry-run --locked` не выполняет публикацию.
-- метаданные MIT и исходников включены, архив не содержит секретных тестовых данных или серверные зависимости; отсутствие/пустота TP подтверждено байтами реального HTTP-запроса.
+- In `rust/`: `cargo fmt --check`, `cargo clippy --locked --all-targets --all-features -- -D warnings`, `cargo test --locked --all-features`, `cargo build --locked`, `cargo package --locked`.
+- C01–C12, examples, and doctests pass on the selected MSRV and pinned stable compiler. A clean consumer installs/builds the `.crate` archive through a local registry or source archive without importing working `src`; `cargo publish --dry-run --locked` does not publish.
+- MIT and source metadata are included; archives exclude secret fixtures and server dependencies; actual HTTP request bytes prove TP omission/emptiness behavior.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: ожидают.
-- Changed artifacts / verification: ожидают, включая `.crate`; отклонения и открытия: нет.
-- Blocker: нет.
+- Revision / implementation context / integration evidence: pending.
+- Changed artifacts / verification: pending, including `.crate`; deviations and openings: none.
+- Blocker: none.
 
-### [ ] STEP-08 — Pine-исходники формируют совместимые JSON и проверены в TradingView
+### [ ] STEP-08 — Pine sources build compatible JSON and are verified in TradingView
 
 - Implementation status: `pending`
-- Зачем: резервное хранение Pine-кода и удобное подключение сигналов из TradingView.
+- Purpose: back up Pine code and provide convenient TradingView signal integration.
 - Depends on: STEP-03.
-- Владельцы и скиллы: `pinescript/`, `pine-signals`, `sdk-contracts`.
-- Подтверждённые пути: сигнальный контракт и тестовые данные STEP-02/03.
-- Ожидаемые пути: `pinescript/VectorTrading.pine`, `pinescript/examples/`, `pinescript/README.md`, `docs/contracts.md`, записи компиляции/совместимости у владельца.
+- Owners and skills: `pinescript/`, `pine-signals`, `sdk-contracts`.
+- Confirmed paths: STEP-02/03 signal contract and fixtures.
+- Expected paths: `pinescript/VectorTrading.pine`, `pinescript/examples/`, `pinescript/README.md`, `docs/contracts.md`, and owner-maintained compilation/compatibility evidence.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Создать Pine v6 библиотеку функции формирования JSON всех восьми действий; условия/частота alert остаются в пользовательском примере. Не включать ключ аккаунта или стратегии в публичные исходники/сообщение.
-2. Реализовать безопасное экранирование и числовое представление, строковый timestamp, версию стратегии, отсутствие/clear/replace TP, запрет `na` и недопустимых TP/SL; `force` только `open`.
-3. Предоставить непубликуемый локальный/встроенный пример, пригодный для source-only использования без несуществующего import. После отдельно разрешённой публикации можно добавить реальный import с numeric Pine version.
-4. Описать ручную компиляцию/публикацию, настройку webhook URL и alerts, необходимость смены import и пересоздания работающего alert. CI проверяет файлы/тестовые данные, но не обещает официальную headless-компиляцию.
+1. Create a Pine v6 library for JSON construction for all eight actions; alert conditions/frequency remain in user examples. Do not include account or strategy keys in public sources/payloads.
+2. Implement safe escaping and numeric representation, string timestamp, strategy version, omitted/clear/replace TP, rejection of `na` and invalid TP/SL; `force` only on `open`.
+3. Provide an unpublished local/embedded example usable as source-only without a nonexistent import. A real import with a numeric Pine version may be added after separately authorized publication.
+4. Document manual compilation/publication, webhook URL and alert configuration, import updates, and recreation of running alerts. CI checks files/fixtures but does not promise official headless compilation.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- Библиотека и пример действительно компилируются в Pine Editor; в свидетельствах есть дата, commit исходника, версия Pine и результат. При отсутствии доступа к Editor отметить эту конкретную проверку невыполненной, не заменять её regex/JavaScript-кодеком.
-- JSON, полученный именно из Pine для C03–C05/C10, проходит каноническую schema и настоящий серверный анализатор без торговых эффектов. Цены не теряют нужную точность, строковые поля экранированы.
-- Пример не даёт скрытых дополнительных сигналов; README прямо различает архив исходников и опубликованную библиотеку. Публикация в TradingView не обязательна для приёмки этого шага.
+- Library and example actually compile in Pine Editor; evidence includes date, source commit, Pine version, and result. Without Editor access, mark that specific check incomplete instead of substituting regex/JavaScript codecs.
+- JSON produced by Pine itself for C03–C05/C10 passes canonical schema and the real server parser without trading effects. Prices retain required precision and string fields are escaped.
+- Examples create no hidden extra signals; README distinguishes source archives from published libraries. TradingView publication is not required to accept this step.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: ожидают.
-- Changed artifacts / verification: ожидают, включая настоящий Pine Editor; отклонения и открытия: нет.
-- Blocker: нет; доступ к Editor требуется на этапе проверки.
+- Revision / implementation context / integration evidence: pending.
+- Changed artifacts / verification: pending, including actual Pine Editor verification; deviations and openings: none.
+- Blocker: none; Editor access is required at verification time.
 
-### [ ] STEP-09 — CI проверяет весь SDK и установку пакетов без секретов
+### [ ] STEP-09 — CI verifies the entire SDK and package installation without secrets
 
 - Implementation status: `pending`
-- Зачем: одинаковая приёмка в чистом окружении, пригодная для защиты `main`.
+- Purpose: consistent clean-environment acceptance suitable for protecting `main`.
 - Depends on: STEP-04–08.
-- Владельцы и скиллы: общий CI и conformance, `sdk-release`, `sdk-contracts`, `sdk-clients`, Pine-проверки `pine-signals`.
-- Подтверждённые пути: реализованные языковые конфигурации и команды.
-- Ожидаемые пути: `.github/workflows/ci.yml`, `.github/dependabot.yml`, общие тесты `conformance/`, `scripts/check-*`, `docs/development.md`, окончательные корневые команды.
+- Owners and skills: shared CI and conformance, `sdk-release`, `sdk-contracts`, `sdk-clients`, Pine checks `pine-signals`.
+- Confirmed paths: implemented language configurations and commands.
+- Expected paths: `.github/workflows/ci.yml`, `.github/dependabot.yml`, shared `conformance/` tests, `scripts/check-*`, `docs/development.md`, and final root commands.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Добавить реальные задания CI для contracts/generation, каждого языка, пакетных потребителей и документации; фиксированные toolchains, dependency locks и SHA Actions. Нативные инструменты используются напрямую; JS не имитирует компиляцию других языков.
-2. PR из fork выполняется без publishing secrets и без `id-token:write`; отменяются устаревшие запуски CI одного PR, локальные локальные HTTP-тесты изолированы, cleanup восстанавливает переменные/таймеры/серверы. Добавить конечные таймауты и ограниченный срок хранения артефактов.
-3. Создать стабильный итоговый check `sdk-ci`, который проверяет все обязательные jobs и не становится успешным из-за skipped/failed матрицы. Изменение общего контракта проверяет все четыре языка и Pine тестовые данные; не использовать path filters, обходящие обязательную матрицу.
-4. Добавить Dependabot для npm/pip/cargo/GitHub Actions и поддерживаемого Go-обновления согласно актуальным возможностям; для неподдерживаемого источника закрепить документированное обновление, не оставлять заведомо невалидную конфигурацию. Не вводить автоматический merge обновлений.
-5. Завершить root `pnpm test`, `pnpm build`, `pnpm verify`: format-check → lint/typecheck → contracts/generation → нативные тесты → сборка/проверка упаковки. Недостающий язык даёт ошибку, не тихий skip. README и development doc показывают реальные команды.
+1. Add real CI jobs for contracts/generation, every language, package consumers, and documentation; pin toolchains, dependency locks, and Actions SHAs. Use native tools directly; JS does not imitate compilation of other languages.
+2. Fork PRs run without publishing secrets or `id-token:write`; cancel obsolete CI runs for the same PR, isolate local HTTP tests, and restore environment variables/timers/servers in cleanup. Add finite timeouts and bounded artifact retention.
+3. Create stable aggregate check `sdk-ci` that verifies all required jobs and cannot succeed through a skipped/failed matrix. Shared contract changes verify all four languages and Pine fixtures; do not use path filters that bypass the required matrix.
+4. Add Dependabot for npm/pip/cargo/GitHub Actions and supported Go updates according to current capabilities; document maintenance for unsupported sources rather than leaving knowingly invalid configuration. Do not add automatic dependency-update merges.
+5. Complete root `pnpm test`, `pnpm build`, `pnpm verify`: format-check → lint/typecheck → contracts/generation → native tests → build/packaging verification. Missing languages fail rather than silently skip. README and development documentation show real commands.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- `pnpm verify` из чистой SDK-копии проходит без соседней рабочей копии/сервисов/учётные данные; GitHub Actions run имеет зелёный `sdk-ci` и все ожидаемые дочерние jobs.
-- Контролируемая ошибка одного языка или generation mismatch делает итоговый check неуспешным; pull request из форка не может выполнять publish; tests завершаются без открытых HTTP-серверов и скрытых повторов.
-- Артефакты npm/wheel/sdist/module/crate проверены чистыми потребителями. Pine compilation evidence актуально для зафиксированного исходника; автоматическое выполнение такой проверки не заявлено.
+- `pnpm verify` passes from a clean SDK checkout without the neighboring checkout/services/credentials; a GitHub Actions run has green `sdk-ci` and every expected child job.
+- A controlled language failure or generation mismatch fails the aggregate check; fork PRs cannot publish; tests finish without open HTTP servers or hidden retries.
+- Clean consumers verify npm/wheel/sdist/module/crate artifacts. Pine compilation evidence matches the pinned source; automated execution of that check is not claimed.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: ожидают.
-- Changed artifacts / verification: ожидают, включая URL CI и проверку ошибочного run; отклонения и открытия: нет.
-- Blocker: нет.
+- Revision / implementation context / integration evidence: pending.
+- Changed artifacts / verification: pending, including CI URL and intentional failing-run verification; deviations and openings: none.
+- Blocker: none.
 
-### [ ] STEP-10 — GitHub и права распространения готовы к публичному SDK
+### [ ] STEP-10 — GitHub and distribution permissions are ready for the public SDK
 
 - Implementation status: `pending`
-- Зачем: первый выпуск имеет реальные каналы, защищённую основную ветку и подтверждённого владельца.
+- Purpose: the first release has real channels, a protected main branch, and confirmed ownership.
 - Depends on: STEP-09.
-- Владельцы и скиллы: настройки GitHub/реестров и документация, `sdk-release`.
-- Подтверждённые пути/ресурсы: GitHub `Vector-Trading/vector-trading-sdk`, текущие settings из раздела фактов; зелёный check `sdk-ci`.
-- Ожидаемые пути: `.github/{pull_request_template.md,ISSUE_TEMPLATE/,CODEOWNERS}`, `CONTRIBUTING.md`, `SECURITY.md`, `docs/releasing.md`; remote repository/settings, environment `release`, права владельца в реестре/trust.
+- Owners and skills: GitHub/registry settings and documentation, `sdk-release`.
+- Confirmed paths/resources: GitHub `Vector-Trading/vector-trading-sdk`, current settings in the facts section, green `sdk-ci`.
+- Expected paths: `.github/{pull_request_template.md,ISSUE_TEMPLATE/,CODEOWNERS}`, `CONTRIBUTING.md`, `SECURITY.md`, `docs/releasing.md`; remote repository/settings, `release` environment, registry ownership/trust.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Проверить содержимое и историю перед открытием; источник экспорта содержит только публичные DTO/тестовые данные. Сохранить снимок прежних settings и выполнить согласованный переход репозитория в public. Доступные read-only проверки выполнить до внешнего изменения.
-2. Настроить описание/topics/homepage только на существующую документацию; wiki оставить выключенной. Выбрать squash merge и удаление веток после объединения; не менять организационные роли и платный тариф. Настроить защиту `main` после существования `sdk-ci`: PR, успешные проверки, запрет принудительной перезаписи и удаления, разрешение обхода только подтверждённым maintainer для восстановления. Количество review не делает одиночную работу невозможной: первоначально 0 обязательных одобрений; CODEOWNERS содержит реального проверенного владельца.
-3. Сохранить read-only права сценариев GitHub Actions по умолчанию и запрет одобрения pull request из workflow; ограничить Actions реально используемыми publisher/setup-инструментами и SHA pinning, если функция доступна. Не ослаблять организационную политику ради workflow.
-4. Создать environment `release`, ограничить допускаемые refs и выбрать существующего ответственного за выпуск; обязательного второго reviewer не выдумывать. Использовать ручной разрешённый запуск publish и доступные защиты среды. Подключить доступные бесплатные security/dependency alerts; платные функции — только после отдельного выбора.
-5. Проверить/зафиксировать имена npm/PyPI/crates.io, права Vector Trading, путь Go-модуля с точным регистром; подготовить доверие OIDC конкретному workflow/environment. Если первое создание пакета нельзя выполнить заранее, описать первичное создание пакета STEP-12 без обхода правил. Нельзя считать ownership доказанным отсутствием пакета в поиске.
-6. Добавить краткие contribution/security/PR/issue instructions, обозначить поддерживаемые среды и каналы сообщений о безопасности. Не публиковать выдуманный контакт или самовольно отправлять приглашения пользователям/командам.
+1. Review content and history before opening the repository; export sources contain only public DTOs/fixtures. Save previous settings and perform the agreed change to public visibility. Complete available read-only checks before external mutations.
+2. Configure description/topics/homepage only against existing documentation; keep wiki disabled. Select squash merge and branch deletion after merging; do not change organization roles or paid plans. Configure `main` protection once `sdk-ci` exists: PRs, passing checks, no force pushes/deletion, bypass only for confirmed recovery maintainers. Reviews must not make solo work impossible: initially 0 required approvals; CODEOWNERS includes an actually verified owner.
+3. Preserve default read-only Actions permissions and the ban on workflow PR approval; restrict Actions to actually used publisher/setup tools and SHA pinning where available. Do not weaken organization policy for workflows.
+4. Create `release` environment, restrict permitted refs, and select an existing release owner; do not invent a required second reviewer. Use authorized manual publishing and available environment protections. Enable available free security/dependency alerts; paid features require a separate decision.
+5. Verify/pin npm/PyPI/crates.io names, Vector Trading permissions, and the case-sensitive Go module path; prepare OIDC trust for the exact workflow/environment. If initial package creation cannot happen beforehand, document STEP-12 bootstrapping without bypassing rules. An absent search result does not prove ownership.
+6. Add concise contribution/security/PR/issue instructions, supported environments, and security-reporting channels. Do not publish fictitious contacts or send unsolicited user/team invitations.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- GitHub API подтверждает публичность репозитория, реальные merge/settings/permissions/environment и доступность rulesets после смены visibility; новый PR проходит обязательный `sdk-ci`, проверена невозможность обычного принудительной перезаписи и удаления основной ветки.
-- Имена/права реестров и trust-конфигурация подтверждены их настройками, без вывода токенов. При конфликте имени/отсутствии прав остановить только затронутую внешнюю часть и записать конкретное решение.
-- Записаны before/after настройки, точные identifiers и ограничения функций. Восстановление settings не возвращает обещание конфиденциальности уже открытого кода.
+- GitHub API confirms public visibility, actual merge/settings/permissions/environment, and ruleset availability after visibility changes; a new PR passes required `sdk-ci`; ordinary force pushes and main-branch deletion are confirmed blocked.
+- Registry names/permissions and trust settings are confirmed through actual configuration without exposing tokens. Name conflicts/missing permissions stop only the affected external work and record a concrete decision.
+- Before/after settings, exact identifiers, and feature limitations are recorded. Restoring settings does not restore confidentiality of already-public code.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: ожидают; remote before/after и account ownership фиксируются отдельно.
-- Changed artifacts / verification: ожидают; отклонения и открытия: нет.
-- Blocker: ещё не установлен; подтвердить права владельца в реестре и имена перед внешним изменением.
+- Revision / implementation context / integration evidence: pending; record remote before/after state and account ownership separately.
+- Changed artifacts / verification: pending; deviations and openings: none.
+- Blocker: not established yet; confirm registry ownership and names before external changes.
 
-### [ ] STEP-11 — Выпуск собирает проверенные артефакты и восстанавливается после частичного успеха
+### [ ] STEP-11 — Release builds verified artifacts and recovers from partial success
 
 - Implementation status: `pending`
-- Зачем: публикация работает предсказуемо до первого внешнего неизменяемого выпуска.
+- Purpose: publication behaves predictably before the first immutable external release.
 - Depends on: STEP-10.
-- Владельцы и скиллы: общий процесс выпуска, `sdk-release`, `sdk-contracts`.
-- Подтверждённые пути: GitHub/реестры STEP-10, полный CI STEP-09.
-- Ожидаемые пути: `.github/workflows/release.yml`, `release/version.json`, скрипты подготовки/сверки версий/manifest, тесты сценариев выпуска, `docs/releasing.md`.
+- Owners and skills: shared release pipeline, `sdk-release`, `sdk-contracts`.
+- Confirmed paths: STEP-10 GitHub/registries, STEP-09 full CI.
+- Expected paths: `.github/workflows/release.yml`, `release/version.json`, preparation/version/manifest verification scripts, release-scenario tests, `docs/releasing.md`.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. Создать `workflow_dispatch` с проверяемыми version/tag и режимами подготовки/публикации/продолжения. Publish допускается только для разрешённого immutable commit из `main` с успешным CI, одинаковыми версии пакетов и проверенным источник контракта. Обычная сборка/PR ничего не публикует.
-2. Подготовка собирает и проверяет все пакеты до publish, сохраняет версии, контрольными суммами контрактов, контрольными суммами артефактов и исходники Pine; артефакты используются тем же выпуском без повторной сборки из другого состояния.
-3. Разделить задания публикации npm/PyPI/crates.io и создание/проверку Go refs; минимальные OIDC permissions и конкретные доверенные Actions. Bootstrap первой публикации, если он требуется реестром, явно выделен и не оставляет постоянный широкопривилегированный токен.
-4. Хранить проверяемые исходы каналов отдельно от исходного immutable artifact manifest. После таймаут прочитать registry state; повторить только отсутствующий канал. Конкурентный выпуск той же версии блокируется; начатая публикация не отменяется как устаревший PR run.
-5. Общий GitHub Release показывает реальные статусы; до полной приёмки не заявляет полный успех. Pine в `source-only` имеет исходник и пример; вручную опубликованная библиотека получает настоящий автора, библиотеки и версии mapping.
-6. Описать первичный первичное создание пакета, выпуск, продолжение, обновление версии, проверку реестров, ограничение rollback и восстановление локальных настроек. Не включать auto-unpublish или tag rewrite.
+1. Create `workflow_dispatch` with verified version/tag and prepare/publish/resume modes. Publish only an authorized immutable `main` commit with successful CI, aligned package versions, and verified contract provenance. Ordinary builds/PRs publish nothing.
+2. Preparation builds and verifies all packages before publication, recording versions, contract hashes, artifact hashes, and Pine sources; the same release reuses artifacts without rebuilding from another state.
+3. Separate npm/PyPI/crates.io publishing jobs and Go ref creation/verification; use minimal OIDC permissions and specific trusted Actions. Explicitly isolate registry-required first-publication bootstrapping without leaving a persistent broadly privileged token.
+4. Store verifiable channel outcomes separately from the original immutable artifact manifest. Read registry state after timeouts; retry only missing channels. Block concurrent releases of the same version; do not cancel started publication as an obsolete PR run.
+5. Shared GitHub Releases show actual statuses and do not claim full success before complete acceptance. Pine `source-only` includes source and example; manually published libraries have actual author/library/version mappings.
+6. Document bootstrapping, release, resume, version updates, registry checks, rollback limits, and local-setting recovery. Do not include auto-unpublish or tag rewriting.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- Dry-run создаёт артефакты/manifest и проверяет чистых потребителей, но не создаёт remote tags/releases, не публикует и не получает секреты публикации.
-- Локальные двойники реестров доказывают: успешный один канал и отказ другого дают partial; неизвестный ответ после подтверждённой загрузки не дублирует publish; resume пропускает подтверждённые каналы; не совпавший hash/version/commit отклоняется.
-- Реальный prepare run GitHub Actions успешен и связан с конкретным commit. Права OIDC присутствуют только у соответствующих заданий публикации; внешний PR/произвольная Git-ревизия не достигает публикации.
+- Dry runs create artifacts/manifests and verify clean consumers without creating remote tags/releases, publishing, or receiving publication secrets.
+- Local registry doubles prove: one successful channel plus another failure yields partial success; an unknown response after confirmed upload does not duplicate publication; resume skips confirmed channels; mismatched hash/version/commit is rejected.
+- A real GitHub Actions prepare run succeeds and is tied to a specific commit. Only relevant publishing jobs have OIDC permissions; external PRs/arbitrary Git revisions cannot reach publication.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: ожидают.
-- Changed artifacts / verification: ожидают, включая prepare run и сценарии отказов; отклонения и открытия: нет.
-- Blocker: нет после подтверждения STEP-10.
+- Revision / implementation context / integration evidence: pending.
+- Changed artifacts / verification: pending, including prepare run and failure scenarios; deviations and openings: none.
+- Blocker: none after STEP-10 confirmation.
 
-### [ ] STEP-12 — Первый общий релиз устанавливается из настоящих публичных каналов
+### [ ] STEP-12 — The first shared release installs from actual public channels
 
 - Implementation status: `pending`
-- Зачем: пользователь может импортировать SDK обычными средствами каждого языка.
+- Purpose: users can import the SDK with each language's ordinary tools.
 - Depends on: STEP-11.
-- Владельцы и скиллы: общий выпуск и приёмка, `sdk-release`, языковые потребители `sdk-clients`; Pine publication только при её отдельном исполнении — `pine-signals`.
-- Подтверждённые пути/ресурсы: подготовленный сценарий выпуска, подтверждённые учётные записи реестров, артефакты, источник контракта и CI.
-- Ожидаемые ресурсы: `v0.1.0` и `go/v0.1.0` на одном commit, GitHub Release, версии npm/PyPI/crates.io, публичный Go-модуль; окончательные README/руководства и подтверждения выпуска.
+- Owners and skills: shared release and acceptance, `sdk-release`, language consumers `sdk-clients`; separately executed Pine publication uses `pine-signals`.
+- Confirmed paths/resources: prepared release workflow, confirmed registry accounts, artifacts, contract provenance, and CI.
+- Expected resources: `v0.1.0` and `go/v0.1.0` at one commit, GitHub Release, npm/PyPI/crates.io versions, public Go module; final README/guides and release confirmations.
 
-#### Изменения и потребители
+#### Changes and consumers
 
-1. В задаче, разрешающей фактический выпуск, зафиксировать итоговый принятый commit, проверить полный CI и отсутствие private артефактов. Создать immutable refs и выполнить publish `0.1.0` выбранными каналами. При необходимости выполнить только описанный разрешённый первичное создание пакета, затем подтвердить OIDC и убрать временные учётные данные.
-2. Сверить каждый внешний канал, version/commit/manifest. При частичном успехе сохранить доказательства, выполнить безопасный resume только отсутствующих публикаций, не менять артефакты или версию незаметно.
-3. Установить из реальных npm/PyPI/crates.io/Go proxy чистые потребительские проекты; публичными методами проверить localhost REST/вебхука тестовые данные. Это внешняя доставка SDK, не разрешение на торговлю в рабочей среде.
-4. Опубликовать итоговую документацию и GitHub Release с подтверждёнными installation instructions, покрытиями и поддерживаемыми средами. Pine `.pine`/пример обязательны; импортируемая TradingView-публикация при её наличии отмечается отдельно, отсутствие не маскируется.
-5. Записать URLs, версии, hashes, исходы каналов и приёмку в evidence/receipts; завершить план только после общей проверки. Ошибка уже опубликованного кода приводит к новой версии, а не перезаписи `0.1.0`.
+1. In a task authorizing actual release, pin the final accepted commit, verify full CI and absence of private artifacts. Create immutable refs and publish `0.1.0` through selected channels. If needed, perform only documented authorized bootstrapping, then confirm OIDC and remove temporary credentials.
+2. Verify every external channel and version/commit/manifest. Preserve evidence after partial success; safely resume only missing publications without silently changing artifacts or version.
+3. Install from actual npm/PyPI/crates.io/Go proxy into clean consumer projects; use public methods to check localhost REST/webhook fixtures. This authorizes external SDK delivery, not production trading.
+4. Publish final documentation and GitHub Release with confirmed installation instructions, coverage, and supported environments. Pine `.pine`/example are required; importable TradingView publication, if available, is recorded separately without hiding its absence.
+5. Record URLs, versions, hashes, channel outcomes, and acceptance in evidence/receipts; complete the plan only after overall verification. Fix published-code failures with a new version, not an overwrite of `0.1.0`.
 
-#### Приёмка и проверки
+#### Acceptance and checks
 
-- Настоящие `npm install`, `pip install`, `go get ...@v0.1.0` и Cargo dependency на `0.1.0` работают у чистых потребителей без git учётные данные/internal registry/копии исходного сервера.
-- JS `import`/`require`, TypeScript declarations, Python typing/import, Go-модуль checksum и Rust build проходят; версии и покрытие соответствуют опубликованному manifest.
-- Все обязательные каналы имеют подтверждённую внешнюю приёмку. Неудачный канал оставляет общий выпуск частичным и STEP-12 незавершённым; Pine source-only допускается по согласованной границе.
+- Actual `npm install`, `pip install`, `go get ...@v0.1.0`, and Cargo dependency `0.1.0` work for clean consumers without Git credentials/internal registries/source-server checkouts.
+- JS `import`/`require`, TypeScript declarations, Python typing/imports, Go module checksum, and Rust builds pass; versions and coverage match the published manifest.
+- Every required channel has confirmed external acceptance. A failed channel leaves the overall release partial and STEP-12 incomplete; Pine source-only is allowed within the agreed scope.
 
 #### Completion Evidence
 
-- Revision / implementation context / integration evidence: ожидают, включая remote refs/registry URLs.
-- Changed artifacts / verification: ожидают; отклонения и открытия: нет.
-- Blocker: нет; публикация выполняется только в разрешённой задаче исполнения.
+- Revision / implementation context / integration evidence: pending, including remote refs/registry URLs.
+- Changed artifacts / verification: pending; deviations and openings: none.
+- Blocker: none; publication occurs only within an authorized execution task.
 
-## Покрытие требований
+## Requirements coverage
 
-| Требование                                                                                                             | Где принимается                                                                        |
-| ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Корневые инструкции и профильные скиллы                                                                                | Подготовлены в текущем запросе; актуальность проверяется STEP-01 и финальной проверкой |
-| `.gitignore`, нормализация файлов, общий formatter/linter, закрепление версий                                          | STEP-01                                                                                |
-| Канонический REST/вебхука source и тестовые данные, все виды сигналов                                                  | STEP-02/03                                                                             |
-| JS/TS, Python, Go, Rust, нативные тесты/линтеры/форматтеры/упаковка                                                    | STEP-04/05/06/07 соответственно                                                        |
-| Резервное хранение Pine и функции формирования JSON, реальная компиляция и ручная публикация как отдельная возможность | STEP-08/12                                                                             |
-| CI, проверки установки, обновление зависимостей и обязательный check                                                   | STEP-09                                                                                |
-| Public GitHub, защита `main`, permissions, CODEOWNERS, contribution/security, реестры                                  | STEP-10                                                                                |
-| Версии, доверенная публикация, частичный выпуск и продолжение, проверяемый выпуск                                      | STEP-11/12                                                                             |
-| Документация текущего состояния и полная приёмка                                                                       | Каждый владелец своего шага, затем Final Verification                                  |
+| Requirement                                                                                          | Acceptance owner                                                              |
+| ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Root instructions and domain skills                                                                  | Prepared during planning; currency verified in STEP-01 and final verification |
+| `.gitignore`, file normalization, shared formatter/linter, version pins                              | STEP-01                                                                       |
+| Canonical REST/webhook source and fixtures, all signal variants                                      | STEP-02/03                                                                    |
+| JS/TS, Python, Go, Rust, native tests/linters/formatters/packaging                                   | STEP-04/05/06/07 respectively                                                 |
+| Pine backup storage and JSON builders, real compilation, manual publication as a separate capability | STEP-08/12                                                                    |
+| CI, installation checks, dependency updates, required check                                          | STEP-09                                                                       |
+| Public GitHub, `main` protection, permissions, CODEOWNERS, contribution/security, registries         | STEP-10                                                                       |
+| Versions, trusted publishing, partial release and resume, verifiable release                         | STEP-11/12                                                                    |
+| Current-state documentation and complete acceptance                                                  | Each step owner, then Final Verification                                      |
 
 ## Final Verification
 
-1. Все STEP-01–12 приняты в своих целях с конкретными commits и свидетельствами. Серверный commit источника принят отдельно, SDK `main` содержит правильный снимок; незакоммиченный checkout не считается integration target.
-2. Из чистого публичного checkout установка инструментов и `pnpm verify` воспроизводятся. Все четыре пакета проходят C01–C12; C13 подтверждено у настоящего сервера. Генерация и обычные тесты не требуют соседней копии/рабочих секретов.
-3. Публичный интерфейс каждого языка имеет 7 REST-операций и 8 функции формирования и отправки сигналов; нет ручных правок производного кода, старых экспортов, Java SDK, заглушек или скрытых polling/retry-сценариев.
-4. Проверить настройки GitHub, права на пространство имён, связь версий и тегов и настоящую установку из реестров. Выборочные удачные установки не заменяют все четыре канала.
-5. Pine-исходник, пример и свидетельство настоящей компиляции соответствуют release commit. `source-only` обозначен явно; если опубликована библиотека, указан настоящий закреплённый import и процедура пересоздания alert.
-6. README, contracts/architecture/development/releasing docs, инструкции и скиллы описывают реально выполненное состояние и команды. Нет несуществующих registry ссылок, контактов и рекламируемых гарантий исполнения сделки. Sitemap сервера не изменяется: новых/переименованных публичные маршруты документов задача не создаёт.
-7. Проверить сценарий частичного выпуска и безопасного продолжения; опубликованные версии и теги не передвинуты. Не заявлять общий rollback и конфиденциальность уже открытого репозитория.
-8. Перед итоговым ответом сверить инвентарь требований со всеми артефактами, checks и статусами; исправить доступные дефекты, записать конкретные недоступные проверки и сохранить план. `completed` разрешён только после полной integration/registry приёмки.
+1. All STEP-01–12 are accepted into their targets with specific commits and evidence. The source server commit is accepted separately; SDK `main` contains the correct snapshot; an uncommitted checkout is not an integration target.
+2. Tool installation and `pnpm verify` reproduce from a clean public checkout. All four packages pass C01–C12; C13 is confirmed at the actual server. Generation and ordinary tests require neither a neighboring checkout nor production secrets.
+3. Each language's public API has 7 REST operations and 8 signal construction/delivery functions; no handwritten changes to derived code, stale exports, Java SDK, stubs, or hidden polling/retry behavior.
+4. Verify GitHub settings, namespace permissions, version/tag mapping, and actual registry installation. Selected successful installations do not substitute for all four channels.
+5. Pine source, example, and actual compilation evidence match the release commit. `source-only` is explicit; published libraries have a real pinned import and alert-recreation procedure.
+6. README, contracts/architecture/development/releasing docs, instructions, and skills describe actual completed state and commands. No nonexistent registry links, contacts, or advertised trade-execution guarantees. Server sitemap remains unchanged: this task creates no new/renamed public document routes.
+7. Verify partial-release and safe-continuation behavior; published versions/tags have not moved. Do not claim shared rollback or confidentiality of an already-public repository.
+8. Before the final response, compare requirements against all artifacts, checks, and statuses; fix available defects, record specific unavailable checks, and retain the plan. `completed` requires full integration/registry acceptance.
 
-## Внешние первичные источники
+## External primary sources
 
-- [OpenAPI Generator: TypeScript Fetch](https://openapi-generator.tech/docs/generators/typescript-fetch/), [Python](https://openapi-generator.tech/docs/generators/python/), [Go](https://openapi-generator.tech/docs/generators/go/), [Rust](https://openapi-generator.tech/docs/generators/rust/) — проверенные кандидаты, не доказательство конкретного generated output.
+- [OpenAPI Generator: TypeScript Fetch](https://openapi-generator.tech/docs/generators/typescript-fetch/), [Python](https://openapi-generator.tech/docs/generators/python/), [Go](https://openapi-generator.tech/docs/generators/go/), [Rust](https://openapi-generator.tech/docs/generators/rust/) — verified candidates, not proof of specific generated output.
 - [uv projects](https://docs.astral.sh/uv/concepts/projects/), [Ruff](https://docs.astral.sh/ruff/tutorial/) — Python toolchain.
-- [Go 1.27](https://go.dev/doc/go1.27), [Go-модуль versions/tags](https://go.dev/ref/mod#mapping-versions-to-commits).
+- [Go 1.27](https://go.dev/doc/go1.27), [Go module versions/tags](https://go.dev/ref/mod#mapping-versions-to-commits).
 - [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/), [PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/using-a-publisher/), [crates.io Trusted Publishing](https://blog.rust-lang.org/2025/07/11/crates-io-development-update-2025-07/).
 - [GitHub rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets), [workflow security](https://docs.github.com/en/actions/reference/security/secure-use), [environments](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments).
 - [TradingView libraries](https://www.tradingview.com/pine-script-docs/concepts/libraries/), [publishing](https://www.tradingview.com/pine-script-docs/writing/publishing/), [alerts](https://www.tradingview.com/pine-script-docs/concepts/alerts/).
 
-Перед внешней настройкой и выпуском проверить актуальность требований реестров и инструментов; неизвестное не заменять предположением о бесплатности, правах или существующем API.
+Check current registry/tool requirements before external setup and release; do not replace unknown facts with assumptions about free features, permissions, or existing APIs.

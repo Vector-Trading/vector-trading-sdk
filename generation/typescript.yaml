@@ -1,0 +1,10 @@
+{
+  'generatorName': 'typescript-fetch',
+  'additionalProperties':
+    {
+      'hideGenerationTimestamp': true,
+      'disallowAdditionalPropertiesIfNotPresent': false,
+      'importFileExtension': '.js',
+      'dateLibrary': 'string',
+    },
+}

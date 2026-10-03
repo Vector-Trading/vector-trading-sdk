@@ -7,6 +7,10 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+export const generatedPath = (language: string): string =>
+  language === 'go'
+    ? join(root, 'go/internal/generated')
+    : join(root, 'generation/generated', language);
 export const languages = ['typescript', 'python', 'go', 'rust'] as const;
 export interface Schema {
   [key: string]: unknown;
@@ -184,6 +188,15 @@ export async function generate(destination: string): Promise<void> {
     await writeFile(join(destination, 'public.openapi.json'), json(specification));
     await mkdir(join(destination, 'typescript'), { recursive: true });
     await mkdir(join(destination, 'python'), { recursive: true });
+    await mkdir(join(destination, 'go'), { recursive: true });
+    await writeFile(
+      join(destination, 'go/contract.json'),
+      json({ schemas: specification.components.schemas, paths: specification.paths }),
+    );
+    await writeFile(
+      join(destination, 'go/contract.go'),
+      '// Code generated from the accepted snapshot. DO NOT EDIT.\npackage generated\nimport _ \"embed\"\n//go:embed contract.json\nvar Contract []byte\n',
+    );
     await writeFile(
       join(destination, 'python/contract.json'),
       json({ schemas: specification.components.schemas, paths: specification.paths }),
@@ -262,6 +275,12 @@ export async function generate(destination: string): Promise<void> {
         await writeFile(path, bytes);
       }
     }
+    execFileSync(process.env['SDK_GOFMT'] ?? 'gofmt', [
+      '-w',
+      ...(await files(join(destination, 'go')))
+        .filter((name) => name.endsWith('.go'))
+        .map((name) => join(destination, 'go', name)),
+    ]);
     const inputs = [
       'contracts/rest.openapi.json',
       'contracts/signals.schema.json',
@@ -290,7 +309,16 @@ export async function generate(destination: string): Promise<void> {
     );
     await writeFile(
       join(destination, 'manifest.json'),
-      json({ inputs: inputHashes, outputs: outputHashes }),
+      json({
+        inputs: inputHashes,
+        outputs: outputHashes,
+        roots: {
+          go: 'go/internal/generated',
+          typescript: 'generation/generated/typescript',
+          python: 'generation/generated/python',
+          rust: 'generation/generated/rust',
+        },
+      }),
     );
   } finally {
     await rm(staging, { recursive: true, force: true });
@@ -303,6 +331,14 @@ export async function compareGenerated(
   try {
     await generate(temp);
     const expected = await files(temp);
+    if (current === join(root, 'generation/generated')) {
+      const view = join(temp, 'current');
+      await mkdir(view);
+      const { cp } = await import('node:fs/promises');
+      await cp(current, view, { recursive: true });
+      await cp(generatedPath('go'), join(view, 'go'), { recursive: true });
+      current = view;
+    }
     if (JSON.stringify(expected) !== JSON.stringify(await files(current)))
       throw new Error('Generated file inventory differs. Run pnpm generate.');
     for (const path of expected) {

@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { root, languages, readJson, compareGenerated } from './generation.ts';
+import { root, languages, readJson, compareGenerated, generatedPath } from './generation.ts';
 import { checkContracts } from './check-contracts.ts';
 
 await checkContracts();
@@ -33,7 +33,7 @@ function run(command: string, args: string[], cwd: string, env: NodeJS.ProcessEn
 }
 try {
   for (const language of languages)
-    await cp(join(root, 'generation/generated', language), join(temp, language), {
+    await cp(generatedPath(language), join(temp, language), {
       recursive: true,
     });
   await cp(join(root, 'generation/probes/typescript.mts'), join(temp, 'typescript/probe.mts'));

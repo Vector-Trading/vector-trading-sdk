@@ -4,7 +4,7 @@
 
 The root `vector-trading-sdk-workspace` package is private shared tooling.
 It contains formatting, linting, typechecking, and Vitest configuration;
-JavaScript/TypeScript and Python packages are implemented locally. Shared contract/generation tests and native
+JavaScript/TypeScript, Python, and Go packages are implemented locally. Shared contract/generation tests and native
 probe harnesses exist.
 Commands and version pins are covered in the [development guide](development.md).
 
@@ -18,7 +18,7 @@ does not qualify as an accepted snapshot.
 
 pnpm manages root JavaScript/TypeScript tooling. Only the `typescript` directory is
 reserved in `pnpm-workspace.yaml`; Python, Go, and Rust packages will use their native
-tools. The `typescript/` and `python/` packages exist; Go and Rust package directories remain planned; generated trial sources are internal
+tools. The `typescript/`, `python/`, and `go/` packages exist; the Rust package directory remains planned; generated trial sources are internal
 artifacts in `generation/generated/`.
 
 ## Responsibilities
@@ -42,7 +42,7 @@ from dependencies required by SDK consumers.
 | Language              | Selected policy                                                                                                                                                                                                 |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | JavaScript/TypeScript | No external runtime dependencies; use native `fetch` and generated codecs.                                                                                                                                      |
-| Go                    | No external runtime dependencies; use `net/http`, `encoding/json`, `context`, and `time`. Model checks remain generated code using standard-library facilities.                                                 |
+| Go                    | No external runtime dependencies; use `net/http`, `encoding/json`, `context`, and `time`. Model checks use generated codecs/schema metadata and standard-library facilities.                                    |
 | Python                | Keep `httpx` for transport and Pydantic for typed models and validation. Review additional direct dependencies against actual generated imports and supported Python versions.                                  |
 | Rust                  | Keep `reqwest`, `serde`, and `serde_json` for HTTP and JSON. Retain auxiliary crates only where the generated implementation uses them; do not implement HTTP/TLS or JSON parsing solely to avoid dependencies. |
 
@@ -61,7 +61,7 @@ declaration and probe dependency were removed through a pinned template override
 The selected asynchronous `reqwest` transport requires a Tokio execution context;
 direct Tokio usage for tests/examples belongs in the appropriate dependency category.
 
-The TypeScript and Python manifests follow this policy; other package manifests remain STEP-06–07 results. They must follow this policy,
+The TypeScript, Python, and Go manifests follow this policy; the Rust manifest remains a STEP-07 result. They must follow this policy,
 declare compatible consumer requirements, and keep exact development pins in their
 own locks. Changes to the policy require an explicit architectural decision and
 updated generation/package checks.
@@ -80,11 +80,11 @@ named `oneOf` variants, and retains all seven REST paths unchanged. It adds acti
 and grant discriminators for generators; numeric transport models use double
 precision, avoiding Go's default `float32`. The original snapshots are unchanged.
 Tests compare all 40 signal schema outcomes and grant requiredness with the source.
-The generator also emits TypeScript `contract.ts` and Python `contract.json` metadata
+The generator also emits TypeScript `contract.ts` and Python/Go `contract.json` metadata
 from those same schemas and REST operations. Public runtime validation uses this accepted metadata without
 a runtime schema-validation dependency or a separate handwritten contract.
 
-`generation/template-patches.json` holds eight narrow upstream-template overrides.
+`generation/template-patches.json` holds nine narrow upstream-template overrides.
 Each override pins the upstream template's SHA-256 and requires a unique match:
 
 - TypeScript models/runtime preserve `undefined` under strict optional-property
@@ -95,16 +95,15 @@ Each override pins the upstream template's SHA-256 and requires a unique match:
   assignment without treating unrelated unset fields as explicit nulls.
 - Go prefixes enum constants, selects disjoint unions by their discriminator,
   preserves non-nil empty TP slices through generated `MarshalJSON`, and rejects
-  explicit nulls on non-nullable fields.
+  explicit nulls on non-nullable fields. Its internal trial HTTP template also normalizes diagnostic style and rejects the unused broken `*os.File` decode path; the public JSON-only transport does not use it.
 - Rust uses untagged unions whose branch enums already carry the wire discriminator;
   the upstream tagged wrapper consumed `action`/`grantType` before the branch could
   read it. Optional non-nullable fields reject explicit nulls, and numeric serializers
   reject non-finite values. `None` omits TP and `Some(vec![])` preserves clearing.
   The library template also drops the unused `serde_repr` declaration.
 
-Generated sources are checked in under `generation/generated/`, alongside the
-intermediate specification and an input/output hash manifest. This is an internal
-tree with no package manifests or public SDK entry point. Regeneration and
+TypeScript, Python, and Rust generated sources are checked in under `generation/generated/`, alongside the
+intermediate specification and an input/output hash manifest. Go has one authoritative generated tree under `go/internal/generated/` so its subdirectory module is self-contained. The manifest keeps logical `go/*` output names and records physical roots; generation/checks and native probes use that mapping. No mirrored Go tree or working-tree import replacement remains. Internal generated directories expose no documented public SDK entry point. Go output is formatted with `gofmt` during generation. Regeneration and
 `generated:check` compare the complete file inventory and bytes; changes to the
 snapshot, generator, configurations, templates, Node pins, or root lockfile are
 tracked. Handwritten orchestration, tests, and probes are outside this derived tree.
@@ -172,6 +171,30 @@ streaming bodies check elapsed time, and synchronous cancellation uses cooperati
 `threading.Event` checks. URL objects retain wire components but redact their log
 representation, protecting the strategy key without global logger changes.
 The [package README](../python/README.md) owns public signatures and lifecycle details.
+
+## Go package
+
+The module `github.com/Vector-Trading/vector-trading-sdk/go` exposes package
+`vectortrading`. Public aliases reuse internal generated transport models; handwritten
+REST methods use generated operation/schema metadata and standard-library HTTP. Generated
+trial HTTP sources remain internal and are not the public transport. Signal builders
+validate the shared outgoing subset and round-trip through generated codecs. Nil TP
+slices omit the field; non-nil empty slices survive generated `MarshalJSON` as `[]`.
+
+The runtime has no external modules or `go.sum`. Go `1.26.0` / `1.27.1` and Staticcheck
+`v0.8.1` are development pins in `go/toolchains.json`; the analysis tool is installed
+outside the library graph. Native checks and archive preparation live in `go/tools/check`;
+root commands delegate to them. A reproducible ZIP includes the standalone module,
+models/metadata, examples, README, and license. Clean consumers download through a
+local file proxy under the real module path without `replace`, then compile offline.
+
+Separate account/strategy clients accept explicit `http.Client` configuration and
+`context.Context`. Total deadlines cover body receipt. Redirects are disabled; native
+transports use fresh HTTP/1 connections to prevent implicit stale-connection and HTTP/2 stream retries. Custom
+transports must preserve the no-retry/no-private-logging policy. Error values retain no
+raw HTTP cause. Four page iterators preserve filters and cancellation, continue through
+empty pages, and reject repeated cursors. See the [package README](../go/README.md) for
+public signatures, cleanup, and future major-version/subdirectory-tag rules.
 
 ## Planned results
 

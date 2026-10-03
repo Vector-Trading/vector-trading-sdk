@@ -24,7 +24,10 @@
     "test:typescript:package": "pnpm --dir typescript test:package",
     "test:python": "node scripts/python.ts test",
     "build:python": "node scripts/python.ts build",
-    "test:python:package": "node scripts/python.ts package"
+    "test:python:package": "node scripts/python.ts package",
+    "test:go": "node scripts/go.ts test",
+    "build:go": "node scripts/go.ts build",
+    "test:go:package": "node scripts/go.ts package"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

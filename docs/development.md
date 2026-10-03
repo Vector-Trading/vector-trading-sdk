@@ -93,7 +93,7 @@ preserve the server export's bytes and SHA-256 hashes.
 
 Vitest runs the shared contract/generation regression tests through `pnpm test`.
 Contract and generation commands are described below. The TypeScript package commands and installed-archive checks are described below.
-The combined `verify` command and other language packages remain later-step results.
+The combined `verify` command and remaining language packages are later-step results.
 
 ## Updating the contract snapshot
 
@@ -122,7 +122,7 @@ commands use that snapshot without the server checkout.
 
 ## Generation and native probes
 
-The generator requires Java 11 or newer and `unzip`; these are development tools,
+The generator requires Java 11 or newer, `unzip`, and Go `gofmt`; these are development tools,
 not SDK runtime dependencies. Versions and the JAR checksum are pinned in
 `generation/generator.json`. Download/setup is explicit:
 
@@ -139,7 +139,7 @@ verifies SHA-256 before retaining it. `OPENAPI_GENERATOR_JAR` can select a predo
 file with the same checksum. `JAVA` may select a Java executable. `generate` builds
 in staging before replacing the internal derived tree; `generated:check` regenerates
 in temporary storage and checks every filename, byte, and recorded input hash.
-Neither command imports the server or contacts trading services. Templates and
+Neither command imports the server or contacts trading services. Go output lives once in `go/internal/generated/`; the manifest records its physical root. Select the pinned formatter through `PATH` or `SDK_GOFMT`. Templates and
 intermediate-schema decisions are covered in the [architecture](architecture.md#reproducible-generation).
 
 Native probes require Python 3.12 or newer, uv, Go, Rustup/Cargo with toolchains
@@ -264,11 +264,58 @@ existing interpreters; defaults use `uv python find`, with no interpreter instal
 Consumer dependency resolution uses PyPI or the local cache; it does not publish anything.
 Tests use localhost and synthetic credentials. Temporary consumer projects are removed.
 
+## Go package checks
+
+`go/go.mod` declares module `github.com/Vector-Trading/vector-trading-sdk/go`, minimum
+Go `1.26.0`, no external requirements, and no `go.sum`. Development tools are pinned
+in `go/toolchains.json`: Go `1.26.0`, Go `1.27.1`, and Staticcheck `v0.8.1`
+(`2026.2.1`, built with Go `1.27.1`). Ordinary checks require pre-existing tools and
+use `GOTOOLCHAIN=local`, `GOPROXY=off`, and `GOSUMDB=off`.
+
+Prepare toolchains explicitly if missing, using an existing Go bootstrap executable:
+
+```sh
+GOTOOLCHAIN=go1.26.0 go env GOROOT
+GOTOOLCHAIN=go1.27.1 go env GOROOT
+```
+
+Set `SDK_GO126` and `SDK_GO127` to those roots' `bin/go` executables. Install the
+pinned analyzer in an isolated directory, using the selected Go 1.27 executable:
+
+```sh
+GOBIN="$PWD/.cache/go-tools" GOTOOLCHAIN=local "$SDK_GO127" install honnef.co/go/tools/cmd/staticcheck@v0.8.1
+```
+
+This installation is separate from the library module graph. `SDK_STATICCHECK` may
+select the exact existing binary; the default is `.cache/go-tools/staticcheck`.
+`SDK_GOFMT` may select the pinned `bin/gofmt` for generation. From the repository root:
+
+```sh
+pnpm test:go
+pnpm build:go
+pnpm test:go:package
+```
+
+The root script only delegates to `go run ./tools/check`. Native `test` verifies
+`gofmt` without edits, `go mod tidy` without changes, a main-module-only dependency
+graph, `go vet ./...`, `go test -race ./...`, and `go build ./...` on both versions,
+then pinned Staticcheck. Run `gofmt -w` separately before checking. The same commands
+can be run directly from `go/` with the selected compiler; for the analyzer, put the
+selected Go 1.27 `bin` on `PATH` and select its `GOROOT`.
+
+Native `build` compiles and creates an ignored deterministic ZIP under `go/dist/`.
+Native `package` downloads this ZIP through a temporary local file module proxy into
+fresh module caches on both versions. Each clean consumer imports the public module
+and examples, invokes all REST operations and signals against localhost, verifies the
+two-module dependency graph, and compiles offline. No `replace`, public tags, publication,
+server checkout, or live credentials are used. ZIP contents exclude tests, development
+tools, and build output; temporary consumers/proxies are removed even after failure.
+The examples are callable and perform no import-time network work.
+
 ## Native tools for later steps
 
-Python is required for its package checks; Go and Rust remain native-probe requirements
-until their packages are implemented. The following is the agreed implementation matrix;
-TypeScript and Python packages are locally verified, while other packages remain planned:
+Python and Go are required for their package checks; Rust remains a native-probe requirement until its package is implemented. The following is the agreed implementation matrix;
+TypeScript, Python, and Go packages are locally verified, while other packages remain planned:
 
 | Area                  | Environments and tools                                | Configuration and command owner                                        |
 | --------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------- |
@@ -284,7 +331,7 @@ Install `uv` for Python using the [official guide](https://docs.astral.sh/uv/get
 The Python package section above records the pinned uv and verification tools.
 
 Install the required Go version using the [official guide](https://go.dev/doc/install).
-The future `go.mod` minimum is 1.26; STEP-06 pins exact compiler and Staticcheck versions.
+The `go/go.mod` minimum is 1.26; `go/toolchains.json` pins exact compiler and Staticcheck versions.
 Do not create a Go module at the root.
 
 Install Rust through [rustup](https://rust-lang.org/tools/install/). STEP-03 verified stable `1.99.0`

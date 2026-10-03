@@ -170,5 +170,31 @@
         "after": "pub(crate) fn deserialize_non_null<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>\nwhere D: serde::Deserializer<'de>, T: serde::Deserialize<'de> {\n    T::deserialize(deserializer).map(Some)\n}\npub(crate) fn serialize_finite<S: serde::Serializer>(value: &f64, serializer: S) -> Result<S::Ok, S::Error> {\n    if !value.is_finite() { return Err(serde::ser::Error::custom(\"number must be finite\")); }\n    serializer.serialize_f64(*value)\n}\npub(crate) fn serialize_optional_finite<S: serde::Serializer>(value: &Option<f64>, serializer: S) -> Result<S::Ok, S::Error> {\n    match value { Some(v) => serialize_finite(v, serializer), None => serializer.serialize_none() }\n}\n{{#models}}"
       }
     ]
+  },
+  {
+    "template": "go/client.mustache",
+    "sha256": "6b49b53e55aa2598e57669d48dbe1587c179e46c63ca249f586a4f2cea99a16d",
+    "edits": [
+      {
+        "before": "\tif f, ok := v.(*os.File); ok {\n\t\tf, err = os.CreateTemp(\"\", \"HttpClientFile\")\n\t\tif err != nil {\n\t\t\treturn\n\t\t}\n\t\t_, err = f.Write(b)\n\t\tif err != nil {\n\t\t\treturn\n\t\t}\n\t\t_, err = f.Seek(0, io.SeekStart)\n\t\treturn\n\t}\n",
+        "after": "\tif _, ok := v.(*os.File); ok {\n\t\treturn errors.New(\"decoding into *os.File is unsupported; use **os.File\")\n\t}\n"
+      },
+      {
+        "before": "Cannot specify postBody and multipart form at the same time.",
+        "after": "cannot specify postBody and multipart form at the same time"
+      },
+      {
+        "before": "Cannot specify postBody and x-www-form-urlencoded form at the same time.",
+        "after": "cannot specify postBody and x-www-form-urlencoded form at the same time"
+      },
+      {
+        "before": "Unknown type with GetActualInstance but no unmarshalObj.UnmarshalJSON defined",
+        "after": "unknown type with GetActualInstance but no unmarshalObj.UnmarshalJSON defined"
+      },
+      {
+        "before": "fmt.Errorf(\"invalid body type %s\\n\", contentType)",
+        "after": "fmt.Errorf(\"invalid body type %s\", contentType)"
+      }
+    ]
   }
 ]

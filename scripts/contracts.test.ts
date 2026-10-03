@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { checkContracts, openApiToJsonSchema } from './check-contracts.ts';
 import {
   compareGenerated,
+  generatedPath,
   project,
   readJson,
   root,
@@ -79,6 +80,7 @@ describe('canonical contract and generation boundaries', () => {
     const temp = await mkdtemp(join(tmpdir(), 'vector-sdk-config-test-'));
     try {
       await cp(join(root, 'generation/generated'), temp, { recursive: true });
+      await cp(generatedPath('go'), join(temp, 'go'), { recursive: true });
       const path = join(temp, 'manifest.json');
       const manifest = await readJson<{ inputs: Record<string, string> }>(path);
       manifest.inputs['generation/go.yaml'] = '0'.repeat(64);
@@ -88,10 +90,25 @@ describe('canonical contract and generation boundaries', () => {
       await rm(temp, { recursive: true, force: true });
     }
   }, 30_000);
+  it('detects stale relocated Go models through the manifest root mapping', async () => {
+    const temp = await mkdtemp(join(tmpdir(), 'vector-sdk-go-derived-test-'));
+    try {
+      await cp(join(root, 'generation/generated'), temp, { recursive: true });
+      await cp(generatedPath('go'), join(temp, 'go'), { recursive: true });
+      const path = join(temp, 'go/model_update_signal_payload_order.go');
+      await writeFile(path, (await readFile(path, 'utf8')) + '\n// stale\n');
+      await expect(compareGenerated(temp)).rejects.toThrow(
+        'go/model_update_signal_payload_order.go',
+      );
+    } finally {
+      await rm(temp, { recursive: true, force: true });
+    }
+  }, 30_000);
   it('detects stale derived code without modifying the canonical tree', async () => {
     const temp = await mkdtemp(join(tmpdir(), 'vector-sdk-derived-test-'));
     try {
       await cp(join(root, 'generation/generated'), temp, { recursive: true });
+      await cp(generatedPath('go'), join(temp, 'go'), { recursive: true });
       const path = join(temp, 'typescript/models/UpdateSignalPayload.ts');
       await writeFile(path, (await readFile(path, 'utf8')) + '\n// stale\n');
       await expect(compareGenerated(temp)).rejects.toThrow('Generated file differs');

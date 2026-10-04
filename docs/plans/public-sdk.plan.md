@@ -55,10 +55,39 @@ or proof of live webhook delivery.
 
 ## Distribution and remaining acceptance
 
-The shared SDK version is `0.1.1`. Final release preparation, registry publication
-and public installed-consumer acceptance remain outstanding. npm, PyPI, crates.io
-and the Go module are independent delivery channels; partial outcomes must remain
-explicit. Published versions and tag identities must not be replaced.
+The shared SDK version is `0.1.1`. The repository is public and
+[GitHub Release v0.1.1](https://github.com/Vector-Trading/vector-trading-sdk/releases/tag/v0.1.1)
+contains all fourteen frozen artifacts and the manifest. All fifteen public downloads
+were verified against their original hashes. Registry delivery remains partial:
+
+| Channel   | Delivery and acceptance                                             |
+| --------- | ------------------------------------------------------------------- |
+| PyPI      | Published; wheel/sdist consumers passed on Python 3.12.9 and 3.14.6 |
+| Go        | Published; public proxy/checksum consumers passed on Go 1.26/1.27   |
+| npm       | Initial upload and anonymous installed consumers remain outstanding |
+| crates.io | Initial upload and anonymous installed consumers remain outstanding |
+
+The original accepted source is `6bb3e966ec225ed43439ff9cb11e976f70d54a87`:
+[source CI](https://github.com/Vector-Trading/vector-trading-sdk/actions/runs/37226883118),
+[frozen preparation](https://github.com/Vector-Trading/vector-trading-sdk/actions/runs/37226939457).
+The manifest SHA-256 is
+`7680990f4cab63b15832eedf3fa94a90075568d42feb494208dbbf37eba404a2`.
+Both `v0.1.1` and `go/v0.1.1` point to that same source commit.
+
+The first publication gate stopped before uploads because its tooling dependencies
+were absent. [PR #3](https://github.com/Vector-Trading/vector-trading-sdk/pull/3)
+installs locked tooling before every release entry point. Its regression failed
+before the fix; all twelve release tests, full local verification,
+[SDK CI](https://github.com/Vector-Trading/vector-trading-sdk/actions/runs/37228956894)
+and [preparation](https://github.com/Vector-Trading/vector-trading-sdk/actions/runs/37228956883)
+passed. The accepted tooling fix does not replace the frozen release source.
+
+The [publication run](https://github.com/Vector-Trading/vector-trading-sdk/actions/runs/37229570609)
+records a partial result. PyPI's immediate post-upload read initially reported the
+version as missing; a later authoritative read confirmed both original files.
+No duplicate upload was made. The maintainer created both immutable tags, and public
+Go consumption was then verified. Published versions, artifacts and tag identities
+must not be replaced.
 
 The maintainer confirmed Pine publication on 2026-10-04:
 `import Vector_Trading_PE/VectorTrading/1`. This independent TradingView version
@@ -70,14 +99,14 @@ and embedded-consumer compilation evidence remains intact.
 
 Before completing STEP-12:
 
-1. Commit the final source and confirm successful ordinary main CI.
-2. Prepare the immutable release bundle from that accepted commit; verify public
-   content, reproducible generation and all installed archives.
-3. Make the reviewed repository public before its authorized public release.
-4. Deliver authorized registry channels using the same frozen, verified artifacts.
-5. Verify anonymous installed consumers for each delivered package; preserve the
-   verified Pine import and source mapping.
-6. Record per-channel acceptance; keep partial outcomes explicit.
+1. Complete initial npm and crates.io publication using the preserved original bundle.
+2. Confirm exact trusted-publisher bindings and revoke temporary bootstrap credentials.
+3. Verify anonymous npm consumers on Node.js 22.23.2/24.21.0 and crates.io consumers
+   on Rust 1.88/1.99, including their original artifact hashes.
+4. Resume the same source run and manifest; skip already confirmed channels.
+5. Record all per-channel acceptance and update the release description; preserve the
+   verified Pine import and source mapping. STEP-12 remains partial until all channels
+   are accepted.
 
 ## Release candidate acceptance
 
@@ -88,5 +117,7 @@ locally verified together and integrated into `main`.
 
 The 0.1.1 preview completed full verification, reproducible generation, 64 shared
 regressions and fourteen clean archive consumers. Preview artifacts are inspection
-evidence; final publication requires a fresh frozen bundle from the accepted source
-and verified public consumption in every selected channel.
+evidence. The final bundle was subsequently prepared from the accepted source in
+run `37226939457`. Every remaining 0.1.1 publication must use that preserved bundle
+and its recorded manifest hash, with verified public consumption in every selected
+channel.

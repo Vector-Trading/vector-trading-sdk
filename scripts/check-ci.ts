@@ -70,15 +70,27 @@ export function checkWorkflow(workflow: Workflow): void {
     }
   }
 }
-export async function checkCi(): Promise<void> {
-  const workflow = await readFile(join(root, '.github/workflows/ci.yml'), 'utf8');
-  checkWorkflow(parse(workflow) as Workflow);
-  const setup = await readFile(join(root, '.github/actions/setup-tools/action.yml'), 'utf8');
-  const action = parse(setup) as { runs: { steps: Step[] } };
+export function checkToolSetup(action: { runs: { steps: Step[] } }): void {
   for (const step of action.runs.steps) {
     if (step.uses) assert(/^[\w.-]+\/[\w.-]+@[a-f\d]{40}$/.test(step.uses));
     assert(!JSON.stringify(step).includes('secrets.'));
   }
+  const java = action.runs.steps.filter((step) => step.uses?.startsWith('actions/setup-java@'));
+  assert.equal(java.length, 1);
+  assert.match(String(java[0]?.with?.['java-version']), /^\d+\.\d+\.\d+(?:\+\d+)?$/);
+  // Corretto's setup-java resolver only accepts majors, so it cannot honor exact pins.
+  assert.notEqual(
+    java[0]?.with?.['distribution'],
+    'corretto',
+    'Corretto setup-java does not support exact Java versions',
+  );
+}
+
+export async function checkCi(): Promise<void> {
+  const workflow = await readFile(join(root, '.github/workflows/ci.yml'), 'utf8');
+  checkWorkflow(parse(workflow) as Workflow);
+  const setup = await readFile(join(root, '.github/actions/setup-tools/action.yml'), 'utf8');
+  checkToolSetup(parse(setup));
   for (const pin of [
     '22.23.2',
     '24.21.0',

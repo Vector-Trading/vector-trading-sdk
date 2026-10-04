@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parse } from 'yaml';
 import { expect, it } from 'vitest';
-import { checkWorkflow } from './check-ci.ts';
+import { checkToolSetup, checkWorkflow } from './check-ci.ts';
 import { root } from './generation.ts';
 
 const workflow = parse(await readFile(join(root, '.github/workflows/ci.yml'), 'utf8'));
@@ -28,5 +28,26 @@ it('rejects a workflow that bypasses a native language or elevates permissions',
     const copy = structuredClone(workflow);
     mutate(copy);
     expect(() => checkWorkflow(copy)).toThrow();
+  }
+});
+
+it('requires a pinned Java patch with a compatible setup-java distribution', async () => {
+  const setup = parse(await readFile(join(root, '.github/actions/setup-tools/action.yml'), 'utf8'));
+  checkToolSetup(setup);
+  for (const mutate of [
+    (step: { with: Record<string, unknown> }) => {
+      step.with['distribution'] = 'corretto';
+    },
+    (step: { with: Record<string, unknown> }) => {
+      step.with['java-version'] = '11';
+    },
+  ]) {
+    const copy = structuredClone(setup);
+    mutate(
+      copy.runs.steps.find((step: { uses?: string }) =>
+        step.uses?.startsWith('actions/setup-java@'),
+      ),
+    );
+    expect(() => checkToolSetup(copy)).toThrow();
   }
 });

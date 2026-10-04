@@ -441,7 +441,9 @@ skipped, cancelled, or missing child cannot produce a green aggregate.
 
 The [tool preparation action](../.github/actions/setup-tools/action.yml) installs
 exact compilers, Corepack `0.36.0`, pnpm, uv, and isolated analyzers before checks;
-Java Corretto `11.0.24` runs the checksum-pinned generator. Actions use verified
+CI uses Temurin `11.0.24+8` for the checksum-pinned generator; the Corretto
+resolver in the pinned setup action accepts only major versions and cannot honor
+the exact Java pin. Local Java 11 remains compatible, as reproducible generation verifies. Actions use verified
 commit SHAs. Ordinary CI has only `contents: read`, checkout credentials are not
 persisted, and neither fork PRs nor manual checks receive publishing secrets or
 `id-token: write`. Jobs use Ubuntu 24.04, finite timeouts, cancellation of obsolete

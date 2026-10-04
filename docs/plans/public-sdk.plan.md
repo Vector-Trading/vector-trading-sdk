@@ -115,10 +115,9 @@ Editor on 2026-10-04, without creating an alert or delivering a signal. Library
 and embedded-consumer compilation evidence remains intact.
 
 The release description now includes confirmed availability, installation commands
-and detailed guides for every language. Exact trusted-publisher bindings use
-`Vector-Trading/vector-trading-sdk`, `release.yml` and the `release` environment.
-Temporary npm authentication and the crates.io bootstrap credential have been
-revoked. All declared distribution and consumer acceptance criteria are complete.
+and detailed guides for every language. All declared distribution and consumer
+acceptance criteria are complete. Account setup and operational verification
+records remain in the private maintainer workspace.
 
 ## Release candidate acceptance
 

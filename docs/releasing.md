@@ -130,7 +130,8 @@ Every channel is read before an upload. Matching npm tarball bytes, PyPI filenam
 hashes, crates.io checksum, and the exact Go tag commits establish availability.
 Go proxy metadata is also checked; the reference ZIP is a locally verified archive,
 not a promise that GitHub's proxy produces byte-identical ZIP compression. Public
-proxy installation and package consumers remain STEP-12 acceptance.
+proxy installation and package consumers are separate acceptance checks; see the
+verified results in the [public delivery plan](plans/public-sdk.plan.md).
 
 Only a confirmed missing channel may be attempted. `confirmed` channels are skipped;
 `conflict` and `unknown` states stop that channel. Each attempt is followed by one
@@ -162,11 +163,12 @@ summary does not mark STEP-12 complete.
 
 ## Initial npm/crates.io bootstrap
 
-The first real npm/crates.io upload cannot use trust configured on a nonexistent
-package. STEP-12 performs only explicitly authorized first uploads using the exact
-accepted main prepare bundle. No placeholder package or development archive is used.
-PyPI's pending publisher already supports first creation, so it uses the normal
-workflow rather than a separate token bootstrap.
+SDK `0.1.1` is already published and verified in every registry channel. Use the
+normal frozen-bundle reconciliation workflow for existing packages and versions.
+The following first-creation procedures apply only when a registry package does
+not yet exist. Perform only explicitly authorized first uploads using the exact
+accepted main prepare bundle. PyPI supports first creation through a pending trusted
+publisher in the normal workflow.
 
 For npm, let the maintainer perform the interactive first upload from the clean
 accepted checkout with verified organization publishing access:

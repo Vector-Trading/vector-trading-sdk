@@ -29,7 +29,7 @@ maintained privately.
 | STEP-09 | Aggregate CI and clean installed-archive verification          | integrated |
 | STEP-10 | Contribution guidance and release prerequisites                | integrated |
 | STEP-11 | Frozen release preparation, publication gates and recovery     | integrated |
-| STEP-12 | First verified distribution in every selected channel          | partial    |
+| STEP-12 | First verified distribution in every selected channel          | integrated |
 
 ## Integration evidence
 
@@ -53,19 +53,20 @@ Go 1.26.0/1.27.1, Rust 1.88/1.99, reproducible generation and clean archive cons
 Pine source checks replay actual editor output; they are not a headless compiler
 or proof of live webhook delivery.
 
-## Distribution and remaining acceptance
+## Distribution acceptance
 
 The shared SDK version is `0.1.1`. The repository is public and
 [GitHub Release v0.1.1](https://github.com/Vector-Trading/vector-trading-sdk/releases/tag/v0.1.1)
 contains all fourteen frozen artifacts and the manifest. All fifteen public downloads
-were verified against their original hashes. Registry delivery remains partial:
+were verified anonymously against their original hashes after the successful release
+continuation. Every registry channel is published and its installed consumers passed:
 
-| Channel   | Delivery and acceptance                                             |
-| --------- | ------------------------------------------------------------------- |
-| PyPI      | Published; wheel/sdist consumers passed on Python 3.12.9 and 3.14.6 |
-| Go        | Published; public proxy/checksum consumers passed on Go 1.26/1.27   |
-| npm       | Initial upload and anonymous installed consumers remain outstanding |
-| crates.io | Initial upload and anonymous installed consumers remain outstanding |
+| Channel   | Delivery and acceptance                                                   |
+| --------- | ------------------------------------------------------------------------- |
+| PyPI      | Published; wheel/sdist consumers passed on Python 3.12.9 and 3.14.6       |
+| Go        | Published; public proxy/checksum consumers passed on Go 1.26/1.27         |
+| npm       | Published; ESM/CommonJS/types consumers passed on Node.js 22.23.2/24.21.0 |
+| crates.io | Published; public registry consumers passed on Rust 1.88/1.99             |
 
 The original accepted source is `6bb3e966ec225ed43439ff9cb11e976f70d54a87`:
 [source CI](https://github.com/Vector-Trading/vector-trading-sdk/actions/runs/37226883118),
@@ -89,6 +90,22 @@ No duplicate upload was made. The maintainer created both immutable tags, and pu
 Go consumption was then verified. Published versions, artifacts and tag identities
 must not be replaced.
 
+The initial npm and crates.io uploads were subsequently confirmed against the
+original frozen archives. The public npm catalog became available after processing;
+the anonymous consumer check was repeated only after installation by package name
+was available. The
+[release continuation](https://github.com/Vector-Trading/vector-trading-sdk/actions/runs/37232078062)
+passed its source gate, all four channels and the release summary, reusing the same
+source run and manifest. Published artifacts and both tags retained their original
+identities.
+
+Public consumers exercise all seven REST methods and eight signal actions against
+local receivers, including reuse of one client with different strategy keys. npm
+consumers additionally verify ESM/CommonJS entry points and TypeScript declarations;
+Python consumers cover wheel and sdist installation. Go uses the public proxy and
+checksum database; Rust resolves the public registry package without a local path
+override. These checks do not send live trading requests.
+
 The maintainer confirmed Pine publication on 2026-10-04:
 `import Vector_Trading_PE/VectorTrading/1`. This independent TradingView version
 is not the strategy version or package version. The source mapping is in
@@ -97,16 +114,10 @@ The imported opening/TP/SL consumer compiled and executed in the actual Pine
 Editor on 2026-10-04, without creating an alert or delivering a signal. Library
 and embedded-consumer compilation evidence remains intact.
 
-Before completing STEP-12:
-
-1. Complete initial npm and crates.io publication using the preserved original bundle.
-2. Confirm exact trusted-publisher bindings and revoke temporary bootstrap credentials.
-3. Verify anonymous npm consumers on Node.js 22.23.2/24.21.0 and crates.io consumers
-   on Rust 1.88/1.99, including their original artifact hashes.
-4. Resume the same source run and manifest; skip already confirmed channels.
-5. Record all per-channel acceptance and update the release description; preserve the
-   verified Pine import and source mapping. STEP-12 remains partial until all channels
-   are accepted.
+The release description now includes confirmed availability, installation commands
+and detailed guides for every language. All declared distribution and consumer
+acceptance criteria are complete. Account setup and operational verification
+records remain in the private maintainer workspace.
 
 ## Release candidate acceptance
 

@@ -9,7 +9,9 @@
 
 ## Current state and navigation
 
-Shared root tooling, the public contract snapshot in `contracts/`, shared fixtures in `conformance/`, and the contract, architecture, and development guides exist. Reproducible generation, internal derived trial sources, shared regression tests, and four-language probe harnesses also exist. JavaScript/TypeScript, Python, Go, and Rust packages exist in `typescript/`, `python/`, `go/`, and `rust/`; Pine v6 library sources, an embedded example, and actual editor/parser evidence exist in `pinescript/`; aggregate CI and full installed-archive verification exist; contribution/security instructions and `docs/releasing.md` describe current release preparation; registry bootstrap identities and npm scope ownership are confirmed; release preparation/reconciliation tooling exists locally; first uploads, npm/crates.io trust, remote prepare acceptance and source integration remain separate work. Check each path before using it; do not assume the entire plan has been implemented.
+Shared tooling, public contracts, fixtures, reproducible generation, regression tests and four-language probe harnesses exist. Language packages are in `typescript/`, `python/`, `go/` and `rust/`; Pine v6 sources and actual editor/parser evidence are in `pinescript/`. Aggregate CI, installed-archive verification, contribution/security guidance and release preparation/reconciliation tooling are integrated.
+
+SDK `0.1.1` is published through npm, PyPI, the public Go module and crates.io; anonymous installed consumers passed on both supported versions of each language. GitHub Release artifacts retain their original verified hashes. The published Pine import is `Vector_Trading_PE/VectorTrading/1`. See `docs/plans/public-sdk.plan.md` for public acceptance evidence and `docs/releasing.md` for subsequent releases. Check each path and the recorded state before using it.
 
 - `contracts/` — pinned public contracts and provenance.
 - `conformance/` — shared JSON requests, responses, and expected outcomes.

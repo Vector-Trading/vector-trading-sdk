@@ -44,6 +44,12 @@ export function checkRelease(workflow: Workflow): void {
     if (name !== 'prepare') {
       assert(job.if?.includes("github.event_name == 'workflow_dispatch'"));
       assert(job.if?.includes("github.ref == 'refs/heads/main'"));
+      const install = job.steps.findIndex((step) =>
+        step.run?.includes('corepack pnpm install --frozen-lockfile --ignore-scripts'),
+      );
+      const entry = job.steps.findIndex((step) => step.run?.includes('scripts/release.ts'));
+      assert(install >= 0 && install < entry, 'Release tools must be installed before execution');
+      assert(job.steps[install]!.run?.includes('npm install --global corepack@0.36.0'));
       if (name !== 'gate') {
         assert.equal(job.environment, 'release');
         assert(

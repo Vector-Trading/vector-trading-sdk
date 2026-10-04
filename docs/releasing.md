@@ -118,6 +118,9 @@ revisions, forks, PR artifacts, preview bundles or a replacement source commit.
 npm, PyPI, crates.io and Go have separate jobs behind the `release` environment.
 Only the three registry jobs receive `id-token: write`; Go and release-summary jobs
 receive the necessary `contents: write`. All other permissions remain read-only.
+The gate, publishing and summary jobs install the pinned workspace tooling with
+the frozen lockfile and lifecycle scripts disabled before running release commands.
+This installs verification dependencies; it does not rebuild the frozen packages.
 No additional external Action was introduced: every Action already belongs to the
 verified exact-SHA allowlist. Each publication job downloads the original bundle
 and verifies it; none builds a new package. Per-version workflow concurrency does

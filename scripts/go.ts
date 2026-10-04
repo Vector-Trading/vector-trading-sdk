@@ -10,4 +10,5 @@ execFileSync(process.env['SDK_GO126'] ?? 'go', ['run', './tools/check', command]
   cwd: resolve(root, 'go'),
   env: { ...process.env, GOTOOLCHAIN: 'local', GOPROXY: 'off', GOSUMDB: 'off' },
   stdio: 'inherit',
+  timeout: 1_800_000,
 });

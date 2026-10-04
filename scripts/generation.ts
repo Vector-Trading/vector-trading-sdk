@@ -255,7 +255,7 @@ export async function generate(destination: string): Promise<void> {
           '--global-property',
           'apiDocs=false,modelDocs=false,apiTests=false,modelTests=false',
         ],
-        { stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 8 * 1024 * 1024 },
+        { stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 8 * 1024 * 1024, timeout: 120_000 },
       );
       for (const name of await files(output)) {
         if (!/\.(ts|py|go|rs)$/.test(name)) continue;

@@ -17,7 +17,7 @@
     "contracts:check": "node scripts/check-contracts.ts",
     "generate": "node scripts/generate.ts",
     "generated:check": "node scripts/check-generated.ts",
-    "test": "vitest run",
+    "test": "node scripts/workspace.ts test",
     "generation:probe": "node scripts/probe-generation.ts",
     "test:typescript": "pnpm --dir typescript test",
     "build:typescript": "pnpm --dir typescript build",
@@ -30,7 +30,14 @@
     "test:go:package": "node scripts/go.ts package",
     "test:rust": "node scripts/rust.ts test",
     "build:rust": "node scripts/rust.ts build",
-    "test:rust:package": "node scripts/rust.ts package"
+    "test:rust:package": "node scripts/rust.ts package",
+    "test:shared": "vitest run",
+    "test:pine": "node pinescript/tools/build.ts && node pinescript/tools/check-output.ts",
+    "build": "node scripts/workspace.ts build",
+    "verify": "node scripts/workspace.ts verify",
+    "docs:check": "node scripts/check-docs.ts",
+    "ci:check": "node scripts/check-ci.ts",
+    "check:area": "node scripts/workspace.ts ci"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

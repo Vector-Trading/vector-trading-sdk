@@ -91,9 +91,30 @@ issues manually: `**/generated/**` is excluded from these tools. pnpm owns `pnpm
 Canonical JSON in `contracts/` and `conformance/` is also excluded from Prettier to
 preserve the server export's bytes and SHA-256 hashes.
 
-Vitest runs the shared contract/generation regression tests through `pnpm test`.
-Contract and generation commands are described below. The TypeScript package commands and installed-archive checks are described below.
-The combined `verify` command and remaining language packages are later-step results.
+`pnpm test:shared` runs contract/generation and CI regression tests. `pnpm test`
+also checks the captured Pine evidence and runs native package tests on Node.js
+22.23.2/24.21.0, Python 3.12.9/3.14.6, Go 1.26.0/1.27.1, and Rust 1.99.0/1.88.0.
+`pnpm build` builds all four packages and verifies installation of their archives.
+`pnpm verify` runs formatting, lint/typechecks, documentation and workflow checks,
+contracts, reproducible generation, four native generated probes, tests, then
+builds and installed-archive consumers. A missing tool or language fails the command;
+checks do not bootstrap interpreters. Prepare tools and locked environments explicitly
+as described below. Localhost listeners must be allowed by the execution environment.
+
+Workflow validation uses actionlint `1.7.12`, installed outside the Go module graph:
+
+```sh
+GOBIN="$PWD/.cache/go-tools" GOTOOLCHAIN=local "$SDK_GO127" install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+pnpm docs:check
+pnpm ci:check
+pnpm verify
+```
+
+`SDK_ACTIONLINT` can select an existing pinned binary. actionlint checks workflow syntax
+and expressions; ShellCheck is not required. Checks have finite command/job deadlines.
+Archive consumers use temporary projects and synthetic credentials, and remove their
+HTTP listeners and temporary directories. Cargo publication dry-run and Python consumer
+installation may read public registry metadata; no package is uploaded.
 
 ## Updating the contract snapshot
 
@@ -131,7 +152,7 @@ pnpm generation:setup
 pnpm contracts:check
 pnpm generate
 pnpm generated:check
-pnpm test
+pnpm test:shared
 ```
 
 `generation:setup` downloads the pinned Maven JAR into `.cache/generation/` and
@@ -177,8 +198,7 @@ credential. No live trading environment or secrets are required.
 Python probe formatting uses Ruff `0.13.0`; Go uses `gofmt`; Rust uses rustfmt
 `1.99.0`. These tools format the handwritten probe files, never the derived tree.
 Run root formatting, typechecking, linting, contract/generation checks, regression
-tests, and native probes after changing generation. Full `pnpm verify` remains a
-STEP-09 result.
+tests, and native probes after changing generation. Full `pnpm verify` includes these checks.
 
 ## JavaScript/TypeScript package checks
 
@@ -197,7 +217,7 @@ pnpm build:typescript
 pnpm test:typescript:package
 ```
 
-`pnpm test` still owns shared contract/tooling regression tests. Run both suites.
+`pnpm test:shared` owns shared contract/tooling regression tests; `pnpm test` runs both suites and the other languages.
 Package tests bind an isolated loopback HTTP server and use synthetic credentials;
 an execution sandbox must permit localhost listeners. No trading environment is used.
 Builds create ESM, CommonJS, and both declaration formats under ignored `typescript/dist/`.
@@ -239,7 +259,7 @@ needed. Checks keep `uv.lock` unchanged. The cache directory is relative to the 
 working directory (`../.cache/uv` from `python/`); root commands explicitly set the SDK
 cache location. Root `pnpm test:python`, `pnpm build:python`, and
 `pnpm test:python:package` delegate to these native tools through `scripts/python.ts`.
-No Python tests are replaced by JavaScript checks.
+The root test command runs Ruff formatting/lint, mypy, and pytest in both explicitly prepared Python environments, with `--no-sync`. No Python tests are replaced by JavaScript checks.
 
 For a separate Python 3.14 environment without replacing the pinned default environment:
 
@@ -297,7 +317,7 @@ pnpm test:go:package
 ```
 
 The root script only delegates to `go run ./tools/check`. Native `test` verifies
-`gofmt` without edits, `go mod tidy` without changes, a main-module-only dependency
+`gofmt` without edits, `go mod tidy -diff` without writing files, a main-module-only dependency
 graph, `go vet ./...`, `go test -race ./...`, and `go build ./...` on both versions,
 then pinned Staticcheck. Run `gofmt -w` separately before checking. The same commands
 can be run directly from `go/` with the selected compiler; for the analyzer, put the
@@ -372,9 +392,9 @@ results. Update source SHA-256 and environment evidence in
 [`pinescript/conformance/verification.json`](../pinescript/conformance/verification.json).
 A stale native compilation receipt is not repaired by regenerating a hash. See the
 [Pine guide](../pinescript/README.md) for the exact workflow and alert configuration.
-No `pnpm verify` or official headless Pine compiler is claimed before STEP-09.
+`pnpm verify` replays this captured evidence and detects changed source hashes. It does not compile Pine; no official headless Pine compiler is claimed.
 
-## Native tools for later steps
+## Native toolchain matrix
 
 Python, Go, and Rust are required for their package checks. The following is the agreed implementation matrix;
 TypeScript, Python, Go, and Rust packages and Pine sources are locally verified:
@@ -400,8 +420,58 @@ Install Rust through [rustup](https://rust-lang.org/tools/install/). STEP-03 ver
 and MSRV `1.88.0`; use the selected exact version with `rustfmt` and `clippy`. `rust/rust-toolchain.toml` selects stable automatically. Do not substitute unpinned
 `stable` for the verified project compiler.
 
-Root language commands will delegate to native tools in the corresponding directory.
-Full `pnpm verify` and CI are assembled in STEP-09 after all packages exist.
+Root language commands delegate to native tools in the corresponding directory.
+The shared checks require only this SDK checkout and explicitly prepared development tools.
+
+## Continuous integration and dependency maintenance
+
+[SDK CI](../.github/workflows/ci.yml) runs on every pull request, pushes to `main`
+and `VT-000/sdk-implementation`, and manual dispatch. There are no path filters.
+The required child jobs are `contracts`, `typescript`, `python`, `go`, `rust`, and
+`documentation`. Native language helpers own both compiler/interpreter versions;
+package jobs run all installed-archive consumers. The `contracts` job regenerates
+all four languages, executes native probes and checks Pine source/capture evidence.
+The `documentation` job checks formatting, JS/TS lint/typechecking, local Markdown
+links/anchors, actionlint, and workflow/Dependabot invariants. The aggregate `sdk-ci`
+runs with `always()` and accepts only success from every required child. A failed,
+skipped, cancelled, or missing child cannot produce a green aggregate.
+
+The [tool preparation action](../.github/actions/setup-tools/action.yml) installs
+exact compilers, Corepack `0.36.0`, pnpm, uv, and isolated analyzers before checks;
+Java Corretto `11.0.24` runs the checksum-pinned generator. Actions use verified
+commit SHAs. Ordinary CI has only `contents: read`, checkout credentials are not
+persisted, and neither fork PRs nor manual checks receive publishing secrets or
+`id-token: write`. Jobs use Ubuntu 24.04, finite timeouts, cancellation of obsolete
+runs for the same PR/ref, and three-day retention for public package archives only.
+No dependency cache or test request logs are uploaded.
+
+After the workflow has been delivered, run ordinary CI and confirm all seven checks.
+To verify failure propagation on that same source, manually dispatch `SDK CI` with
+`failure-probe=true`. Rust deliberately exits nonzero before its tests, and `sdk-ci`
+must fail while the other children succeed. Keep both run URLs in the plan. Local
+regressions check rejected aggregate results and generation mismatches; they do not
+substitute for actual GitHub scheduling, fork permissions, or an observed remote run.
+
+[Dependabot](../.github/dependabot.yml) proposes weekly GitHub Actions, Cargo
+(package and generation probe), and Go module updates. The zero-dependency Go
+manifests remain valid inputs; do not create a placeholder `go.sum`. PRs require
+normal verification and are not automatically merged.
+
+As checked on 2026-10-04, [GitHub's supported ecosystem table](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories)
+lists pnpm 7–10 and uv 0.11. This repository pins pnpm 11.22.0 and uv 0.12.1.
+Therefore npm/pnpm and Python/uv update entries are deliberately deferred until
+support for these pins is confirmed; pip cannot maintain this uv lock as a substitute.
+Review their advisories and versions weekly. Update root/TypeScript manifests together
+with `pnpm-lock.yaml` using the pinned pnpm, and Python requirements with `uv.lock`
+using pinned uv. Do not downgrade the verified toolchain merely to enable an updater.
+Enable the proper entries when support is confirmed, and run the full verification.
+
+Manually review generator version/checksum/templates, Java/Node/Python/Go/Rust/MSRV,
+Corepack/uv, Staticcheck/actionlint, and Pine requirements weekly too. Updates must
+keep native pins, CI preparation, examples/docs, probes, and locks consistent.
+Regenerate whenever generation inputs change; new Pine implementation bytes need
+new actual Pine Editor evidence. Dependency update automation does not publish or
+change repository settings.
 
 ## Files and local artifacts
 

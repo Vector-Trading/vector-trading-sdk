@@ -4,6 +4,7 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -62,7 +63,10 @@ func environment(extra map[string]string) []string {
 	return env
 }
 func run(binary string, args []string, cwd string, extra map[string]string) string {
-	command := exec.Command(binary, args...)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+	command := exec.CommandContext(ctx, binary, args...)
+	command.WaitDelay = 5 * time.Second
 	command.Dir = cwd
 	command.Env = environment(extra)
 	var output bytes.Buffer
@@ -110,7 +114,7 @@ func format(goBinary string) {
 func nativeChecks(goBinary string) {
 	before, err := os.ReadFile(filepath.Join(root, "go.mod"))
 	fail(err)
-	show(run(goBinary, []string{"mod", "tidy"}, root, nil))
+	show(run(goBinary, []string{"mod", "tidy", "-diff"}, root, nil))
 	after, err := os.ReadFile(filepath.Join(root, "go.mod"))
 	fail(err)
 	if !bytes.Equal(before, after) {

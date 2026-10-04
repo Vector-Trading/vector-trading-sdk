@@ -18,19 +18,14 @@ Use the Node.js version in `.nvmrc` and the pnpm version in `packageManager` in 
 source ~/.nvm/nvm.sh
 nvm use
 pnpm install --frozen-lockfile
-pnpm format:check
-pnpm lint
-pnpm typecheck
-pnpm test:typescript
-pnpm build:typescript
-pnpm test:typescript:package
-pnpm test:python
-pnpm build:python
-pnpm test:python:package
-pnpm test:go
-pnpm build:go
-pnpm test:go:package
+pnpm verify
 ```
+
+Prepare the pinned native tools and locked Python/Cargo environments first; `verify`
+fails when a required language is missing. It runs tests on both supported versions,
+reproduces generation, checks captured Pine evidence, and installs every package archive
+in clean consumer projects. Ordinary [SDK CI](.github/workflows/ci.yml) runs the same checks
+without publishing credentials.
 
 Tool setup and commands are covered in the [development guide](docs/development.md).
 Current responsibilities are described in the [architecture](docs/architecture.md).

@@ -13,9 +13,9 @@
     "generation/template-patches.json": "201b0734852bbede15725f02d0e2ec15612248e04071fccee83a27b01082b2cd",
     "generation/toolchains.json": "9ebec1258705e5bc2965bff0707673fc53df7c364d117e2a0cfb87921c42bc04",
     "generation/typescript.yaml": "3e28779356a594623c0be378a4513def1c2584538b8503f8ba9e0951961ab43f",
-    "package.json": "2cc6d81cd3347da1024dae2364d178cb73f493a48ea2617baa5056f1ba0384da",
+    "package.json": "5c0e98ca9413004e1fb090d69e4beed91b5583b21ff489f4b5b1771829eae40f",
     "pnpm-lock.yaml": "bf22a2a2d08af9f5c250c1a9fbf56875be6ac76dc64281eecbf3be6c852f878c",
-    "scripts/generation.ts": "cf0fa00650b90d1a6cd817fd1f9dfedb28bfd6346710a86e483d869c199dcfbf"
+    "scripts/generation.ts": "51c2ef1beb5382b4f6c154d9ba89480cfae4e6a152f5d99d071c1acd0f993265"
   },
   "outputs": {
     "go/api_default.go": "afa87bb67e3ab230bdfa3d5eda5a3232ca1b1cb16449b88b8ecca0225b846a32",

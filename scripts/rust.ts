@@ -10,4 +10,5 @@ execFileSync(process.execPath, ['rust/tools/check.ts', command], {
   cwd: root,
   env: process.env,
   stdio: 'inherit',
+  timeout: 1_800_000,
 });

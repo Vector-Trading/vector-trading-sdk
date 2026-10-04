@@ -19,14 +19,22 @@ function run(version: string, args: string[], cwd = crate, env = process.env): s
     env,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'inherit'],
+    timeout: 300_000,
   });
 }
 for (const version of versions) {
-  const actual = execFileSync(cargo, [`+${version}`, '--version'], { encoding: 'utf8' });
+  const actual = execFileSync(cargo, [`+${version}`, '--version'], {
+    encoding: 'utf8',
+    timeout: 10_000,
+  });
   if (!actual.startsWith(`cargo ${version} `)) throw new Error(`Expected Cargo ${version}`);
   if (action === 'test') {
     // Clippy's arguments follow --, so Cargo's offline flag belongs before it.
-    execFileSync(cargo, [`+${version}`, 'fmt', '--check'], { cwd: crate, stdio: 'inherit' });
+    execFileSync(cargo, [`+${version}`, 'fmt', '--check'], {
+      cwd: crate,
+      stdio: 'inherit',
+      timeout: 60_000,
+    });
     execFileSync(
       cargo,
       [
@@ -40,7 +48,7 @@ for (const version of versions) {
         '-D',
         'warnings',
       ],
-      { cwd: crate, stdio: 'inherit' },
+      { cwd: crate, stdio: 'inherit', timeout: 300_000 },
     );
     const result = run(version, ['test', '--locked', '--all-features']);
     console.log(
@@ -70,6 +78,7 @@ async function packageCheck(): Promise<void> {
     execFileSync(cargo, [`+${version}`, 'publish', '--dry-run', '--locked', '--allow-dirty'], {
       cwd: crate,
       stdio: 'inherit',
+      timeout: 300_000,
     });
     const bytes = await readFile(archive);
     const hash = createHash('sha256').update(bytes).digest('hex');
@@ -261,6 +270,7 @@ async function consumer(version: string, archive: string): Promise<void> {
         cwd: project,
         env,
         stdio: 'inherit',
+        timeout: 120_000,
       });
       child.once('error', reject);
       child.once('exit', (code) =>

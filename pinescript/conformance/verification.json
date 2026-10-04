@@ -3,7 +3,7 @@
   "localDate": "2026-10-04",
   "timezone": "Europe/Warsaw",
   "sourceBaseCommit": "28058d3d3e1a936cab0f32f90b36eda7cb2c5df7",
-  "sourceState": "Uncommitted STEP-08 implementation on VT-000/sdk-implementation; exact tested bytes are pinned below. The base commit does not contain the Pine sources.",
+  "sourceState": "Verified STEP-08 bytes committed on VT-000/sdk-implementation at 042e7c2; source hashes and original Pine Editor evidence below are unchanged.",
   "pineVersion": 6,
   "environment": "TradingView Pine Editor in Chrome on macOS; actual compilation and personal-script execution, not a simulated codec.",
   "serverCommit": "e51366b859926abd5bdc222a5249e99f8080f0f8",
@@ -38,5 +38,6 @@
   },
   "alertBoundary": "The embedded example compiled/executed with enableSignals=false. No running alert or webhook delivery was created/tested; actual delivery requires explicitly selected signals and an isolated receiver. Parser compatibility invokes no queue or exchange.",
   "publication": "not-published",
-  "integration": "implemented; awaiting the combined PR into main"
+  "integration": "implemented; awaiting the combined PR into main",
+  "sourceCommit": "042e7c2"
 }

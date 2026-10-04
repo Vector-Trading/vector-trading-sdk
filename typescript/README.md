@@ -19,6 +19,48 @@ npm install /path/to/vector-trading-sdk-0.1.0.tgz
 Both `import` and `require` use the same named public exports, with `.d.ts` and `.d.cts`
 declarations. Only the package root is public; generated implementation paths are internal.
 
+## Quick start
+
+| Environment variable     | Purpose                                     |
+| ------------------------ | ------------------------------------------- |
+| `VECTOR_API_KEY`         | Account API key for REST calls.             |
+| `VECTOR_BTCUSDT_API_KEY` | Strategy API key for your BTCUSDT strategy. |
+| `VECTOR_SOLUSDT_API_KEY` | Strategy API key for your SOLUSDT strategy. |
+
+To obtain a signal API key, copy the webhook URL for the intended strategy in
+Vector Trading and take **only its final path segment** — the part after
+`/webhooks/signals/v1/`. For example, from
+`https://www.vector-trading.app/webhooks/signals/v1/<strategy-api-key>`, use only
+`<strategy-api-key>` as `VECTOR_BTCUSDT_API_KEY` or `VECTOR_SOLUSDT_API_KEY`.
+It must be 32 lowercase hexadecimal characters. Pass the key, not the full URL,
+to the SDK's send method. Obtain each strategy's key from its own webhook URL;
+`VECTOR_API_KEY` is the separate account REST credential.
+
+Your application reads these variables; the SDK does not load `.env` files.
+The names identify your strategies in application configuration. The strategy's
+server configuration determines the traded instrument; the signal contains no symbol.
+
+```ts
+import { RestClient, SignalsClient, buildStartSignal } from '@vector-trading/sdk';
+
+const rest = new RestClient({ accountApiKey: process.env.VECTOR_API_KEY! });
+const bundles = await rest.listBundles({ limit: 20 });
+
+const signals = new SignalsClient();
+const payload = buildStartSignal({ version: 1 });
+await signals.send({ strategyApiKey: process.env.VECTOR_BTCUSDT_API_KEY!, payload });
+await signals.send({ strategyApiKey: process.env.VECTOR_SOLUSDT_API_KEY!, payload });
+```
+
+This queries bundles and starts two strategies through one signal client.
+Sending affects the selected strategies; use an explicitly authorized environment.
+The examples below also cover order opening, TP/SL updates, and target preservation or clearing.
+
+## Opening orders and updating TP/SL
+
+Prices below are illustrative. Use the current market price for each new message.
+Each prepared update is a separate alternative; send it only when your application intends it.
+
 ```ts
 import {
   RestClient,
@@ -29,7 +71,7 @@ import {
 } from '@vector-trading/sdk';
 
 const rest = new RestClient({
-  accountApiKey: process.env.VECTOR_ACCOUNT_KEY!,
+  accountApiKey: process.env.VECTOR_API_KEY!,
   timeoutMs: 10_000,
 });
 for await (const page of rest.listBundlesPages({ limit: 50 })) {
@@ -43,14 +85,31 @@ const message = buildOpenSignal({
   order: { side: 'buy', stop: 90, takeProfits: [{ price: 110, percent: 100 }] },
 });
 try {
-  await signals.send({ strategyApiKey: process.env.VECTOR_STRATEGY_KEY!, payload: message });
-  await signals.send({ strategyApiKey: process.env.VECTOR_OTHER_STRATEGY_KEY!, payload: message });
+  await signals.send({ strategyApiKey: process.env.VECTOR_BTCUSDT_API_KEY!, payload: message });
+  await signals.send({ strategyApiKey: process.env.VECTOR_SOLUSDT_API_KEY!, payload: message });
 } catch (error) {
   if (error instanceof SdkError) {
     // Inspect kind, status, code, and requestId without logging private inputs.
   }
   throw error;
 }
+// Build a later TP/SL update for BTCUSDT using the current market price.
+const updatedProtection = buildUpdateSignal({
+  version: 1,
+  marketPrice: 100,
+  order: { side: 'buy', stop: 95, takeProfits: [{ price: 115, percent: 100 }] },
+});
+await signals.send({
+  strategyApiKey: process.env.VECTOR_BTCUSDT_API_KEY!,
+  payload: updatedProtection,
+});
+
+// An omitted TP array preserves targets; [] explicitly clears them.
+const preserveTargets = buildUpdateSignal({
+  version: 1,
+  marketPrice: 100,
+  order: { side: 'buy', stop: 95 },
+});
 const clearTargets = buildUpdateSignal({
   version: 1,
   marketPrice: 100,

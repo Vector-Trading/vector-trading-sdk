@@ -11,7 +11,7 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
     let rest = RestClient::new(
-        &std::env::var("VECTOR_ACCOUNT_KEY")?,
+        &std::env::var("VECTOR_API_KEY")?,
         ClientOptions {
             base_url: Some(format!("{origin}/api/rest")),
             ..options.clone()
@@ -21,8 +21,8 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         base_url: Some(origin.clone()),
         ..options
     })?;
-    let strategy = std::env::var("VECTOR_STRATEGY_KEY")?;
-    let other_strategy = std::env::var("VECTOR_OTHER_STRATEGY_KEY")?;
+    let strategy = std::env::var("VECTOR_BTCUSDT_API_KEY")?;
+    let other_strategy = std::env::var("VECTOR_SOLUSDT_API_KEY")?;
     let bundle = std::env::var("VECTOR_BUNDLE_ID")?;
     let user = std::env::var("VECTOR_USER_ID")?;
     let checkout = std::env::var("VECTOR_CHECKOUT_ID")?;

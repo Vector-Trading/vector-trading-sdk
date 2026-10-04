@@ -16,6 +16,60 @@ context; offline builders and serialization do not. The SDK's development lockfi
 is reproducible, while applications resolve compatible dependencies in their own
 `Cargo.lock`. The library uses Rust 2021.
 
+## Quick start
+
+| Environment variable     | Purpose                                     |
+| ------------------------ | ------------------------------------------- |
+| `VECTOR_API_KEY`         | Account API key for REST calls.             |
+| `VECTOR_BTCUSDT_API_KEY` | Strategy API key for your BTCUSDT strategy. |
+| `VECTOR_SOLUSDT_API_KEY` | Strategy API key for your SOLUSDT strategy. |
+
+To obtain a signal API key, copy the webhook URL for the intended strategy in
+Vector Trading and take **only its final path segment** — the part after
+`/webhooks/signals/v1/`. For example, from
+`https://www.vector-trading.app/webhooks/signals/v1/<strategy-api-key>`, use only
+`<strategy-api-key>` as `VECTOR_BTCUSDT_API_KEY` or `VECTOR_SOLUSDT_API_KEY`.
+It must be 32 lowercase hexadecimal characters. Pass the key, not the full URL,
+to the SDK's send method. Obtain each strategy's key from its own webhook URL;
+`VECTOR_API_KEY` is the separate account REST credential.
+
+Your application reads these variables; the SDK does not load `.env` files.
+The names identify your strategies in application configuration. The strategy's
+server configuration determines the traded instrument; the signal contains no symbol.
+
+```rust,no_run
+use vector_trading_sdk::{
+    build_start_signal, ClientOptions, PageOptions, RestClient, SignalOptions, SignalsClient,
+};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let account_key = std::env::var("VECTOR_API_KEY")?;
+    let strategy_key = std::env::var("VECTOR_BTCUSDT_API_KEY")?;
+    let other_key = std::env::var("VECTOR_SOLUSDT_API_KEY")?;
+
+    let rest = RestClient::new(&account_key, ClientOptions::default())?;
+    let _bundles = rest
+        .list_bundles(PageOptions {
+            limit: Some(20),
+            ..Default::default()
+        })
+        .await?;
+
+    let signals = SignalsClient::new(ClientOptions::default())?;
+    let payload = build_start_signal(1.0, SignalOptions::default())?;
+    signals.send(&strategy_key, &payload).await?;
+    signals.send(&other_key, &payload).await?;
+    signals.close();
+    rest.close();
+    Ok(())
+}
+```
+
+This queries bundles and starts two strategies through one signal client.
+Sending affects the selected strategies; use an explicitly authorized environment.
+The examples below also cover order opening, TP/SL updates, and target preservation or clearing.
+
 ## REST requests
 
 REST defaults to `https://www.vector-trading.app/api/rest`; signals default to
@@ -96,15 +150,41 @@ changing it. Explicit null, invalid order types, invalid TP/SL relationships, no
 numbers, unsafe timestamps, unknown outgoing fields, and bodies over 16 KiB in UTF-8
 are rejected before a request. Generated field serializers also reject non-finite floats.
 
+Prices are illustrative; send the TP/SL update only when your application intends it.
+
 ```rust,no_run
-use vector_trading_sdk::{build_start_signal, ClientOptions, SignalOptions, SignalsClient};
-# async fn example() -> vector_trading_sdk::Result<()> {
+use vector_trading_sdk::{
+    build_open_signal, build_update_signal, models, ClientOptions,
+    OpenSignalOptions, SignalOptions, SignalsClient,
+};
+# async fn example() -> Result<(), Box<dyn std::error::Error>> {
 let client = SignalsClient::new(ClientOptions::default())?;
-let prepared = build_start_signal(1.0, SignalOptions::default())?;
-let strategy_key = std::env::var("VECTOR_STRATEGY_KEY").expect("strategy key");
-let other_key = std::env::var("VECTOR_OTHER_STRATEGY_KEY").expect("other strategy key");
-client.send(&strategy_key, &prepared).await?;
-client.send(&other_key, &prepared).await?;
+let btcusdt_key = std::env::var("VECTOR_BTCUSDT_API_KEY")?;
+let solusdt_key = std::env::var("VECTOR_SOLUSDT_API_KEY")?;
+let mut order = models::OpenSignalPayloadOrder::new(
+    models::open_signal_payload_order::Side::Buy,
+);
+order.stop = Some(90.0);
+order.take_profits = Some(vec![models::OpenSignalPayloadOrderTakeProfitsInner::new(100.0, 110.0)]);
+let opening = build_open_signal(1.0, 100.0, order, OpenSignalOptions::default())?;
+client.send(&btcusdt_key, &opening).await?;
+client.send(&solusdt_key, &opening).await?;
+
+// Prepare a later TP/SL update with the current market price.
+let mut order = models::UpdateSignalPayloadOrder::new(
+    models::update_signal_payload_order::Side::Buy,
+);
+order.stop = Some(95.0);
+order.take_profits = Some(vec![models::OpenSignalPayloadOrderTakeProfitsInner::new(100.0, 115.0)]);
+let updated = build_update_signal(1.0, 100.0, order, SignalOptions::default())?;
+client.send(&btcusdt_key, &updated).await?;
+
+// Offline alternative: None preserves TP while this order moves SL.
+let mut preserve = models::UpdateSignalPayloadOrder::new(
+    models::update_signal_payload_order::Side::Buy,
+);
+preserve.stop = Some(95.0);
+let _preserved = build_update_signal(1.0, 100.0, preserve, SignalOptions::default())?;
 client.close();
 # Ok(())
 # }

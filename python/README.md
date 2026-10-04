@@ -16,6 +16,44 @@ Internal `_generated` modules are implementation details. Runtime requirements a
 consumer versions. `typing-extensions` may be resolved transitively by these libraries;
 the SDK itself uses Python's built-in typing facilities and does not require `python-dateutil`.
 
+## Quick start
+
+| Environment variable     | Purpose                                     |
+| ------------------------ | ------------------------------------------- |
+| `VECTOR_API_KEY`         | Account API key for REST calls.             |
+| `VECTOR_BTCUSDT_API_KEY` | Strategy API key for your BTCUSDT strategy. |
+| `VECTOR_SOLUSDT_API_KEY` | Strategy API key for your SOLUSDT strategy. |
+
+To obtain a signal API key, copy the webhook URL for the intended strategy in
+Vector Trading and take **only its final path segment** — the part after
+`/webhooks/signals/v1/`. For example, from
+`https://www.vector-trading.app/webhooks/signals/v1/<strategy-api-key>`, use only
+`<strategy-api-key>` as `VECTOR_BTCUSDT_API_KEY` or `VECTOR_SOLUSDT_API_KEY`.
+It must be 32 lowercase hexadecimal characters. Pass the key, not the full URL,
+to the SDK's send method. Obtain each strategy's key from its own webhook URL;
+`VECTOR_API_KEY` is the separate account REST credential.
+
+Your application reads these variables; the SDK does not load `.env` files.
+The names identify your strategies in application configuration. The strategy's
+server configuration determines the traded instrument; the signal contains no symbol.
+
+```python
+import os
+from vector_trading import RestClient, SignalsClient, build_start_signal
+
+with RestClient(account_api_key=os.environ["VECTOR_API_KEY"]) as rest:
+    bundles = rest.list_bundles(limit=20)
+
+payload = build_start_signal(version=1)
+with SignalsClient() as signals:
+    signals.send(payload, strategy_api_key=os.environ["VECTOR_BTCUSDT_API_KEY"])
+    signals.send(payload, strategy_api_key=os.environ["VECTOR_SOLUSDT_API_KEY"])
+```
+
+This queries bundles and starts two strategies through one signal client.
+Sending affects the selected strategies; use an explicitly authorized environment.
+The examples below also cover order opening, TP/SL updates, and target preservation or clearing.
+
 ## Account-key REST
 
 Account keys are for server-side integrations and differ from strategy keys.
@@ -25,8 +63,10 @@ the REST override includes `/api/rest`.
 Imports and constructors perform no HTTP work.
 
 ```python
+import os
 from vector_trading import RestClient, SdkError
 
+account_key = os.environ["VECTOR_API_KEY"]
 with RestClient(account_api_key=account_key) as client:
     try:
         for page in client.list_bundles_pages(limit=50):
@@ -80,17 +120,40 @@ Stopping iteration stops additional requests; the client context closes its reso
 
 ## Offline signals and strategy-key delivery
 
-```python
-from vector_trading import SignalsClient, UpdateSignalPayloadOrder, build_update_signal
+Prices are illustrative; supply the current market price when preparing each message.
+The following example opens orders and prepares a later TP/SL update.
 
-message = build_update_signal(
-    version=1.5,
-    market_price=100,
-    order=UpdateSignalPayloadOrder(side="buy", take_profits=[]),
+```python
+import os
+from vector_trading import (
+    OpenSignalPayloadOrder,
+    OpenSignalPayloadOrderTakeProfitsInner,
+    SignalsClient,
+    UpdateSignalPayloadOrder,
+    build_open_signal,
+    build_update_signal,
 )
+
+opening_order = OpenSignalPayloadOrder(side="buy", stop=90)
+opening_order.take_profits = [OpenSignalPayloadOrderTakeProfitsInner(price=110, percent=100)]
+opening = build_open_signal(version=1, market_price=100, order=opening_order)
+
+updated_order = UpdateSignalPayloadOrder(side="buy", stop=95)
+updated_order.take_profits = [OpenSignalPayloadOrderTakeProfitsInner(price=115, percent=100)]
+updated_protection = build_update_signal(version=1, market_price=100, order=updated_order)
 with SignalsClient() as client:
-    client.send(message, strategy_api_key=first_strategy_key)
-    client.send(message, strategy_api_key=second_strategy_key)
+    client.send(opening, strategy_api_key=os.environ["VECTOR_BTCUSDT_API_KEY"])
+    client.send(opening, strategy_api_key=os.environ["VECTOR_SOLUSDT_API_KEY"])
+    # Send this separately when your application decides to adjust protection.
+    client.send(updated_protection, strategy_api_key=os.environ["VECTOR_BTCUSDT_API_KEY"])
+
+# Offline alternatives: preserve TP while moving SL, or explicitly clear TP.
+preserve_targets = build_update_signal(
+    version=1, market_price=100, order=UpdateSignalPayloadOrder(side="buy", stop=95)
+)
+cleared_order = UpdateSignalPayloadOrder(side="buy")
+cleared_order.take_profits = []
+clear_targets = build_update_signal(version=1, market_price=100, order=cleared_order)
 ```
 
 `SignalsClient` retains transport configuration, not a strategy credential. Every

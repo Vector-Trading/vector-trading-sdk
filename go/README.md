@@ -15,6 +15,70 @@ A future major version 2 changes the module/import path to
 `github.com/Vector-Trading/vector-trading-sdk/go/v2` and uses `go/v2.x.y` tags.
 Actual GitHub/public proxy installation is verified at the release step.
 
+## Quick start
+
+| Environment variable     | Purpose                                     |
+| ------------------------ | ------------------------------------------- |
+| `VECTOR_API_KEY`         | Account API key for REST calls.             |
+| `VECTOR_BTCUSDT_API_KEY` | Strategy API key for your BTCUSDT strategy. |
+| `VECTOR_SOLUSDT_API_KEY` | Strategy API key for your SOLUSDT strategy. |
+
+To obtain a signal API key, copy the webhook URL for the intended strategy in
+Vector Trading and take **only its final path segment** — the part after
+`/webhooks/signals/v1/`. For example, from
+`https://www.vector-trading.app/webhooks/signals/v1/<strategy-api-key>`, use only
+`<strategy-api-key>` as `VECTOR_BTCUSDT_API_KEY` or `VECTOR_SOLUSDT_API_KEY`.
+It must be 32 lowercase hexadecimal characters. Pass the key, not the full URL,
+to the SDK's send method. Obtain each strategy's key from its own webhook URL;
+`VECTOR_API_KEY` is the separate account REST credential.
+
+Your application reads these variables; the SDK does not load `.env` files.
+The names identify your strategies in application configuration. The strategy's
+server configuration determines the traded instrument; the signal contains no symbol.
+
+```go
+package integration
+
+import (
+	"context"
+	"os"
+
+	vectortrading "github.com/Vector-Trading/vector-trading-sdk/go"
+)
+
+func run(ctx context.Context) error {
+	accountKey := os.Getenv("VECTOR_API_KEY")
+	btcusdtKey := os.Getenv("VECTOR_BTCUSDT_API_KEY")
+	solusdtKey := os.Getenv("VECTOR_SOLUSDT_API_KEY")
+	rest, err := vectortrading.NewRestClient(accountKey, vectortrading.ClientOptions{})
+	if err != nil {
+		return err
+	}
+	defer rest.Close()
+	if _, err := rest.ListBundles(ctx, vectortrading.PageOptions{Limit: vectortrading.Ptr(int32(20))}); err != nil {
+		return err
+	}
+
+	signals, err := vectortrading.NewSignalsClient(vectortrading.ClientOptions{})
+	if err != nil {
+		return err
+	}
+	defer signals.Close()
+	payload, err := vectortrading.BuildStartSignal(1, vectortrading.SignalOptions{})
+	if err != nil {
+		return err
+	}
+	if err := signals.Send(ctx, btcusdtKey, payload); err != nil {
+		return err
+	}
+	return signals.Send(ctx, solusdtKey, payload)
+}
+```
+
+This queries bundles and starts two strategies through one signal client.
+Sending affects the selected strategies; use an explicitly authorized environment.
+The examples below also cover order opening, TP/SL updates, and target preservation or clearing.
+
 ## REST integration
 
 Account keys belong to server integrations. The REST base defaults to
@@ -77,31 +141,65 @@ Only an absent `nextCursor` ends traversal. `GrantsOptions` additionally has `Us
 
 Strategy keys are separate from account keys. Builders perform no network operations:
 
+Prices are illustrative; send the TP/SL update only when your application intends it.
+
 ```go
-message, err := vectortrading.BuildUpdateSignal(
-    strategyVersion,
-    100,
-    vectortrading.UpdateSignalPayloadOrder{
-        Side: "buy",
-        TakeProfits: []vectortrading.OpenSignalPayloadOrderTakeProfitsInner{},
-    },
-    vectortrading.SignalOptions{},
+package integration
+
+import (
+	"context"
+	"os"
+
+	vectortrading "github.com/Vector-Trading/vector-trading-sdk/go"
 )
-if err != nil {
-    return err
+
+func openAndUpdate(ctx context.Context) error {
+	signals, err := vectortrading.NewSignalsClient(vectortrading.ClientOptions{})
+	if err != nil {
+		return err
+	}
+	defer signals.Close()
+	btcusdtKey := os.Getenv("VECTOR_BTCUSDT_API_KEY")
+	solusdtKey := os.Getenv("VECTOR_SOLUSDT_API_KEY")
+	opening, err := vectortrading.BuildOpenSignal(1, 100,
+		vectortrading.OpenSignalPayloadOrder{
+			Side: "buy", Stop: vectortrading.Ptr(90.0),
+			TakeProfits: []vectortrading.OpenSignalPayloadOrderTakeProfitsInner{{Price: 110, Percent: 100}},
+		}, vectortrading.OpenSignalOptions{})
+	if err != nil {
+		return err
+	}
+	if err := signals.Send(ctx, btcusdtKey, opening); err != nil {
+		return err
+	}
+	if err := signals.Send(ctx, solusdtKey, opening); err != nil {
+		return err
+	}
+	// Prepare a later TP/SL update with the current market price.
+	updated, err := vectortrading.BuildUpdateSignal(1, 100,
+		vectortrading.UpdateSignalPayloadOrder{
+			Side: "buy", Stop: vectortrading.Ptr(95.0),
+			TakeProfits: []vectortrading.OpenSignalPayloadOrderTakeProfitsInner{{Price: 115, Percent: 100}},
+		}, vectortrading.SignalOptions{})
+	if err != nil {
+		return err
+	}
+	return signals.Send(ctx, btcusdtKey, updated)
 }
 
-signals, err := vectortrading.NewSignalsClient(vectortrading.ClientOptions{
-    HTTPClient: &http.Client{},
-})
-if err != nil {
-    return err
+// Offline alternatives preserve or explicitly clear TP; they do not send requests.
+func preserveTargets() (*vectortrading.UpdateSignalPayload, error) {
+	return vectortrading.BuildUpdateSignal(1, 100,
+		vectortrading.UpdateSignalPayloadOrder{Side: "buy", Stop: vectortrading.Ptr(95.0)},
+		vectortrading.SignalOptions{})
 }
-defer signals.Close()
-if err := signals.Send(ctx, strategyKey, message); err != nil {
-    return err
+
+func clearTargets() (*vectortrading.UpdateSignalPayload, error) {
+	return vectortrading.BuildUpdateSignal(1, 100,
+		vectortrading.UpdateSignalPayloadOrder{
+			Side: "buy", TakeProfits: []vectortrading.OpenSignalPayloadOrderTakeProfitsInner{},
+		}, vectortrading.SignalOptions{})
 }
-return signals.Send(ctx, anotherStrategyKey, message)
 ```
 
 A nil TP slice omits `takeProfits`; a non-nil empty slice emits `[]` to clear targets;

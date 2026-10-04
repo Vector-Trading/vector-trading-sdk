@@ -62,18 +62,39 @@ bundle query followed by a signal send. `version` is the **strategy version**.
 > execution. Sending a signal can affect a strategy; use an explicitly authorized
 > environment. See [delivery semantics](docs/contracts.md#webhook-delivery-result).
 
+### Credentials
+
+| Environment variable     | Purpose                                     |
+| ------------------------ | ------------------------------------------- |
+| `VECTOR_API_KEY`         | Account API key for REST calls.             |
+| `VECTOR_BTCUSDT_API_KEY` | Strategy API key for your BTCUSDT strategy. |
+| `VECTOR_SOLUSDT_API_KEY` | Strategy API key for your SOLUSDT strategy. |
+
+To obtain a signal API key, copy the webhook URL for the intended strategy in
+Vector Trading and take **only its final path segment** — the part after
+`/webhooks/signals/v1/`. For example, from
+`https://www.vector-trading.app/webhooks/signals/v1/<strategy-api-key>`, use only
+`<strategy-api-key>` as `VECTOR_BTCUSDT_API_KEY` or `VECTOR_SOLUSDT_API_KEY`.
+It must be 32 lowercase hexadecimal characters. Pass the key, not the full URL,
+to the SDK's send method. Obtain each strategy's key from its own webhook URL;
+`VECTOR_API_KEY` is the separate account REST credential.
+
+Your application reads these variables; the SDK does not load `.env` files.
+The names identify your strategies in application configuration. The strategy's
+server configuration determines the traded instrument; the signal contains no symbol.
+
 ### JavaScript / TypeScript
 
 ```ts
 import { RestClient, SignalsClient, buildStartSignal } from '@vector-trading/sdk';
 
-const rest = new RestClient({ accountApiKey: process.env.VECTOR_ACCOUNT_KEY! });
+const rest = new RestClient({ accountApiKey: process.env.VECTOR_API_KEY! });
 const bundles = await rest.listBundles({ limit: 20 });
 
 const signals = new SignalsClient();
 const payload = buildStartSignal({ version: 1 });
-await signals.send({ strategyApiKey: process.env.VECTOR_STRATEGY_KEY!, payload });
-await signals.send({ strategyApiKey: process.env.VECTOR_OTHER_STRATEGY_KEY!, payload });
+await signals.send({ strategyApiKey: process.env.VECTOR_BTCUSDT_API_KEY!, payload });
+await signals.send({ strategyApiKey: process.env.VECTOR_SOLUSDT_API_KEY!, payload });
 ```
 
 One signal client can serve multiple strategies. The example uses an ESM environment
@@ -87,13 +108,13 @@ CommonJS, pagination, custom `fetch`, and cancellation.
 import os
 from vector_trading import RestClient, SignalsClient, build_start_signal
 
-with RestClient(account_api_key=os.environ["VECTOR_ACCOUNT_KEY"]) as rest:
+with RestClient(account_api_key=os.environ["VECTOR_API_KEY"]) as rest:
     bundles = rest.list_bundles(limit=20)
 
 payload = build_start_signal(version=1)
 with SignalsClient() as signals:
-    signals.send(payload, strategy_api_key=os.environ["VECTOR_STRATEGY_KEY"])
-    signals.send(payload, strategy_api_key=os.environ["VECTOR_OTHER_STRATEGY_KEY"])
+    signals.send(payload, strategy_api_key=os.environ["VECTOR_BTCUSDT_API_KEY"])
+    signals.send(payload, strategy_api_key=os.environ["VECTOR_SOLUSDT_API_KEY"])
 ```
 
 Clients are synchronous; context managers close their resources.
@@ -107,11 +128,15 @@ package integration
 
 import (
 	"context"
+	"os"
 
 	vectortrading "github.com/Vector-Trading/vector-trading-sdk/go"
 )
 
-func run(ctx context.Context, accountKey, strategyKey, otherStrategyKey string) error {
+func run(ctx context.Context) error {
+	accountKey := os.Getenv("VECTOR_API_KEY")
+	btcusdtKey := os.Getenv("VECTOR_BTCUSDT_API_KEY")
+	solusdtKey := os.Getenv("VECTOR_SOLUSDT_API_KEY")
 	rest, err := vectortrading.NewRestClient(accountKey, vectortrading.ClientOptions{})
 	if err != nil {
 		return err
@@ -130,14 +155,14 @@ func run(ctx context.Context, accountKey, strategyKey, otherStrategyKey string) 
 	if err != nil {
 		return err
 	}
-	if err := signals.Send(ctx, strategyKey, payload); err != nil {
+	if err := signals.Send(ctx, btcusdtKey, payload); err != nil {
 		return err
 	}
-	return signals.Send(ctx, otherStrategyKey, payload)
+	return signals.Send(ctx, solusdtKey, payload)
 }
 ```
 
-Pass credentials from your application's private configuration. Every request takes
+The application reads credentials from environment variables. Every request takes
 `context.Context`; the module uses only the Go standard library.
 See the [Go guide](go/README.md) for local installation, public models, page iterators,
 and HTTP client options.
@@ -151,9 +176,9 @@ use vector_trading_sdk::{
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let account_key = std::env::var("VECTOR_ACCOUNT_KEY")?;
-    let strategy_key = std::env::var("VECTOR_STRATEGY_KEY")?;
-    let other_key = std::env::var("VECTOR_OTHER_STRATEGY_KEY")?;
+    let account_key = std::env::var("VECTOR_API_KEY")?;
+    let strategy_key = std::env::var("VECTOR_BTCUSDT_API_KEY")?;
+    let other_key = std::env::var("VECTOR_SOLUSDT_API_KEY")?;
 
     let rest = RestClient::new(&account_key, ClientOptions::default())?;
     let _bundles = rest
@@ -184,12 +209,16 @@ personal script in Pine Editor. It embeds the builders, so no published import i
 required. Within that script, signal JSON can be prepared offline:
 
 ```pine
-string preserve = updateSignal(1, close, "buy")
-string clear = updateSignal(1, close, "buy", takeProfits = array.new<TakeProfit>())
-array<TakeProfit> targets = array.from(TakeProfit.new(close * 1.02, 50))
-string replace = updateSignal(1, close, "buy", takeProfits = targets)
+// In the embedded script; no published import is required.
+array<TakeProfit> openingTargets = array.from(TakeProfit.new(close * 1.02, 100))
+string opening = openSignal(1, close, "buy", stopPrice = close * 0.98, takeProfits = openingTargets)
+
+// A later update replaces TP and moves SL; it does not open another order.
+array<TakeProfit> updatedTargets = array.from(TakeProfit.new(close * 1.03, 100))
+string update = updateSignal(1, close, "buy", stopPrice = close * 0.99, takeProfits = updatedTargets)
 ```
 
+These calls prepare JSON; your alert conditions decide when to send each message.
 Omitting `takeProfits` preserves targets; an empty array clears them; a non-empty
 array replaces them. TradingView owns alert delivery and the webhook URL configuration.
 The standalone example disables signals by default. See the [Pine Script guide](pinescript/README.md)

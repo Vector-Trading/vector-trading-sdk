@@ -23,13 +23,77 @@ Optional numeric `na` values omit their fields. Required prices/version and targ
 
 Neither `price` nor `triggerPrice` selects market; `price` selects limit; `triggerPrice` selects trigger; both select trigger-limit. Price relationships, SL/TP protection, the ten-target maximum, and percentages follow the linked shared contract. `amountPerc` and `force` are available only on `openSignal`. `Force.omitted`, `Force.disabled`, and `Force.enabled` retain omission, explicit false, and explicit true.
 
+### Open an order and update TP/SL
+
+These snippets belong inside a personal script with the embedded builders.
+They prepare messages offline; opening and updating are separate decisions by your script.
+
 ```pine
-// In the embedded example; no import is needed.
-string preserve = updateSignal(1, close, "buy")
+// In the embedded script; no published import is required.
+array<TakeProfit> openingTargets = array.from(TakeProfit.new(close * 1.02, 100))
+string opening = openSignal(1, close, "buy", stopPrice = close * 0.98, takeProfits = openingTargets)
+
+// A later update replaces TP and moves SL; it does not open another order.
+array<TakeProfit> updatedTargets = array.from(TakeProfit.new(close * 1.03, 100))
+string update = updateSignal(1, close, "buy", stopPrice = close * 0.99, takeProfits = updatedTargets)
+```
+
+### Preserve, clear, or replace take-profit targets
+
+```pine
+string preserve = updateSignal(1, close, "buy", stopPrice = close * 0.99)
 string clear = updateSignal(1, close, "buy", takeProfits = array.new<TakeProfit>())
-array<TakeProfit> targets = array.from(TakeProfit.new(close * 1.02, 50))
+array<TakeProfit> targets = array.from(TakeProfit.new(close * 1.02, 100))
 string replace = updateSignal(1, close, "buy", takeProfits = targets)
 ```
+
+### Entry order variants
+
+For a buy order, the following sample limit price is below the current market and
+its trigger price is above it. Use your own strategy's valid prices and conditions.
+Each call is an alternative message, not a sequence to send together.
+
+```pine
+string marketEntry = openSignal(1, close, "buy")
+string limitEntry = openSignal(1, close, "buy", price = close * 0.99)
+string triggerEntry = openSignal(1, close, "buy", triggerPrice = close * 1.01)
+string triggerLimitEntry = openSignal(1, close, "buy", price = close * 0.99, triggerPrice = close * 1.01)
+```
+
+### Other signal actions
+
+```pine
+string cancelOrder = cancelSignal(1, marketPrice = close)
+string closePosition = closeSignal(1, marketPrice = close)
+string startStrategy = startSignal(1)
+string pauseStrategy = pauseSignal(1)
+string stopStrategy = stopSignal(1)
+string deleteStrategy = deleteSignal(1)
+```
+
+### Send the selected message
+
+The standalone example already defines `openCondition`. Its existing open branch
+can use a protective opening payload as follows; update TP/SL in a separate branch
+when your strategy's update condition is satisfied. Do not add a second opening alert.
+
+```pine
+if openCondition
+    array<TakeProfit> targets = array.from(TakeProfit.new(close * 1.02, 100))
+    string message = openSignal(strategyVersion, close, "buy", stopPrice = close * 0.98, takeProfits = targets)
+    alert(message, alert.freq_once_per_bar_close)
+```
+
+Copy the intended strategy's webhook URL from Vector Trading and paste the **full
+URL** into TradingView's webhook field. For programmatic TypeScript, Python, Go, or
+Rust sends, use only the final path segment after `/webhooks/signals/v1/` as the
+strategy API key. For example, the final segment of
+`https://www.vector-trading.app/webhooks/signals/v1/<strategy-api-key>` is
+`<strategy-api-key>`; the account REST key is a separate credential.
+
+Unlike the other examples, Pine does not read environment variables; the private
+`VECTOR_BTCUSDT_API_KEY` or `VECTOR_SOLUSDT_API_KEY` value belongs only in that webhook
+configuration, never in the script or JSON. `VECTOR_API_KEY` is not used by Pine.
 
 Pine floats have finite precision and float comparisons round operands. The codec uses scientific JSON numbers, avoids default/tick-size formatting, rescales small numbers before string conversion, and detects positive price differences through logarithms. The verified 17 fixtures and precision probes retain their numeric values exactly; this cannot recover precision already lost by a caller's Pine computation. `jsonString` escapes quotes, backslashes, tabs, and newlines and preserves ordinary Unicode. Other C0 controls are rejected rather than emitted as invalid JSON. Signal string fields are restricted to ASCII/digits, so their character count is their UTF-8 byte count; builders enforce 16 KiB.
 

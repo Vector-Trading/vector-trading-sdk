@@ -2,7 +2,7 @@
 
 `vector-trading-sdk` is the asynchronous Rust library for seven account-key REST
 operations and eight strategy-key signal actions. Import it as `vector_trading_sdk`.
-The locally verified package is `0.1.1`; registry publication remains a release step.
+The SDK version is `0.1.1`. Add it to your application's dependencies:
 
 ```toml
 [dependencies]

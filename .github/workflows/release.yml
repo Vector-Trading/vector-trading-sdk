@@ -19,7 +19,7 @@ on:
         description: Unprefixed stable SDK version matching release/version.json
         type: string
         required: true
-        default: 0.1.0
+        default: 0.1.1
       source-run:
         description: Successful main prepare run ID (required for publish/resume)
         type: string

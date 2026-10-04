@@ -4,7 +4,13 @@ The Go module provides seven account-key REST operations, paginated traversal, a
 construction/delivery of all eight strategy-key signals. It uses only the Go standard
 library. The SDK is version `0.1.1`; Go `1.26.0` and `1.27.1` are verified.
 
-The package is prepared locally and has not been published. The intended public import is:
+Install the module:
+
+```sh
+go get github.com/Vector-Trading/vector-trading-sdk/go@v0.1.1
+```
+
+Import the public package:
 
 ```go
 import vectortrading "github.com/Vector-Trading/vector-trading-sdk/go"

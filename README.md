@@ -35,9 +35,10 @@ The SDK sends HTTP requests and builds JSON. Trading rules, permissions, and exe
 belong to the server. See the [shared contract guide](docs/contracts.md) for exact behavior.
 
 > [!NOTE]
-> npm, PyPI and crates.io packages remain unpublished; further public SDK delivery
-> is paused for a content correction. The Pine library is published as
-> `Vector_Trading_PE/VectorTrading/1`. Use the language guides for current examples.
+> The Pine library is published as `Vector_Trading_PE/VectorTrading/1`.
+> Use the language guides for installation and complete examples, and
+> [GitHub Releases](https://github.com/Vector-Trading/vector-trading-sdk/releases)
+> for package artifacts and release status.
 
 ## 📦 Choose your language
 

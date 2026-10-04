@@ -8,7 +8,13 @@ Omitting `baseUrl` selects `https://www.vector-trading.app/api/rest` for REST an
 `https://www.vector-trading.app` for signals. Supply `baseUrl` to use another deployment;
 a REST override includes `/api/rest`.
 
-The package is prepared locally; it has not been published to npm. From the repository:
+Install the package:
+
+```sh
+npm install @vector-trading/sdk@0.1.1
+```
+
+To build and install a local archive from the repository:
 
 ```sh
 pnpm build:typescript

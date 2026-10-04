@@ -5,11 +5,10 @@
 The package version is `0.1.1`. npm `@vector-trading/sdk`, PyPI
 `vector-trading-sdk`, crates.io `vector-trading-sdk`, and Go module
 `github.com/Vector-Trading/vector-trading-sdk/go` are the selected names.
-The npm, PyPI and crates.io packages have not been uploaded. The initial GitHub
-Release and Go tags were delivered at `0.1.0`; further public delivery is paused pending a
-content correction and verification. Previously public copies may remain in caches.
-A new corrected release must use a new version; published tag identities and
-package bytes must not be silently replaced.
+Registry availability and public installed-consumer acceptance are tracked in the
+[delivery plan](plans/public-sdk.plan.md) and
+[GitHub Releases](https://github.com/Vector-Trading/vector-trading-sdk/releases).
+Published tag identities and package bytes must not be silently replaced.
 
 The maintainer confirmed TradingView publication on 2026-10-04 with pinned import
 `Vector_Trading_PE/VectorTrading/1`. See the [Pine guide](../pinescript/README.md).
@@ -167,7 +166,7 @@ PyPI's pending publisher already supports first creation, so it uses the normal
 workflow rather than a separate token bootstrap.
 
 For npm, let the maintainer perform the interactive first upload from the clean
-accepted checkout with its verified `askadias` organization access:
+accepted checkout with verified organization publishing access:
 
 ```sh
 npm publish .cache/releases/v0.1.1/vector-trading-sdk-0.1.1.tgz \

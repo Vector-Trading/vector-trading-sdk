@@ -2,7 +2,13 @@
 
 `vector-trading-sdk` provides typed synchronous clients for seven account-key REST
 operations and eight strategy-key signals. Requires Python 3.12+; locally verified on
-Python 3.12 and 3.14. This package has not been published to PyPI.
+Python 3.12 and 3.14.
+
+Install the package:
+
+```sh
+pip install vector-trading-sdk==0.1.1
+```
 
 Build a local wheel with `uv build` in this directory, then install it in a consumer:
 

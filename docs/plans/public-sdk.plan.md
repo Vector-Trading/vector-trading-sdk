@@ -117,5 +117,7 @@ locally verified together and integrated into `main`.
 
 The 0.1.1 preview completed full verification, reproducible generation, 64 shared
 regressions and fourteen clean archive consumers. Preview artifacts are inspection
-evidence; final publication requires a fresh frozen bundle from the accepted source
-and verified public consumption in every selected channel.
+evidence. The final bundle was subsequently prepared from the accepted source in
+run `37226939457`. Every remaining 0.1.1 publication must use that preserved bundle
+and its recorded manifest hash, with verified public consumption in every selected
+channel.

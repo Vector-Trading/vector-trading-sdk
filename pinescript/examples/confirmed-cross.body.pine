@@ -1,0 +1,19 @@
+// Source-only example: the build tool embeds the canonical library above this body.
+float strategyVersion = input.float(1, "Strategy version", minval = 0.000001)
+bool enableSignals = input.bool(false, "Enable signals")
+float fast = ta.sma(close, 10)
+float slow = ta.sma(close, 20)
+bool crossedUp = ta.crossover(fast, slow)
+bool crossedDown = ta.crossunder(fast, slow)
+bool openCondition = enableSignals and barstate.isrealtime and barstate.isconfirmed and crossedUp
+bool closeCondition = enableSignals and barstate.isrealtime and barstate.isconfirmed and crossedDown
+// alertcondition exposes a named condition; it does not send dynamic JSON. For
+// webhook JSON select "Any alert() function call", not these static messages.
+alertcondition(openCondition, "Confirmed upward cross", "Confirmed upward cross")
+alertcondition(closeCondition, "Confirmed downward cross", "Confirmed downward cross")
+if openCondition
+    alert(openSignal(strategyVersion, close, "buy"), alert.freq_once_per_bar_close)
+else if closeCondition
+    alert(closeSignal(strategyVersion, marketPrice = close), alert.freq_once_per_bar_close)
+plot(fast, "Fast SMA")
+plot(slow, "Slow SMA")

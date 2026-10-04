@@ -1,2 +1,5 @@
 pnpm-lock.yaml
 **/generated/**
+# Preserve canonical server serialization and manifest hashes.
+contracts/**/*.json
+conformance/**/*.json

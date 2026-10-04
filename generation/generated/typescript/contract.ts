@@ -1,0 +1,2063 @@
+// Generated from the accepted snapshot. Do not edit.
+export const contract = {
+  "paths": {
+    "/v1/bundles": {
+      "get": {
+        "description": "Returns non-archived bots bundles owned by the API key owner. Source reads are bounded, so an archived-heavy page can be partial or empty while nextCursor is present. Continue until nextCursor is absent.",
+        "operationId": "listBundles",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor from the previous response.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BundlesResponse"
+                }
+              }
+            },
+            "description": "Owned bots bundles"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters, JSON body or domain state."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, malformed, revoked or invalid account API key, or CIDR mismatch."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Insufficient key scope, account entitlement or bundle permissions."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitResponse"
+                }
+              }
+            },
+            "description": "IP or API key rate limit exceeded; this envelope differs from ErrorResponse."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server error; diagnostics are masked and requestId may be present."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Infrastructure unavailable; an unconfirmed mutation must not be retried automatically."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Other application error. HTTP infrastructure may also return an empty or non-JSON body."
+          }
+        },
+        "summary": "List your bots bundles",
+        "x-api-key-permission": {
+          "level": "read",
+          "scope": "bundles"
+        }
+      }
+    },
+    "/v1/bundles/{bundleId}/grants": {
+      "get": {
+        "description": "Returns non-revoked grants for the selected bundle, including expired grants. Missing or permanently deleted Accounts remain in the result without userId. Source reads are bounded, so a filtered page can be partial or empty while nextCursor is present. Keep filters and sorting unchanged and continue until nextCursor is absent.",
+        "operationId": "listBundleGrants",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bundleId",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Viewer-scoped public user alias returned by the public users API.",
+            "in": "query",
+            "name": "userId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grantType",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/TradingBundleAccessGrantType"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sourceId",
+            "required": false,
+            "schema": {
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "startsAfter",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "startsBefore",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "endsAfter",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "endsBefore",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "createdAfter",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "createdBefore",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor from the previous response. Keep filters and sorting unchanged between pages.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "createdAt",
+              "enum": [
+                "createdAt",
+                "startsAt",
+                "endsAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "dir",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BundleGrantsResponse"
+                }
+              }
+            },
+            "description": "Non-revoked grants matching the search filters"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters, JSON body or domain state."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, malformed, revoked or invalid account API key, or CIDR mismatch."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Insufficient key scope, account entitlement or bundle permissions."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bundle, checkout session, grant or public user alias was not found."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitResponse"
+                }
+              }
+            },
+            "description": "IP or API key rate limit exceeded; this envelope differs from ErrorResponse."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server error; diagnostics are masked and requestId may be present."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Infrastructure unavailable; an unconfirmed mutation must not be retried automatically."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Other application error. HTTP infrastructure may also return an empty or non-JSON body."
+          }
+        },
+        "summary": "List bundle access grants",
+        "x-api-key-permission": {
+          "level": "read",
+          "scope": "grants"
+        }
+      },
+      "post": {
+        "description": "Requires grants:write. owner_grant uses the existing bundles:update permission, including expanded roles; paid_external, referral_reward and gift require the bundle owner and a sellable bundle. Omit endsAt for permanent access. Each external invoice uses a new sourceId; reuse for the same bundle, user and grant type returns 409. No automatic retry or permanent idempotency guarantee.",
+        "operationId": "createBundleGrant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bundleId",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGrantRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantMutationResponse"
+                }
+              }
+            },
+            "description": "Created grant"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters, JSON body or domain state."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, malformed, revoked or invalid account API key, or CIDR mismatch."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Insufficient key scope, account entitlement or bundle permissions."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bundle, checkout session, grant or public user alias was not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "sourceId already exists for the same bundle, user, and grant type"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "JSON request body is too large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request body must use application/json"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitResponse"
+                }
+              }
+            },
+            "description": "IP or API key rate limit exceeded; this envelope differs from ErrorResponse."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server error; diagnostics are masked and requestId may be present."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Infrastructure unavailable; an unconfirmed mutation must not be retried automatically."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Other application error. HTTP infrastructure may also return an empty or non-JSON body."
+          }
+        },
+        "summary": "Create bundle access grant",
+        "x-api-key-permission": {
+          "level": "write",
+          "scope": "grants"
+        }
+      }
+    },
+    "/v1/bundles/{bundleId}/grants/{grantId}": {
+      "delete": {
+        "description": "Requires grants:write and the bundle owner, even for expanded roles. Revokes the selected grant and all current or future grants for the same user in this bundle that start after it.",
+        "operationId": "revokeBundleGrant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bundleId",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "grantId",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantMutationResponse"
+                }
+              }
+            },
+            "description": "Revoked grant"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters, JSON body or domain state."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, malformed, revoked or invalid account API key, or CIDR mismatch."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Insufficient key scope, account entitlement or bundle permissions."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bundle, checkout session, grant or public user alias was not found."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitResponse"
+                }
+              }
+            },
+            "description": "IP or API key rate limit exceeded; this envelope differs from ErrorResponse."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server error; diagnostics are masked and requestId may be present."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Infrastructure unavailable; an unconfirmed mutation must not be retried automatically."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Other application error. HTTP infrastructure may also return an empty or non-JSON body."
+          }
+        },
+        "summary": "Revoke bundle access grant",
+        "x-api-key-permission": {
+          "level": "write",
+          "scope": "grants"
+        }
+      }
+    },
+    "/v1/bundles/{bundleId}/users": {
+      "get": {
+        "operationId": "listBundleUsers",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bundleId",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque owner-scoped cursor from the previous response. A filtered page can be empty with nextCursor; continue until it is absent.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BundleUsersResponse"
+                }
+              }
+            },
+            "description": "Users with active or scheduled grants"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters, JSON body or domain state."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, malformed, revoked or invalid account API key, or CIDR mismatch."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Insufficient key scope, account entitlement or bundle permissions."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bundle, checkout session, grant or public user alias was not found."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitResponse"
+                }
+              }
+            },
+            "description": "IP or API key rate limit exceeded; this envelope differs from ErrorResponse."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server error; diagnostics are masked and requestId may be present."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Infrastructure unavailable; an unconfirmed mutation must not be retried automatically."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Other application error. HTTP infrastructure may also return an empty or non-JSON body."
+          }
+        },
+        "summary": "List users with bundle access",
+        "x-api-key-permission": {
+          "level": "read",
+          "scope": "grants"
+        }
+      }
+    },
+    "/v1/checkout/{checkoutId}": {
+      "get": {
+        "description": "Requires grants:read and the bundle owner, even for expanded roles. Returns a short-lived checkout session including current bundle display payment terms.",
+        "operationId": "getCheckout",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "checkoutId",
+            "required": true,
+            "schema": {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutDetails"
+                }
+              }
+            },
+            "description": "Checkout details"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters, JSON body or domain state."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, malformed, revoked or invalid account API key, or CIDR mismatch."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Insufficient key scope, account entitlement or bundle permissions."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bundle, checkout session, grant or public user alias was not found."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitResponse"
+                }
+              }
+            },
+            "description": "IP or API key rate limit exceeded; this envelope differs from ErrorResponse."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server error; diagnostics are masked and requestId may be present."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Infrastructure unavailable; an unconfirmed mutation must not be retried automatically."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Other application error. HTTP infrastructure may also return an empty or non-JSON body."
+          }
+        },
+        "summary": "Get checkout session",
+        "x-api-key-permission": {
+          "level": "read",
+          "scope": "grants"
+        }
+      }
+    },
+    "/v1/users": {
+      "get": {
+        "operationId": "searchUsers",
+        "parameters": [
+          {
+            "description": "Display name prefix searched across active users except the API key owner.",
+            "in": "query",
+            "name": "displayName",
+            "required": true,
+            "schema": {
+              "maxLength": 30,
+              "minLength": 2,
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 50,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Opaque cursor from the previous response. Keep displayName unchanged between pages.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsersSearchResponse"
+                }
+              }
+            },
+            "description": "Search results"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters, JSON body or domain state."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing, malformed, revoked or invalid account API key, or CIDR mismatch."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Insufficient key scope, account entitlement or bundle permissions."
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitResponse"
+                }
+              }
+            },
+            "description": "IP or API key rate limit exceeded; this envelope differs from ErrorResponse."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Server error; diagnostics are masked and requestId may be present."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Infrastructure unavailable; an unconfirmed mutation must not be retried automatically."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Other application error. HTTP infrastructure may also return an empty or non-JSON body."
+          }
+        },
+        "summary": "Search users by name",
+        "x-api-key-permission": {
+          "level": "read",
+          "scope": "users"
+        }
+      }
+    }
+  },
+  "schemas": {
+    "AccountApiKeyPermissions": {
+      "properties": {
+        "bundles": {
+          "$ref": "#/components/schemas/ReadOnlyApiKeyPermissionLevel"
+        },
+        "grants": {
+          "$ref": "#/components/schemas/ApiKeyPermissionLevel"
+        },
+        "users": {
+          "$ref": "#/components/schemas/ReadOnlyApiKeyPermissionLevel"
+        }
+      },
+      "required": [
+        "bundles",
+        "grants",
+        "users"
+      ],
+      "type": "object"
+    },
+    "ApiKeyPermissionLevel": {
+      "enum": [
+        "none",
+        "read",
+        "write"
+      ],
+      "type": "string"
+    },
+    "BundleGrantsResponse": {
+      "properties": {
+        "grants": {
+          "items": {
+            "$ref": "#/components/schemas/TradingBundleAccessGrantSummary"
+          },
+          "type": "array"
+        },
+        "limit": {
+          "example": 50,
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "nextCursor": {
+          "description": "Opaque cursor to pass unchanged on the next request.",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        }
+      },
+      "required": [
+        "grants",
+        "limit"
+      ],
+      "type": "object"
+    },
+    "BundlesResponse": {
+      "properties": {
+        "bundles": {
+          "items": {
+            "$ref": "#/components/schemas/OwnedTradingBundleSummary"
+          },
+          "type": "array"
+        },
+        "limit": {
+          "example": 50,
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "nextCursor": {
+          "description": "Opaque cursor to pass unchanged on the next request.",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        }
+      },
+      "required": [
+        "bundles",
+        "limit"
+      ],
+      "type": "object"
+    },
+    "BundleUsersResponse": {
+      "properties": {
+        "limit": {
+          "example": 50,
+          "maximum": 100,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "nextCursor": {
+          "description": "Opaque owner-scoped cursor to pass unchanged on the next page request.",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "users": {
+          "items": {
+            "$ref": "#/components/schemas/TradingBundleGrantedUser"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "users",
+        "limit"
+      ],
+      "type": "object"
+    },
+    "CancelSignalPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "cancel"
+          ],
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "marketPrice": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true,
+          "x-vector-optional-nonnullable": true
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "type": "object",
+      "x-vector-strict-input": true
+    },
+    "CheckoutDetails": {
+      "description": "Short-lived checkout details for an owner checkout. price, currency, and discount are current bundle display terms; trialPeriodDays is intentionally not returned.",
+      "properties": {
+        "bundleId": {
+          "example": "2be97361321c46f2bc7300a04fd6d133",
+          "type": "string"
+        },
+        "checkoutId": {
+          "example": "5668c2dbeec242de9c78d21aa524d355",
+          "type": "string"
+        },
+        "currency": {
+          "example": "USDT",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "discount": {
+          "properties": {
+            "type": {
+              "enum": [
+                "fixed",
+                "percent"
+              ],
+              "type": "string",
+              "x-vector-optional-nonnullable": true
+            },
+            "value": {
+              "example": 10,
+              "format": "double",
+              "type": "number",
+              "x-vector-finite": true,
+              "x-vector-optional-nonnullable": true
+            }
+          },
+          "type": "object",
+          "x-vector-optional-nonnullable": true
+        },
+        "displayName": {
+          "example": "TraderAlex",
+          "type": "string"
+        },
+        "price": {
+          "example": 49,
+          "format": "double",
+          "type": "number",
+          "x-vector-finite": true,
+          "x-vector-optional-nonnullable": true
+        },
+        "userId": {
+          "example": "7bb8d364a6984fbab05a06a6c7f85db2",
+          "pattern": "^[a-f0-9]{32}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "checkoutId",
+        "bundleId",
+        "userId",
+        "displayName"
+      ],
+      "type": "object"
+    },
+    "CloseSignalPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "close"
+          ],
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "marketPrice": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true,
+          "x-vector-optional-nonnullable": true
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "type": "object",
+      "x-vector-strict-input": true
+    },
+    "CreateGrantRequest": {
+      "discriminator": {
+        "mapping": {
+          "gift": "#/components/schemas/OtherGrantRequest",
+          "owner_grant": "#/components/schemas/OtherGrantRequest",
+          "paid_external": "#/components/schemas/PaidExternalGrantRequest",
+          "referral_reward": "#/components/schemas/OtherGrantRequest"
+        },
+        "propertyName": "grantType"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/components/schemas/PaidExternalGrantRequest"
+        },
+        {
+          "$ref": "#/components/schemas/OtherGrantRequest"
+        }
+      ],
+      "x-vector-strict-input": true
+    },
+    "DeleteSignalPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "delete"
+          ],
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "type": "object",
+      "x-vector-strict-input": true
+    },
+    "ErrorResponse": {
+      "properties": {
+        "errorCode": {
+          "example": "errors.vector.access_denied",
+          "type": "string"
+        },
+        "message": {
+          "example": "You are not authorized to perform this operation",
+          "type": "string"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "x-vector-optional-nonnullable": true
+        },
+        "requestId": {
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        }
+      },
+      "required": [
+        "errorCode",
+        "message"
+      ],
+      "type": "object"
+    },
+    "GrantMutationResponse": {
+      "properties": {
+        "grant": {
+          "$ref": "#/components/schemas/TradingBundleAccessGrantSummary"
+        }
+      },
+      "required": [
+        "grant"
+      ],
+      "type": "object"
+    },
+    "OpenSignalPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "open"
+          ],
+          "type": "string"
+        },
+        "force": {
+          "type": "boolean",
+          "x-vector-optional-nonnullable": true
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "marketPrice": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true
+        },
+        "order": {
+          "additionalProperties": false,
+          "properties": {
+            "amountPerc": {
+              "exclusiveMinimum": true,
+              "format": "double",
+              "maximum": 100,
+              "minimum": 0,
+              "type": "number",
+              "x-vector-finite": true,
+              "x-vector-optional-nonnullable": true
+            },
+            "price": {
+              "exclusiveMinimum": true,
+              "format": "double",
+              "minimum": 0,
+              "type": "number",
+              "x-vector-finite": true,
+              "x-vector-optional-nonnullable": true
+            },
+            "side": {
+              "enum": [
+                "buy",
+                "sell"
+              ],
+              "type": "string"
+            },
+            "stop": {
+              "exclusiveMinimum": true,
+              "format": "double",
+              "minimum": 0,
+              "type": "number",
+              "x-vector-finite": true,
+              "x-vector-optional-nonnullable": true
+            },
+            "takeProfits": {
+              "description": "Omission preserves targets; an empty update array clears them; a non-empty array replaces them.",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "percent": {
+                    "exclusiveMinimum": true,
+                    "format": "double",
+                    "maximum": 100,
+                    "minimum": 0,
+                    "type": "number",
+                    "x-vector-finite": true
+                  },
+                  "price": {
+                    "exclusiveMinimum": true,
+                    "format": "double",
+                    "minimum": 0,
+                    "type": "number",
+                    "x-vector-finite": true
+                  }
+                },
+                "required": [
+                  "price",
+                  "percent"
+                ],
+                "type": "object",
+                "x-vector-strict-input": true
+              },
+              "maxItems": 10,
+              "type": "array",
+              "x-vector-optional-nonnullable": true
+            },
+            "triggerPrice": {
+              "exclusiveMinimum": true,
+              "format": "double",
+              "minimum": 0,
+              "type": "number",
+              "x-vector-finite": true,
+              "x-vector-optional-nonnullable": true
+            }
+          },
+          "required": [
+            "side"
+          ],
+          "type": "object",
+          "x-vector-strict-input": true
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp",
+        "marketPrice",
+        "order"
+      ],
+      "type": "object",
+      "x-vector-strict-input": true
+    },
+    "OtherGrantRequest": {
+      "additionalProperties": false,
+      "description": "Creates a bundle access grant. Use endsAt for exact paid period boundaries; omit it only for permanent access. paid_external grants require sourceId.",
+      "properties": {
+        "endsAt": {
+          "example": "2026-07-19T12:00:00.000Z",
+          "format": "date-time",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "grantType": {
+          "enum": [
+            "owner_grant",
+            "referral_reward",
+            "gift"
+          ],
+          "type": "string"
+        },
+        "sourceId": {
+          "description": "Visible ASCII dedupe key for external flows. Required for paid_external grants. Reuse for the same bundle, user, and grant type is rejected. Allowed characters: letters, digits, dot, underscore, colon, and dash.",
+          "example": "stripe:invoice:in_123",
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "userId": {
+          "example": "7bb8d364a6984fbab05a06a6c7f85db2",
+          "pattern": "^[a-f0-9]{32}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "grantType",
+        "userId"
+      ],
+      "type": "object",
+      "x-vector-strict-input": true
+    },
+    "OwnedTradingBundleSummary": {
+      "properties": {
+        "_id": {
+          "example": "2be97361321c46f2bc7300a04fd6d133",
+          "type": "string"
+        },
+        "access": {
+          "enum": [
+            "private",
+            "public",
+            "restricted"
+          ],
+          "type": "string"
+        },
+        "createdAt": {
+          "format": "date-time",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "grantedUsersCount": {
+          "example": 3,
+          "type": "integer"
+        },
+        "marketType": {
+          "example": "swap",
+          "type": "string"
+        },
+        "name": {
+          "example": "BTC Momentum",
+          "type": "string"
+        },
+        "quote": {
+          "example": "USDT",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "partially_active",
+            "paused",
+            "partially_paused",
+            "stopped",
+            "archived"
+          ],
+          "type": "string"
+        },
+        "updatedAt": {
+          "format": "date-time",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        }
+      },
+      "required": [
+        "_id",
+        "name",
+        "marketType",
+        "quote",
+        "access",
+        "status",
+        "grantedUsersCount"
+      ],
+      "type": "object"
+    },
+    "PaidExternalGrantRequest": {
+      "additionalProperties": false,
+      "description": "Creates a bundle access grant. Use endsAt for exact paid period boundaries; omit it only for permanent access. paid_external grants require sourceId.",
+      "properties": {
+        "endsAt": {
+          "example": "2026-07-19T12:00:00.000Z",
+          "format": "date-time",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "grantType": {
+          "enum": [
+            "paid_external"
+          ],
+          "type": "string"
+        },
+        "sourceId": {
+          "description": "Visible ASCII dedupe key for external flows. Required for paid_external grants. Reuse for the same bundle, user, and grant type is rejected. Allowed characters: letters, digits, dot, underscore, colon, and dash.",
+          "example": "stripe:invoice:in_123",
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$",
+          "type": "string"
+        },
+        "userId": {
+          "example": "7bb8d364a6984fbab05a06a6c7f85db2",
+          "pattern": "^[a-f0-9]{32}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "grantType",
+        "sourceId",
+        "userId"
+      ],
+      "type": "object",
+      "x-vector-strict-input": true
+    },
+    "PauseSignalPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "pause"
+          ],
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "type": "object",
+      "x-vector-strict-input": true
+    },
+    "PublicUser": {
+      "properties": {
+        "avatar": {
+          "example": "https://example.com/avatar.png",
+          "nullable": true,
+          "type": "string"
+        },
+        "displayName": {
+          "example": "TraderAlex",
+          "type": "string"
+        },
+        "userId": {
+          "example": "d7d8308a1b9542f5b7fbab89354b55e1",
+          "type": "string"
+        }
+      },
+      "required": [
+        "userId",
+        "displayName"
+      ],
+      "type": "object"
+    },
+    "RateLimitResponse": {
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "success": {
+          "enum": [
+            false
+          ],
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "success",
+        "error"
+      ],
+      "type": "object"
+    },
+    "ReadOnlyApiKeyPermissionLevel": {
+      "enum": [
+        "none",
+        "read"
+      ],
+      "type": "string"
+    },
+    "SignalPayload": {
+      "discriminator": {
+        "mapping": {
+          "cancel": "#/components/schemas/CancelSignalPayload",
+          "close": "#/components/schemas/CloseSignalPayload",
+          "delete": "#/components/schemas/DeleteSignalPayload",
+          "open": "#/components/schemas/OpenSignalPayload",
+          "pause": "#/components/schemas/PauseSignalPayload",
+          "start": "#/components/schemas/StartSignalPayload",
+          "stop": "#/components/schemas/StopSignalPayload",
+          "update": "#/components/schemas/UpdateSignalPayload"
+        },
+        "propertyName": "action"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/components/schemas/OpenSignalPayload"
+        },
+        {
+          "$ref": "#/components/schemas/UpdateSignalPayload"
+        },
+        {
+          "$ref": "#/components/schemas/CancelSignalPayload"
+        },
+        {
+          "$ref": "#/components/schemas/CloseSignalPayload"
+        },
+        {
+          "$ref": "#/components/schemas/StartSignalPayload"
+        },
+        {
+          "$ref": "#/components/schemas/PauseSignalPayload"
+        },
+        {
+          "$ref": "#/components/schemas/StopSignalPayload"
+        },
+        {
+          "$ref": "#/components/schemas/DeleteSignalPayload"
+        }
+      ],
+      "x-vector-strict-input": true
+    },
+    "StartSignalPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "start"
+          ],
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "type": "object",
+      "x-vector-strict-input": true
+    },
+    "StopSignalPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "stop"
+          ],
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp"
+      ],
+      "type": "object",
+      "x-vector-strict-input": true
+    },
+    "TradingBundleAccessGrantSummary": {
+      "properties": {
+        "createdAt": {
+          "format": "date-time",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "endsAt": {
+          "format": "date-time",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "grantType": {
+          "$ref": "#/components/schemas/TradingBundleAccessGrantType"
+        },
+        "id": {
+          "example": "dbd3d7f79cf846dd91f3db12f3ebbb06",
+          "type": "string"
+        },
+        "sourceId": {
+          "example": "stripe:invoice:in_123",
+          "maxLength": 256,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "startsAt": {
+          "format": "date-time",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "userId": {
+          "description": "Owner-scoped user alias. Omitted when the Account is missing or permanently deleted.",
+          "example": "7bb8d364a6984fbab05a06a6c7f85db2",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        }
+      },
+      "required": [
+        "id",
+        "grantType"
+      ],
+      "type": "object"
+    },
+    "TradingBundleAccessGrantType": {
+      "enum": [
+        "trial",
+        "owner_grant",
+        "paid_external",
+        "referral_reward",
+        "gift"
+      ],
+      "type": "string"
+    },
+    "TradingBundleGrantedUser": {
+      "properties": {
+        "accessEndsAt": {
+          "format": "date-time",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "accessIsPermanent": {
+          "example": false,
+          "type": "boolean",
+          "x-vector-optional-nonnullable": true
+        },
+        "endsAt": {
+          "format": "date-time",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "grantId": {
+          "example": "dbd3d7f79cf846dd91f3db12f3ebbb06",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "grantType": {
+          "$ref": "#/components/schemas/TradingBundleAccessGrantType",
+          "x-vector-optional-nonnullable": true
+        },
+        "startsAt": {
+          "format": "date-time",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "user": {
+          "$ref": "#/components/schemas/PublicUser"
+        }
+      },
+      "required": [
+        "user"
+      ],
+      "type": "object"
+    },
+    "UpdateSignalPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "update"
+          ],
+          "type": "string"
+        },
+        "hashtag": {
+          "pattern": "^([a-zA-Z0-9_]+)?$",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "marketPrice": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true
+        },
+        "order": {
+          "additionalProperties": false,
+          "properties": {
+            "price": {
+              "exclusiveMinimum": true,
+              "format": "double",
+              "minimum": 0,
+              "type": "number",
+              "x-vector-finite": true,
+              "x-vector-optional-nonnullable": true
+            },
+            "side": {
+              "enum": [
+                "buy",
+                "sell"
+              ],
+              "type": "string"
+            },
+            "stop": {
+              "exclusiveMinimum": true,
+              "format": "double",
+              "minimum": 0,
+              "type": "number",
+              "x-vector-finite": true,
+              "x-vector-optional-nonnullable": true
+            },
+            "takeProfits": {
+              "description": "Omission preserves targets; an empty update array clears them; a non-empty array replaces them.",
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "percent": {
+                    "exclusiveMinimum": true,
+                    "format": "double",
+                    "maximum": 100,
+                    "minimum": 0,
+                    "type": "number",
+                    "x-vector-finite": true
+                  },
+                  "price": {
+                    "exclusiveMinimum": true,
+                    "format": "double",
+                    "minimum": 0,
+                    "type": "number",
+                    "x-vector-finite": true
+                  }
+                },
+                "required": [
+                  "price",
+                  "percent"
+                ],
+                "type": "object",
+                "x-vector-strict-input": true
+              },
+              "maxItems": 10,
+              "type": "array",
+              "x-vector-optional-nonnullable": true
+            },
+            "triggerPrice": {
+              "exclusiveMinimum": true,
+              "format": "double",
+              "minimum": 0,
+              "type": "number",
+              "x-vector-finite": true,
+              "x-vector-optional-nonnullable": true
+            }
+          },
+          "required": [
+            "side"
+          ],
+          "type": "object",
+          "x-vector-strict-input": true
+        },
+        "timestamp": {
+          "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
+          "pattern": "^[0-9]+$",
+          "type": "string"
+        },
+        "version": {
+          "exclusiveMinimum": true,
+          "format": "double",
+          "minimum": 0,
+          "type": "number",
+          "x-vector-finite": true
+        }
+      },
+      "required": [
+        "action",
+        "version",
+        "timestamp",
+        "marketPrice",
+        "order"
+      ],
+      "type": "object",
+      "x-vector-strict-input": true
+    },
+    "UsersSearchResponse": {
+      "properties": {
+        "limit": {
+          "example": 10,
+          "maximum": 50,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "nextCursor": {
+          "description": "Opaque cursor to pass unchanged on the next request.",
+          "type": "string",
+          "x-vector-optional-nonnullable": true
+        },
+        "query": {
+          "example": "alex",
+          "type": "string"
+        },
+        "users": {
+          "items": {
+            "$ref": "#/components/schemas/PublicUser"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "users",
+        "query",
+        "limit"
+      ],
+      "type": "object"
+    }
+  }
+} as const;

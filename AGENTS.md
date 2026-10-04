@@ -1,76 +1,76 @@
-# Инструкции для Vector Trading SDK
+# Instructions for Vector Trading SDK
 
-## Общение и область проекта
+## Communication and project scope
 
-- Ответы, планы и объяснения пиши на русском языке. Идентификаторы, команды и названия технологий сохраняй; комментарии к коду пиши кратко на английском о неочевидной причине.
-- Репозиторий содержит публичные клиенты Vector Trading для JavaScript/TypeScript, Python, Go и Rust, а также исходники и примеры Pine Script. Java исключена.
-- SDK выполняет HTTP-запросы и формирует JSON сигналов. Он не владеет торговыми правилами, правами доступа, очередями, биржевым исполнением или восстановлением сделки.
-- Ключ аккаунта для REST и ключ стратегии для вебхука — разные учётные данные. Ключ аккаунта предназначен для серверных интеграций.
+- Write repository documentation, plans, `README.md`, `AGENTS.md`, and skills in English. Use the user's language for conversational replies. Preserve identifiers, commands, and technology names; write brief English code comments explaining non-obvious reasons.
+- This repository contains public Vector Trading clients for JavaScript/TypeScript, Python, Go, and Rust, plus Pine Script sources and examples. Java is excluded.
+- The SDK sends HTTP requests and builds signal JSON. It does not own trading rules, permissions, queues, exchange execution, or trade recovery.
+- REST account API keys and webhook strategy API keys are separate credentials. Account API keys are intended for server-side integrations.
 
-## Текущее состояние и навигация
+## Current state and navigation
 
-На момент создания этих инструкций существуют только `README.md`, `LICENSE`, эти инструкции, профильные скиллы и план. Перечисленные далее пути контрактов, пакетов, инструментов и тематической документации — целевая структура; перед использованием проверяй их наличие. Не считай план реализованным.
+Shared root tooling, the public contract snapshot in `contracts/`, shared fixtures in `conformance/`, and the contract, architecture, and development guides exist. Reproducible generation, internal derived trial sources, shared regression tests, and four-language probe harnesses also exist. JavaScript/TypeScript, Python, Go, and Rust packages exist in `typescript/`, `python/`, `go/`, and `rust/`; Pine v6 library sources, an embedded example, and actual editor/parser evidence exist in `pinescript/`; aggregate CI and full installed-archive verification exist; contribution/security instructions and `docs/releasing.md` describe current release preparation; registry bootstrap identities and npm scope ownership are confirmed; release preparation/reconciliation tooling exists locally; first uploads, npm/crates.io trust, remote prepare acceptance and source integration remain separate work. Check each path before using it; do not assume the entire plan has been implemented.
 
-- `contracts/` — зафиксированные публичные контракты и сведения об их происхождении.
-- `conformance/` — общие JSON-примеры запросов, ответов и ожидаемых исходов.
-- `typescript/`, `python/`, `go/`, `rust/` — языковые пакеты, тесты и примеры.
-- `pinescript/` — исходники библиотеки формирования сигналов и примеры TradingView.
-- `generation/` — версии генератора, конфигурации и необходимые шаблоны.
-- `scripts/` — проверка контрактов, генерация и подготовка выпуска.
-- `docs/contracts.md` — транспортная семантика и совместимость.
-- `docs/architecture.md` — границы, генерация и публичные точки входа.
-- `docs/development.md` — подготовка окружения и команды проверок.
-- `docs/releasing.md` — версии, публикация, частичный успех и восстановление.
-- `docs/plans/` — задачи, зависимости, статусы и свидетельства исполнения.
+- `contracts/` — pinned public contracts and provenance.
+- `conformance/` — shared JSON requests, responses, and expected outcomes.
+- `typescript/`, `python/`, `go/`, `rust/` — language packages, tests, and examples.
+- `pinescript/` — signal-building library sources and TradingView examples.
+- `generation/` — generator versions, configuration, and required templates.
+- `scripts/` — contract validation, generation, and release preparation.
+- `docs/contracts.md` — transport semantics and compatibility.
+- `docs/architecture.md` — boundaries, generation, and public entry points.
+- `docs/development.md` — environment setup and verification commands.
+- `docs/releasing.md` — versions, publication, partial success, and recovery.
+- `docs/plans/` — tasks, dependencies, statuses, and completion evidence.
 
-Документация описывает текущий результат; будущие решения живут в плане. Сначала найди нужный заголовок через `rg`, затем прочитай его раздел. Общий контракт подробно хранится у одного владельца; остальные документы дают ссылку.
+Documentation describes the current result; future decisions belong in the plan. Find the relevant heading with `rg`, then read its section. Keep the detailed shared contract with one owner; other documents should link to it.
 
-## Скиллы до действия
+## Skills before acting
 
-Прочитай подходящий `.agents/skills/<name>/SKILL.md` до решения:
+Read the appropriate `.agents/skills/<name>/SKILL.md` before deciding:
 
-| Затронутая область                                                    | Скилл           |
-| --------------------------------------------------------------------- | --------------- |
-| Спецификации, примеры, синхронизация с API, генерация и совместимость | `sdk-contracts` |
-| Языковые клиенты, инструменты пакета, ошибки, пагинация и тесты       | `sdk-clients`   |
-| Версии, упаковка, GitHub Actions, настройки GitHub и реестры          | `sdk-release`   |
-| JSON-сигналы из Pine Script, примеры и публикация в TradingView       | `pine-signals`  |
+| Area                                                                         | Skill           |
+| ---------------------------------------------------------------------------- | --------------- |
+| Specifications, fixtures, API synchronization, generation, and compatibility | `sdk-contracts` |
+| Language clients, package tooling, errors, pagination, and tests             | `sdk-clients`   |
+| Versions, packaging, GitHub Actions, GitHub settings, and registries         | `sdk-release`   |
+| Pine Script signal JSON, examples, and TradingView publication               | `pine-signals`  |
 
-При пересечении областей используй нужное сочетание. Для создания скиллов используй `skill-creator`, если он доступен. Для планирования и исполнения плана используй `plan-steps` и `implement-step`, если они доступны; это не разрешает исполнять весь план или публиковать пакеты автоматически.
+Combine skills when areas overlap. Use `skill-creator` when available to create skills. Use `plan-steps` and `implement-step` when available to plan and execute steps; this does not authorize executing the entire plan or publishing packages automatically.
 
-## Владельцы и совместимость
+## Ownership and compatibility
 
-- Источник истины — публичные маршруты и анализаторы сервера в репозитории `Vector-Trading/vector-trading`. SDK хранит проверенный снимок, связанный с commit источника, а не собственную независимую версию серверных правил.
-- Не импортируй `@vector-trading/types` или внутренние серверные пакеты в распространяемый SDK. Внутренние события, `Date`, брендированные ID и секретные поля не являются транспортным контрактом.
-- При изменении контракта обновляй снимок, общие примеры, генерацию, все заявленные языковые потребители и документацию атомарно. Не исправляй общий смысл отдельной языковой подменой.
-- Производный код не редактируй вручную. Исправляй каноническую схему, параметры генератора или узкий шаблон, затем воспроизводимо генерируй результат.
-- До новой зависимости или общей вспомогательной функции проверь существующие примитивы своего пакета. Языковые реализации не обязаны иметь одинаковые внутренние классы; наблюдаемый JSON и HTTP-контракт должны совпадать.
-- Отдельно версионируются пакет SDK, снимок контракта, REST `/v1`, вебхук `/v1` и поле `version` сигнала, обозначающее версию стратегии.
+- The source of truth is the public server routes and parsers in `Vector-Trading/vector-trading`. The SDK keeps a verified snapshot tied to the source commit, not an independent version of server rules.
+- Do not import `@vector-trading/types` or internal server packages into the distributed SDK. Internal events, `Date`, branded IDs, and secret fields are not the transport contract.
+- Update the snapshot, shared fixtures, generation, all declared language consumers, and documentation atomically when changing a contract. Do not repair shared semantics with a language-specific substitution.
+- Do not edit derived code manually. Fix the canonical schema, generator options, or a narrow template, then regenerate reproducibly.
+- Check existing package primitives before introducing a dependency or shared helper. Language implementations need not use identical internal classes; observable JSON and HTTP behavior must match.
+- Version the SDK package, contract snapshot, REST `/v1`, webhook `/v1`, and signal `version` independently. The signal field denotes the strategy version.
 
-## Эффекты и безопасность
+## Side effects and safety
 
-- Ответ вебхука `204` означает постановку в очередь, а не выполненную сделку. Не обещай постоянную идемпотентность или гарантированное исполнение.
-- По умолчанию не повторяй изменяющие запросы и сигналы автоматически. Отключай также неявные повторы HTTP-библиотеки. Не включай скрытый периодический опрос, фоновые циклы и отправку запросов при импорте или создании клиента.
-- Сохраняй различия отсутствия поля, `null`, пустого массива и значения. Не превращай отсутствие `takeProfits` в `[]` и не выдавай серверное игнорирование поля за поддержку действия.
-- Не записывай ключи аккаунта, ключ стратегии в URL, заголовок `Authorization` и тела с приватными данными в журналы, исключения, примеры, снимки или артефакты CI.
-- Производственные запросы используют HTTPS; HTTP допустим для явного локального тестового сервера. Секреты не передавай при перенаправлении на другой источник.
-- Живые проверки торговли не являются обычными тестами SDK. Изолируй HTTP локальным сервером; реальные мутации требуют явно выбранной безопасной среды и разрешённой операции.
+- Webhook `204` means enqueue acceptance, not an executed trade. Do not promise permanent idempotency or guaranteed execution.
+- Do not automatically retry mutations or signals by default. Disable implicit HTTP-library retries too. Do not add hidden polling, background loops, or requests during import or client construction.
+- Preserve the differences between omission, `null`, an empty array, and a value. Do not turn omitted `takeProfits` into `[]` or present an ignored server field as a supported action.
+- Do not put account keys, strategy keys in URLs, `Authorization` headers, or private request bodies in logs, exceptions, examples, snapshots, or CI artifacts.
+- Production requests use HTTPS; HTTP is allowed for an explicitly selected local test server. Do not forward secrets across origins on redirects.
+- Live trading checks are not ordinary SDK tests. Isolate HTTP with a local server; real mutations require an explicitly selected safe environment and an authorized operation.
 
-## Среда и проверки
+## Environment and verification
 
-- Сначала прочитай существующие закрепления версий. Не наследуй инструментальные настройки соседнего репозитория автоматически.
-- После появления `.nvmrc` для Node.js/pnpm используй `source ~/.nvm/nvm.sh && nvm use`; версия pnpm задаётся `packageManager` корневого `package.json`.
-- Node.js обслуживает TypeScript и общие инструменты; Python использует `uv`, Go — Go-модульs, Rust — Cargo. Их версии и файлы фиксации зависимостей принадлежат соответствующим конфигурациям.
-- Форматируй изменённые файлы до проверки типов и линтинга. Проверки должны завершаться без изменения файлов; исправления — отдельной командой, после которой проверь diff.
-- После появления команд запускай профильные проверки пакета и затронутых контрактов из `docs/development.md`. Полный `pnpm verify` обязателен при изменении общих контрактов или выпуска; отсутствие ещё не созданной команды не заменяй фиктивной успешной проверкой.
-- Проверяй установленный архив пакета в чистом потребительском проекте. Импорт из рабочей папки не доказывает корректность упаковки.
-- Сохраняй чужие изменения. Не выполняй разрушительное очищение, общий reset или автоматическую установку глобальных инструментов.
+- Read existing version pins first. Do not automatically inherit tooling settings from the neighboring repository.
+- Once `.nvmrc` exists, use `source ~/.nvm/nvm.sh && nvm use` for Node.js/pnpm; pnpm is pinned by `packageManager` in the root `package.json`.
+- Node.js supports TypeScript and shared tooling; Python uses `uv`, Go uses Go modules, and Rust uses Cargo. Their versions and lockfiles belong to their respective configurations.
+- Format changed files before typechecking and linting. Checks must finish without changing files; run fixes separately and inspect the diff afterward.
+- Once commands exist, run the package and affected contract checks in `docs/development.md`. Full `pnpm verify` is required for shared contract or release changes; do not replace a missing, not-yet-created command with a fictitious successful check.
+- Test the installed package archive in a clean consumer project. Importing from the working tree does not prove packaging correctness.
+- Preserve others' changes. Do not perform destructive cleanup, a blanket reset, or automatic global tool installation.
 
-## Git, план и внешние изменения
+## Git, plans, and external changes
 
-- Ветка по умолчанию `main`; новые рабочие ветки используют префикс `VT-000/`, если пользователь не выбрал другой.
-- Планирование разрешает запись плана; дополнительные файлы — только в явно запрошенной области. Не реализуй приложение, сценарии GitHub Actions или конфигурации только потому, что они включены в план.
-- Фиксируй проверенное локально как `implemented`, принятое в цели интеграции как `integrated`. Не отмечай выпуск завершённым до проверки каждого заявленного канала.
-- Публикации, создание тегов/релизов, push и изменения настроек GitHub выполняй только в разрешённой текущей задаче. Указание будущей операции в плане само по себе её не разрешает; ранее данное разрешение не запрашивай повторно.
-- Перед первым публичным релизом репозиторий должен стать публичным: это согласовано пользователем. Переход выполняется после проверки содержимого и истории, на соответствующем шаге исполнения.
-- GitHub и реестры не имеют общей транзакции. После неоднозначного ответа сначала проверь внешний результат; не перезаписывай версии и не передвигай публичные теги.
+- The default branch is `main`; new working branches use `VT-000/` unless the user selects another prefix.
+- Planning authorizes writing the plan; additional files must remain within the explicitly requested scope. Do not implement applications, GitHub Actions workflows, or configurations merely because they appear in the plan.
+- Record locally verified work as `implemented` and work accepted into the integration target as `integrated`. Do not mark a release complete until every declared channel has been verified.
+- Publish, create tags/releases, push, or change GitHub settings only when authorized by the current task. Listing a future operation in the plan does not authorize it; do not ask again for authorization already given.
+- The repository must become public before the first public release; the user has agreed to this. Make the change after reviewing content and history, at the appropriate execution step.
+- GitHub and registries do not share a transaction. After an ambiguous response, verify the external result first; do not overwrite versions or move public tags.

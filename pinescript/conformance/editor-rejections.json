@@ -1,0 +1,54 @@
+[
+  {
+    "case": 1,
+    "error": "Error on bar 0: Total take-profit percentage exceeds 100"
+  },
+  {
+    "case": 2,
+    "error": "Error on bar 0: Invalid take-profit target"
+  },
+  {
+    "case": 3,
+    "error": "Error on bar 0: Stop price is on the wrong side"
+  },
+  {
+    "case": 4,
+    "error": "Error on bar 0: Limit price is on the wrong side"
+  },
+  {
+    "case": 5,
+    "error": "Error on bar 0: Trigger price is on the wrong side"
+  },
+  {
+    "case": 6,
+    "error": "Error on bar 0: Expected a positive finite number"
+  },
+  {
+    "case": 7,
+    "error": "Error on bar 0: Expected a positive finite number"
+  },
+  {
+    "case": 8,
+    "error": "Error on bar 0: Expected a positive finite number"
+  },
+  {
+    "case": 9,
+    "error": "Error on bar 0: Invalid hashtag"
+  },
+  {
+    "case": 10,
+    "error": "Error on bar 0: Timestamp must represent a safe integer"
+  },
+  {
+    "case": 11,
+    "error": "Error on bar 0: Signal exceeds the 16 KiB UTF-8 limit"
+  },
+  {
+    "case": 12,
+    "error": "Error on bar 0: Expected a positive finite number"
+  },
+  {
+    "case": 13,
+    "error": "Error on bar 0: Stop price is on the wrong side"
+  }
+]

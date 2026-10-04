@@ -1,0 +1,1671 @@
+[
+  {
+    "id": "name-ascii-1",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "x"
+    },
+    "accepted": false
+  },
+  {
+    "id": "name-ascii-2",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "xx"
+    },
+    "accepted": true
+  },
+  {
+    "id": "name-ascii-16",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "xxxxxxxxxxxxxxxx"
+    },
+    "accepted": true
+  },
+  {
+    "id": "name-ascii-30",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "accepted": true
+  },
+  {
+    "id": "name-ascii-31",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "accepted": false
+  },
+  {
+    "id": "name-bmp-1",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "Я"
+    },
+    "accepted": false
+  },
+  {
+    "id": "name-bmp-2",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "ЯЯ"
+    },
+    "accepted": true
+  },
+  {
+    "id": "name-bmp-16",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ"
+    },
+    "accepted": true
+  },
+  {
+    "id": "name-bmp-30",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ"
+    },
+    "accepted": true
+  },
+  {
+    "id": "name-bmp-31",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "ЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯЯ"
+    },
+    "accepted": false
+  },
+  {
+    "id": "name-supplementary-1",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "😀"
+    },
+    "accepted": false
+  },
+  {
+    "id": "name-supplementary-2",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "😀😀"
+    },
+    "accepted": true
+  },
+  {
+    "id": "name-supplementary-16",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+    },
+    "accepted": true
+  },
+  {
+    "id": "name-supplementary-30",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+    },
+    "accepted": true
+  },
+  {
+    "id": "name-supplementary-31",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+    },
+    "accepted": false
+  },
+  {
+    "id": "name-mixed-30",
+    "operationId": "searchUsers",
+    "parameters": {
+      "displayName": "A😀A😀A😀A😀A😀A😀A😀A😀A😀A😀A😀A😀A😀A😀A😀"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-body-utc",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-startsAfter-utc",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-startsBefore-utc",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-endsAfter-utc",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-endsBefore-utc",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-createdAfter-utc",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-createdBefore-utc",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-body-leap",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2024-02-29T23:59:59Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-startsAfter-leap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2024-02-29T23:59:59Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-startsBefore-leap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2024-02-29T23:59:59Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-endsAfter-leap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2024-02-29T23:59:59Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-endsBefore-leap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2024-02-29T23:59:59Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-createdAfter-leap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2024-02-29T23:59:59Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-createdBefore-leap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2024-02-29T23:59:59Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-body-fraction",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00.123456789Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-startsAfter-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00.123456789Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-startsBefore-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00.123456789Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-endsAfter-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00.123456789Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-endsBefore-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00.123456789Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-createdAfter-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00.123456789Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-createdBefore-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00.123456789Z"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-body-offset",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00+02:30"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-startsAfter-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00+02:30"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-startsBefore-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00+02:30"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-endsAfter-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00+02:30"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-endsBefore-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00+02:30"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-createdAfter-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00+02:30"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-createdBefore-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00+02:30"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-body-negative-offset",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00-23:59"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-startsAfter-negative-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00-23:59"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-startsBefore-negative-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00-23:59"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-endsAfter-negative-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00-23:59"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-endsBefore-negative-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00-23:59"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-createdAfter-negative-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00-23:59"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-createdBefore-negative-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00-23:59"
+    },
+    "accepted": true
+  },
+  {
+    "id": "date-body-lower-t",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01t00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-lower-t",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01t00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-lower-t",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01t00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-lower-t",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01t00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-lower-t",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01t00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-lower-t",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01t00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-lower-t",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01t00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-lower-z",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-lower-z",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-lower-z",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-lower-z",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-lower-z",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-lower-z",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-lower-z",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-underscore",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01_00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-underscore",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01_00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-underscore",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01_00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-underscore",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01_00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-underscore",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01_00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-underscore",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01_00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-underscore",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01_00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-february-30",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-02-30T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-february-30",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-02-30T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-february-30",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-02-30T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-february-30",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-02-30T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-february-30",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-02-30T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-february-30",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-02-30T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-february-30",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-02-30T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-nonleap",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2025-02-29T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-nonleap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2025-02-29T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-nonleap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2025-02-29T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-nonleap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2025-02-29T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-nonleap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2025-02-29T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-nonleap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2025-02-29T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-nonleap",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2025-02-29T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-month-13",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-13-01T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-month-13",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-13-01T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-month-13",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-13-01T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-month-13",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-13-01T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-month-13",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-13-01T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-month-13",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-13-01T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-month-13",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-13-01T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-day-zero",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-00T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-day-zero",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-00T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-day-zero",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-00T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-day-zero",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-00T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-day-zero",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-00T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-day-zero",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-00T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-day-zero",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-00T00:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-hour-24",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T24:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T24:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T24:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T24:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T24:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T24:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T24:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-single-hour",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T0:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-single-hour",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T0:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-single-hour",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T0:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-single-hour",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T0:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-single-hour",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T0:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-single-hour",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T0:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-single-hour",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T0:00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-minute-60",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:60:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:60:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:60:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:60:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:60:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:60:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:60:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-second-60",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:60Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-second-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:60Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-second-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:60Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-second-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:60Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-second-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:60Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-second-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:60Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-second-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:60Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-offset-hour-24",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00+24:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-offset-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00+24:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-offset-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00+24:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-offset-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00+24:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-offset-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00+24:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-offset-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00+24:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-offset-hour-24",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00+24:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-offset-minute-60",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00+02:60"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-offset-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00+02:60"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-offset-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00+02:60"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-offset-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00+02:60"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-offset-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00+02:60"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-offset-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00+02:60"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-offset-minute-60",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00+02:60"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-comma",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00,1Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-comma",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00,1Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-comma",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00,1Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-comma",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00,1Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-comma",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00,1Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-comma",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00,1Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-comma",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00,1Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-no-seconds",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-no-seconds",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-no-seconds",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-no-seconds",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-no-seconds",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-no-seconds",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-no-seconds",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-no-offset",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-no-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-no-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-no-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-no-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-no-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-no-offset",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-empty-fraction",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00.Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-empty-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00.Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-empty-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00.Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-empty-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00.Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-empty-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00.Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-empty-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00.Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-empty-fraction",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00.Z"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-body-trailing-newline",
+    "operationId": "createBundleGrant",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "body": {
+      "userId": "cccccccccccccccccccccccccccccccc",
+      "grantType": "gift",
+      "endsAt": "2026-01-01T00:00:00Z\n"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsAfter-trailing-newline",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsAfter": "2026-01-01T00:00:00Z\n"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-startsBefore-trailing-newline",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "startsBefore": "2026-01-01T00:00:00Z\n"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsAfter-trailing-newline",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsAfter": "2026-01-01T00:00:00Z\n"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-endsBefore-trailing-newline",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "endsBefore": "2026-01-01T00:00:00Z\n"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdAfter-trailing-newline",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdAfter": "2026-01-01T00:00:00Z\n"
+    },
+    "accepted": false
+  },
+  {
+    "id": "date-createdBefore-trailing-newline",
+    "operationId": "listBundleGrants",
+    "parameters": {
+      "bundleId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "createdBefore": "2026-01-01T00:00:00Z\n"
+    },
+    "accepted": false
+  }
+]

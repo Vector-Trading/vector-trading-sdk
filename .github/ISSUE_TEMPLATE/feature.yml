@@ -1,0 +1,23 @@
+name: Feature request
+description: Propose a bounded improvement to an existing SDK integration.
+title: '[Feature]: '
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Integration need
+      description: Describe the problem, affected languages, and current workaround.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed observable behavior
+      description: Include compatibility and transport implications; use synthetic data.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Explain whether an existing public primitive can meet the need.

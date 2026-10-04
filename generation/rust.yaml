@@ -1,0 +1,5 @@
+{
+  'generatorName': 'rust',
+  'additionalProperties':
+    { 'hideGenerationTimestamp': true, 'packageName': 'vector_generated', 'useChrono': false },
+}

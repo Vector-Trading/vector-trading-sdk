@@ -1,35 +1,35 @@
 ---
 name: sdk-contracts
-description: 'Изменение публичных REST/вебхука-контрактов SDK, общих примеров, генерации и синхронизации с сервером Vector Trading.'
+description: 'Change public Vector Trading REST/webhook contracts, shared fixtures, generation, and synchronization with the server.'
 ---
 
-# Контракты и генерация SDK
+# SDK contracts and generation
 
-Прочитай корневой `AGENTS.md`, нужный раздел `docs/contracts.md` и `contracts/source.json`, если они уже существуют. Отсутствующие целевые файлы не считай готовыми; используй утверждённый план для подготовки.
+Read the root `AGENTS.md`, the relevant section of `docs/contracts.md`, and `contracts/source.json` if they exist. Do not treat missing target files as ready; use the approved plan for preparation.
 
-## Источник и граница
+## Source and boundaries
 
-- Зафиксируй commit сервера и прочитай настоящие маршруты, анализаторы и контрактные тесты. Спецификация без проверки поведения во время выполнения не доказывает совместимость.
-- REST-владелец: `apps/web/hono/routes/rest-api/` основного репозитория. Вебхук: `packages/types/src/signal.ts`, `apps/webhook/src/lambda.ts`, `packages/types/src/trading/trading-strategy-processing-queue.ts`.
-- Изменения сервера выполняй только в разрешённой области и с его собственными инструкциями. Не включай текущую грязную копию целиком в экспорт.
-- SDK хранит транспортные типы, а не внутренние события: `id` и `apiKey` сервер добавляет сам. `version` сигнала — версия стратегии; формат API и версия SDK независимы.
-- Для вебхука документируй рекомендованный строгий набор исходящих сообщений, совместимый с сервером. Не обещай, что JSON Schema выражает все числовые и межполевые условия или что она идентична всему либеральному разбору сервера.
+- Record the server commit and read the actual routes, parsers, and contract tests. A specification without runtime verification does not prove compatibility.
+- REST owner: `apps/web/hono/routes/rest-api/` in the main repository. Webhook owners: `packages/types/src/signal.ts`, `apps/webhook/src/lambda.ts`, and `packages/types/src/trading/trading-strategy-processing-queue.ts`.
+- Change the server only within the authorized scope and under its own instructions. Do not export the entire dirty working tree as an accepted source.
+- The SDK stores transport types, not internal events: the server adds `id` and `apiKey`. Signal `version` is the strategy version; API format and SDK version are independent.
+- Document a recommended strict outgoing webhook subset compatible with the server. Do not claim JSON Schema expresses every numeric or cross-field constraint or matches the entire permissive server parser.
 
-## Изменение
+## Changes
 
-1. Определи затронутые операции и поля, совместимость и всех языковых потребителей.
-2. Проверь схемы входа/выхода, отсутствующие поля, `null`, даты, числовые границы, `oneOf`, ошибки и права. У REST закрепи стабильные `operationId`; настройка адреса сервера должна работать вне браузера.
-3. У вебхука проверь все восемь действий; обязательную положительную версию стратегии; строковый timestamp миллисекунд; различие отсутствующего `takeProfits` и `[]`; `force` только для `open`; вывод типа ордера по `price`/`triggerPrice`.
-4. Сохрани общие JSON-примеры и ожидаемые исходы в `conformance/`. Не помещай реальные ключи или приватные записи.
-5. Обнови снимок с commit источника и контрольными суммами. Изменяй канонические схемы/настройки и генерируй код; ручные правки производного кода исключены.
-6. Проверь все затронутые потребители, включая Pine при изменении сигналов, и опиши совместимость у тематического владельца.
+1. Identify affected operations, fields, compatibility, and all language consumers.
+2. Check input/output schemas, omission, `null`, dates, numeric bounds, `oneOf`, errors, and permissions. Pin stable REST `operationId` values; base URL configuration must work outside a browser.
+3. Check all eight webhook actions, required positive strategy version, string millisecond timestamp, omitted `takeProfits` versus `[]`, `force` only on `open`, and order-type inference from `price`/`triggerPrice`.
+4. Store shared JSON fixtures and expected outcomes in `conformance/`. Do not include real keys or private records.
+5. Update the snapshot with its source commit and hashes. Change canonical schemas/settings and generate code; do not edit derived code manually.
+6. Verify all affected consumers, including Pine when signals change, and document compatibility with the relevant owner.
 
-## Проверка результата
+## Verification
 
-- Новые примеры проходят настоящий серверный анализатор или маршрут в изолированном тесте; HTTP-двойник не подменяет доказательство исходного контракта.
-- Каждый язык воспроизводит общий JSON. Отдельно проверь пропуск полей и сохранение пустых массивов, REST даты и варианты `CreateGrantRequest`.
-- Генерация с закреплённой версией инструмента и снимком повторяется без diff. Смена генератора — отдельное явное изменение зависимостей и производного кода.
-- Проверка совместимости обнаруживает удаление операции, смену обязательности/формата/смысла; новое необязательное поле ответа не обязано ломать клиент.
-- Пустая страница REST с `nextCursor` продолжает обход. Все ответы не обязаны соответствовать одной схеме ошибки, особенно `429` и не-JSON ответы инфраструктуры.
+- New fixtures must pass the real server parser or route in an isolated test; an HTTP double does not replace proof of the source contract.
+- Every language must reproduce the shared JSON. Specifically verify omitted fields, preserved empty arrays, REST dates, and `CreateGrantRequest` variants.
+- Generation with a pinned tool version and snapshot must repeat without a diff. Changing generators is a separate explicit dependency and derived-code change.
+- Compatibility checks must detect removed operations and changes in requiredness, format, or semantics; a new optional response field need not break a client.
+- An empty REST page with `nextCursor` must continue traversal. Not every response follows one error schema, especially `429` and non-JSON infrastructure responses.
 
-При изменении HTTP-оболочек применяй `sdk-clients`; при изменении выпуска снимка или сценария GitHub Actions — `sdk-release`.
+Use `sdk-clients` for HTTP wrappers and `sdk-release` for snapshot release or GitHub Actions workflow changes.

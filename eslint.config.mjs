@@ -17,6 +17,7 @@ export default defineConfig([
     '**/generated/**',
     'release/artifacts/**',
     'release/staging/**',
+    'release/outcomes/**',
   ]),
   {
     files: ['**/*.{js,mjs,cjs}'],

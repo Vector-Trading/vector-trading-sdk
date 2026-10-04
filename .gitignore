@@ -42,6 +42,7 @@ playwright-report/
 tmp/
 release/artifacts/
 release/staging/
+release/outcomes/
 *.tgz
 *.whl
 *.crate
@@ -50,4 +51,14 @@ release/staging/
 .DS_Store
 .idea/
 .vscode/
+*.iml
+*.ipr
+*.iws
+*.code-workspace
+.project
+.classpath
+.settings/
+*.swp
+*.swo
+*~
 *.log

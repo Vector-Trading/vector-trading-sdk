@@ -1,32 +1,32 @@
 ---
 name: sdk-clients
-description: 'Разработка и проверка TypeScript, Python, Go и Rust клиентов Vector Trading: HTTP, сериализация, ошибки, пагинация, инструменты и упаковка пакетов.'
+description: 'Develop and verify Vector Trading clients for TypeScript, Python, Go, and Rust: HTTP, serialization, errors, pagination, tooling, and packaging.'
 ---
 
-# Языковые клиенты
+# Language clients
 
-Прочитай `AGENTS.md`, профильную конфигурацию пакета и нужный раздел `docs/development.md`, если он создан. Общую семантику бери из `docs/contracts.md` и `conformance/`; при её изменении применяй `sdk-contracts`.
+Read `AGENTS.md`, the package configuration, and the relevant section of `docs/development.md` if it exists. Use `docs/contracts.md` and `conformance/` for shared semantics; apply `sdk-contracts` when changing them.
 
-## Размещение и публичный API
+## Placement and public API
 
-- Пакет владеет языковыми HTTP-адаптерами и удобными методами; сервер владеет авторизацией, торговыми правилами и исполнением.
-- Раздели REST-клиент по ключу аккаунта и отправку сигналов по ключу стратегии. Формирование сообщения доступно отдельно от отправки, в том числе для офлайн-использования.
-- Генерируемые модели и HTTP-вызовы остаются производными; ручные оболочки хранятся отдельно. Не добавляй публичные внутренние пути импорта, если они не являются намеренным API.
-- Используй идиоматичные средства языка для асинхронности, отмены и закрытия ресурсов. Не поддерживай второй транспортный режим ради симметрии языков без реального сценария.
-- TypeScript распространяется как JavaScript с декларациями типов и проверенными `import`/`require`. Python включает типы; Go предоставляет module из `go/`; Rust предоставляет library crate из `rust/`.
+- Each package owns language-specific HTTP adapters and convenient methods; the server owns authorization, trading rules, and execution.
+- Separate the account-key REST client from strategy-key signal delivery. Message construction must also be available independently of delivery, including offline use.
+- Generated models and HTTP calls remain derived; keep handwritten wrappers separately. Do not expose internal import paths unless they are intentional API.
+- Use idiomatic language facilities for asynchronous work, cancellation, and resource cleanup. Do not support a second transport mode merely for language symmetry without a real use case.
+- Distribute TypeScript as JavaScript with declarations and verified `import`/`require`. Python includes types; Go provides a module from `go/`; Rust provides a library crate from `rust/`.
 
-## HTTP и отказы
+## HTTP and failures
 
-- Конструирование и импорт клиента не выполняют сеть. Задай явный адрес сервера, ограниченное время ожидания и поддержку отмены; клиент не хранит ключ в браузере и не отправляет его другому источнику после перенаправления.
-- Не добавляй автоматические повторы по умолчанию, включая повторы используемой HTTP-библиотеки. При таймаут изменяющей операции состояние может быть неизвестно; не выдавай его за подтверждённый отказ сервера.
-- `204` вебхука — принятая доставка, не выполненная сделка. Не возвращай выдуманный идентификатор сигнала сервера: тело успешного ответа пустое.
-- Нормализуй ошибки в языковой тип с HTTP-статусом, кодом/сообщением при наличии и `requestId`; корректно обрабатывай `429`, пустое/не-JSON тело и транспортный отказ. Ограничивай диагностические данные и скрывай секреты, включая ключ стратегии в URL.
-- Пагинация заканчивается по отсутствию `nextCursor`, не по пустому массиву; сохраняй фильтры параметров запроса и поддерживай отмену. Повторившийся курсор должен завершаться объяснимой ошибкой, а не бесконечным обходом.
-- Не сериализуй отсутствующие поля как `null` и не превращай пустой TP-массив в пропущенный. Числа должны быть конечными; дату REST проверяй на настоящей отправке.
+- Client construction and imports do not perform network operations. Use the documented production base URL by default and preserve explicit deployment overrides, bounded timeout, and cancellation; clients do not store keys in browsers or forward them across origins on redirects.
+- Do not add automatic retries by default, including HTTP-library retries. A timed-out mutation may have an unknown outcome; do not report it as a confirmed server rejection.
+- Webhook `204` means accepted delivery, not an executed trade. Do not invent a server signal ID: successful response bodies are empty.
+- Normalize errors into a language-specific type with HTTP status, code/message when available, and `requestId`; handle `429`, empty/non-JSON bodies, and transport failures. Bound diagnostics and redact secrets, including strategy keys in URLs.
+- Pagination ends when `nextCursor` is absent, not when an array is empty; preserve query filters and support cancellation. A repeated cursor must produce an understandable error instead of infinite traversal.
+- Do not serialize omitted fields as `null` or omit an explicitly empty TP array. Numbers must be finite; verify REST dates on actual outbound requests.
 
-## Проверки
+## Verification
 
-- Используй нативный тестовый набор и локальный HTTP-сервер/перехватчик. Он проверяет действительную сериализацию и заголовки публичных методов; не подменяй проверяемые сериализаторы.
-- Прогони общие примеры `conformance/`, негативные запросы, пагинацию с пустой страницей, отмену, таймаут, редактирование секретов и отсутствие повторов.
-- Установи собранный архив в отдельный проект потребителя и вызови публичные методы. Проверь лицензию, декларации типов, допустимые импорты и отсутствие тестовых секретов/лишних артефактов.
-- Обнови примеры, список поддерживаемых сред и реальные команды проверки одновременно с публичным API. При изменении упаковки или версии также применяй `sdk-release`.
+- Use native tests and a local HTTP server/interceptor. Verify actual serialization and headers of public methods; do not replace the serializers being tested.
+- Run shared `conformance/` fixtures, negative requests, empty-page pagination, cancellation, timeouts, secret redaction, and absence of retries.
+- Install the built archive in a separate consumer project and call public methods. Check the license, type declarations, allowed imports, and absence of test secrets or extra artifacts.
+- Update examples, supported environments, and real verification commands with the public API. Also use `sdk-release` for packaging or version changes.

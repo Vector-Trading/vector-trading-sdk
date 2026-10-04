@@ -1,32 +1,32 @@
 ---
 name: pine-signals
-description: 'Исходники и примеры Pine Script для формирования JSON-сигналов Vector Trading и ручной публикации библиотеки в TradingView. Не относится к TradingView Charting Library веб-приложения.'
+description: 'Maintain Pine Script sources and examples for Vector Trading JSON signals and manual TradingView library publication. Excludes the web application TradingView Charting Library.'
 ---
 
-# Сигналы Pine Script
+# Pine Script signals
 
-Прочитай `AGENTS.md`, webhook-раздел `docs/contracts.md` и общие примеры сигналов, если они созданы. При изменении общей семантики также применяй `sdk-contracts`.
+Read `AGENTS.md`, the webhook section of `docs/contracts.md`, and shared signal fixtures if they exist. Also apply `sdk-contracts` when changing shared semantics.
 
-## Код и данные
+## Code and data
 
-- Pine-часть формирует JSON для TradingView alerts; она не является REST-клиентом по ключу аккаунта. Ключ стратегии задаётся пользователем в вебхук URL, не в публичном исходнике или теле сигнала.
-- Исходники находятся в `pinescript/`, GitHub хранит их историю и выпуски. Предпочитай текущую стабильную версию Pine; проверяй совместимость в настоящем Pine Editor.
-- Формируй сообщения всех восьми действий и вариантов market/limit/trigger/trigger-limit. Передавай версию стратегии и timestamp миллисекунд строкой; не используй библиотечную версию как версию стратегии.
-- Кодек должен экранировать строки, выводить числа без локализованных разделителей и отклонять `na`/невалидные цены. Отсутствие TP-поля, `[]` и непустые цели остаются разными намерениями; `force` предоставляется только для `open`.
-- Отделяй формирование сообщения от условия и частоты alert. Библиотека не должна неожиданно создавать дополнительные сигналы или решать торговый момент за пользовательский скрипт.
-- Историческое исполнение и broker emulator не подтверждают фактическую отправку webhook или сделку на бирже.
+- The Pine component builds JSON for TradingView alerts; it is not an account-key REST client. Users supply the strategy key in the webhook URL, not public source code or the signal body.
+- Sources live in `pinescript/`; GitHub stores their history and releases. Prefer the current stable Pine version and verify compatibility in the real Pine Editor.
+- Build messages for all eight actions and market/limit/trigger/trigger-limit variants. Send strategy version and a string millisecond timestamp; do not use library version as strategy version.
+- The codec must escape strings, emit numbers without localized separators, and reject `na`/invalid prices. Omitted TP, `[]`, and non-empty targets retain distinct meanings; expose `force` only for `open`.
+- Separate message construction from alert conditions and frequency. The library must not unexpectedly create extra signals or choose trade timing for the user's script.
+- Historical execution and the broker emulator do not prove actual webhook delivery or exchange trades.
 
-## Проверка
+## Verification
 
-- В Pine Editor скомпилируй библиотеку и потребительский пример. Сохрани свидетельство версии исходника и среды; проверка строк обычным скриптом не заменяет компиляцию Pine.
-- Полученные JSON сравни с `conformance/` и настоящим серверным анализатором в безопасной среде без биржевых эффектов. Проверь экранирование, числовую точность, строковый timestamp и все варианты TP.
-- Реальное alert-поведение проверяй на локальном/изолированном тестовом получателе с явно выбранными сигналами; не используй production ключ стратегии ради обычной проверки.
+- Compile the library and consumer example in Pine Editor. Record source version and environment evidence; a regular script checking strings does not replace Pine compilation.
+- Compare produced JSON against `conformance/` and the real server parser in a safe environment without exchange effects. Check escaping, numeric precision, string timestamp, and all TP variants.
+- Verify real alert behavior against a local/isolated test receiver with explicitly selected signals; do not use a production strategy key for routine checks.
 
-## Публикация и потребители
+## Publication and consumers
 
-- Официальный процесс публикации и обновлений проходит через Pine Editor. Публичный документированный API публикации не подтверждён; не внедряй внутренние точки входа, cookies или автоматизацию интерфейса как обязательную часть CI.
-- Для `import` библиотека должна быть опубликована в TradingView; библиотеки публикуются с открытым исходным кодом. Без публикации выдавай исходники и пример встраивания, не выдуманный import.
-- Импорт имеет вид `username/Library/version`, версия фиксируется явно. Публикация новой версии не обновляет существующие импорты или работающие alerts; изменения контекста работающего alert требуют его пересоздания.
-- При разрешённой публикации запиши автора, ссылку, номер Pine-версии, SDK-версию и commit исходника. Документация восстановления описывает возврат к предыдущему закреплённому импорту и пересоздание alert, а не автоматическое откатывание сделки.
+- Official publication and updates use Pine Editor. No public documented publication API has been confirmed; do not make internal endpoints, cookies, or UI automation mandatory CI components.
+- A library must be published on TradingView for `import`; libraries are published with source code. Without publication, provide sources and an embedding example, not a fictitious import.
+- Imports use `username/Library/version` with an explicitly pinned version. Publishing a new version does not update existing imports or running alerts; changing a running alert's context requires recreating it.
+- For authorized publication, record the author, link, Pine version, SDK version, and source commit. Recovery documentation must describe reverting to a previous pinned import and recreating the alert, not automatically reversing a trade.
 
-Официальные источники для проверки актуальности: [Libraries](https://www.tradingview.com/pine-script-docs/concepts/libraries/), [Publishing scripts](https://www.tradingview.com/pine-script-docs/writing/publishing/), [Alerts](https://www.tradingview.com/pine-script-docs/concepts/alerts/).
+Official sources for checking current requirements: [Libraries](https://www.tradingview.com/pine-script-docs/concepts/libraries/), [Publishing scripts](https://www.tradingview.com/pine-script-docs/writing/publishing/), [Alerts](https://www.tradingview.com/pine-script-docs/concepts/alerts/).

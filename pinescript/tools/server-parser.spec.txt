@@ -1,0 +1,30 @@
+import { readFile } from 'node:fs/promises';
+import { describe, it, expect } from 'vitest';
+import { parseSignalEvent } from './packages/types/src/signal';
+import type { StrategyApiKey } from './packages/types/src/client';
+const sdk = process.env.SDK_PINE_ROOT!;
+const lines = (await readFile(sdk + '/pinescript/conformance/editor-output.txt', 'utf8'))
+  .trim()
+  .split('\n');
+const fixtures = JSON.parse(await readFile(sdk + '/conformance/signals/cases.json', 'utf8'));
+describe('real accepted server parser on actual Pine output', () => {
+  for (const line of lines.filter((line) => line.startsWith('VTJSON|'))) {
+    const [, id, ...parts] = line.split('|');
+    it(id!, () => {
+      const json = parts.join('|');
+      const result = parseSignalEvent(json, 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as StrategyApiKey);
+      const fixture = fixtures.find((f: { id: string }) => f.id === id);
+      const { id: _eventId, apiKey: _key, ...payload } = result;
+      if (fixture) expect(JSON.parse(JSON.stringify(payload))).toEqual(fixture.expected);
+      else {
+        const original = JSON.parse(json);
+        expect(result.timestamp).toBe(Number(original.timestamp));
+        expect(result.version).toBe(original.version);
+        if ('marketPrice' in original)
+          expect((result as { marketPrice: number }).marketPrice).toBe(original.marketPrice);
+        if (original.order)
+          expect(JSON.parse(JSON.stringify(result.order))).toEqual(original.order);
+      }
+    });
+  }
+});

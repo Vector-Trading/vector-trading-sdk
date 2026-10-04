@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # pnpm 11 and uv 0.12 exceed documented support. See docs/development.md.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: cargo
+    directories:
+      - /rust
+      - /generation/probes/rust
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: gomod
+    directories:
+      - /go
+      - /generation/probes
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

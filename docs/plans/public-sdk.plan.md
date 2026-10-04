@@ -41,6 +41,8 @@ The initial main source verification and preparation passed:
 The subsequent test-dependency update through
 [PR #2](https://github.com/Vector-Trading/vector-trading-sdk/pull/2) passed
 [SDK CI](https://github.com/Vector-Trading/vector-trading-sdk/actions/runs/37218675981).
+The corrected source in the replacement history passed
+[SDK CI](https://github.com/Vector-Trading/vector-trading-sdk/actions/runs/37225353004).
 Earlier contract-preparation CI failed before the generated Rust probe contained
 its real target. The fix assembles the actual probe before Cargo fetch; full
 verification includes locked offline compilation. Remote controlled-failure
@@ -55,8 +57,9 @@ or proof of live webhook delivery.
 
 The initial GitHub Release and Go tags were delivered at SDK version `0.1.0`.
 Anonymous public Go consumption passed on both supported Go versions. npm, PyPI
-and crates.io packages remain unpublished. Further public delivery is paused
-while public content is corrected. Existing downloads and external caches are
+and crates.io packages remain unpublished. The initial GitHub Release, both
+version tags and two affected release artifacts were removed on 2026-10-04.
+Further public delivery is paused pending cleanup acceptance. Existing downloads and external caches are
 outside ordinary repository verification; source corrections do not erase them.
 A corrected release must use a new version rather than replace old package bytes.
 
@@ -71,23 +74,27 @@ and embedded-consumer compilation evidence remains intact.
 Before completing STEP-12:
 
 1. Verify corrected public content, reproducible generation and all installed archives.
-2. Obtain the required authorization for published-history and resource cleanup;
-   verify remaining old references and external copies separately.
-3. Integrate the corrected source and confirm actual remote CI and preparation.
+2. Confirm the remaining old PR-reference and cached-view cleanup through GitHub
+   Support; assess external copies separately from repository acceptance.
+3. Confirm actual remote CI and release preparation for the corrected source.
 4. Deliver only authorized registry channels with frozen, verified artifacts.
 5. Verify anonymous installed consumers for each delivered package; preserve the
    verified Pine import and source mapping.
 6. Record per-channel acceptance; keep partial outcomes explicit.
 
-## Content correction in progress
+## Content correction acceptance
 
 Public snapshot metadata is limited to contract version, acceptance status and
 public artifact hashes. Internal implementation metadata and operational receipts
 belong in the private maintainer workspace. The source exporter and SDK validators
-are implemented locally and verified together. The 0.1.1 preview completed full
+are implemented, locally verified together and integrated into the cleaned `main`.
+The 0.1.1 preview completed full
 verification, reproducible generation, 64 shared regressions and fourteen clean
-archive consumers. Publication remains paused pending the separately authorized
-history cleanup, integration and remote acceptance.
-Commit, push, history rewriting, resource deletion and renewed publication are
-separate delivery boundaries. Repository visibility was temporarily restricted
-with maintainer authorization on 2026-10-04.
+archive consumers. The maintainer authorized history replacement and removal of
+the old release resources; both were completed on 2026-10-04. The original history
+and resources remain in private recovery storage. A GitHub Support request for
+remaining old PR references and cached views was submitted; removal is not yet
+confirmed. Publication remains paused pending cleanup acceptance, remote
+verification and a fresh frozen release from the accepted source.
+Repository visibility remains temporarily restricted. Renewed public delivery and
+package publication are separate authorization boundaries.

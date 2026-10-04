@@ -60,6 +60,34 @@ string. Omission means permanent access; `null` is rejected. `days`, `startsAt`,
 `trial` are not accepted in the request. Revocation triggers server-side subscription
 consequences; the SDK sends one HTTP request.
 
+## REST: input validation
+
+Schema string length limits count Unicode code points, not UTF-16 code units or
+visual graphemes. The user search parameter therefore accepts 2–30 code points,
+including supplementary characters, without SDK Unicode normalization.
+
+REST date strings use the pinned server's strict spelling: a four-digit Gregorian
+year, valid `YYYY-MM-DD`, uppercase `T`, `HH:mm:ss` with hours 00–23 and minutes/seconds
+00–59, an optional dot followed by fractional digits, and uppercase `Z` or an offset
+`±HH:mm` with hours 00–23 and minutes 00–59. Lowercase separators, leap seconds,
+comma fractions, missing seconds, and calendar normalization are rejected locally.
+Native date types retain their existing representable ranges and serialization;
+Python `datetime`, for example, cannot represent year `0000`. Raw input strings are
+forwarded unchanged after validation.
+
+The [SDK input regressions](../conformance/rest/input-validation.json) supplement the
+unaltered server-exported snapshot. Their expected outcomes were checked against the
+actual body/query schemas at the accepted commit above, including all six grant date
+filters. Every language consumes these examples. Go exposes those filters as
+`time.Time`, so malformed raw filter strings are exercised through the same internal
+request-validation path; public raw grant bodies and valid typed filters remain covered.
+
+Required JSON bodies are checked after public model serialization. An empty Python
+`CreateGrantRequest()` remains constructible but is rejected before HTTP delivery.
+Python generated leaf and union validation exceptions hide submitted input values in
+ordinary exception rendering. A local validation error does not prevent a subsequent
+independent request on the same client.
+
 ## REST: errors and transport
 
 Application errors normally contain `errorCode`, `message`, optional string-valued

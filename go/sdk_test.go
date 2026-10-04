@@ -751,3 +751,94 @@ func TestCustomizedProcessDefaultTransport(t *testing.T) {
 		t.Fatal("custom process default", err)
 	}
 }
+
+func TestSharedInputValidation(t *testing.T) {
+	data, err := os.ReadFile("../conformance/rest/input-validation.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cases []struct {
+		ID         string            `json:"id"`
+		Operation  string            `json:"operationId"`
+		Parameters map[string]string `json:"parameters"`
+		Body       any               `json:"body"`
+		Accepted   bool              `json:"accepted"`
+	}
+	if err := json.Unmarshal(data, &cases); err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range cases {
+		t.Run(f.ID, func(t *testing.T) {
+			var response json.RawMessage
+			for _, existing := range restFixtures(t) {
+				if existing.Operation == f.Operation && existing.Status == 200 {
+					response = existing.Response
+					break
+				}
+			}
+			var calls atomic.Int32
+			r, _, _ := clients(t, func(w http.ResponseWriter, request *http.Request) {
+				calls.Add(1)
+				if request.URL.Path == "/api/rest/v1/bundles" {
+					_, _ = w.Write([]byte(`{"bundles":[],"limit":50}`))
+					return
+				}
+				want := url.Values{}
+				for k, v := range f.Parameters {
+					if k != "bundleId" {
+						want.Set(k, v)
+					}
+				}
+				if !reflect.DeepEqual(request.URL.Query(), want) {
+					t.Error("input query changed")
+				}
+				if f.Body != nil {
+					if string(readBody(t, request)) != string(mustJSON(t, f.Body)) {
+						t.Error("input body changed")
+					}
+				}
+				_, _ = w.Write(response)
+			}, 0)
+			var err error
+			switch f.Operation {
+			case "searchUsers":
+				_, err = r.SearchUsers(context.Background(), f.Parameters["displayName"], PageOptions{})
+			case "createBundleGrant":
+				_, err = r.CreateBundleGrant(context.Background(), f.Parameters["bundleId"], f.Body)
+			case "listBundleGrants":
+				// Public filters use time.Time; exercise their shared raw-string validation path before normalization.
+				values := map[string]any{}
+				for k, v := range f.Parameters {
+					values[k] = v
+				}
+				var out BundleGrantsResponse
+				err = r.call(context.Background(), f.Operation, values, nil, &out)
+			default:
+				t.Fatal("unknown input operation")
+			}
+			if f.Accepted {
+				if err != nil {
+					t.Fatal(err)
+				}
+				if calls.Load() != 1 {
+					t.Fatal("expected one request")
+				}
+			} else {
+				errorKind(t, err, "validation")
+				if calls.Load() != 0 {
+					t.Fatal("invalid input reached HTTP")
+				}
+			}
+			if _, err := r.ListBundles(context.Background(), PageOptions{}); err != nil {
+				t.Fatal(err)
+			}
+			wantCalls := int32(1)
+			if f.Accepted {
+				wantCalls++
+			}
+			if calls.Load() != wantCalls {
+				t.Fatal("independent request did not recover")
+			}
+		})
+	}
+}

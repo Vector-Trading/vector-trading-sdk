@@ -27,6 +27,48 @@ pub(crate) fn model(name: &str, v: &Value) -> Result<()> {
         Err(Error::validation())
     }
 }
+// Rfc3339 accepts relaxed separator spelling; the server requires exact ASCII grammar.
+fn server_datetime(value: &str) -> bool {
+    let b = value.as_bytes();
+    if b.len() < 20
+        || b[4] != b'-'
+        || b[7] != b'-'
+        || b[10] != b'T'
+        || b[13] != b':'
+        || b[16] != b':'
+    {
+        return false;
+    }
+    if [0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18]
+        .iter()
+        .any(|&i| !b[i].is_ascii_digit())
+        || &b[11..13] > b"23".as_slice()
+        || &b[14..16] > b"59".as_slice()
+        || &b[17..19] > b"59".as_slice()
+    {
+        return false;
+    }
+    let mut offset = 19;
+    if b[offset] == b'.' {
+        offset += 1;
+        let start = offset;
+        while offset < b.len() && b[offset].is_ascii_digit() {
+            offset += 1;
+        }
+        if offset == start {
+            return false;
+        }
+    }
+    let tail = &b[offset..];
+    tail == b"Z"
+        || (tail.len() == 6
+            && matches!(tail[0], b'+' | b'-')
+            && tail[3] == b':'
+            && [1, 2, 4, 5].iter().all(|&i| tail[i].is_ascii_digit())
+            && &tail[1..3] <= b"23".as_slice()
+            && &tail[4..6] <= b"59".as_slice())
+}
+
 pub(crate) fn valid(s: &Value, v: &Value) -> bool {
     if let Some(r) = s["$ref"].as_str() {
         return valid(
@@ -103,7 +145,9 @@ pub(crate) fn valid(s: &Value, v: &Value) -> bool {
                     return false;
                 }
             }
-            if s["format"] == "date-time" && OffsetDateTime::parse(x, &Rfc3339).is_err() {
+            if s["format"] == "date-time"
+                && (!server_datetime(x) || OffsetDateTime::parse(x, &Rfc3339).is_err())
+            {
                 return false;
             }
         }

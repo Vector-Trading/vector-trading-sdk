@@ -57,8 +57,9 @@ probes but is excluded from public archives. `pydantic-core` and `typing-extensi
 transitive consumer requirements owned by Pydantic/HTTPX rather than extra SDK declarations.
 Rust uses `reqwest` query encoding and `serde_with` (`std` only) to distinguish an
 omitted nullable response field from explicit null. `time` (`std`/`parsing` only)
-validates RFC 3339 dates with MSRV 1.88; this avoids a separate handwritten calendar
-parser. The public crate does not declare `url`; only the internal trial transport
+validates calendar dates with MSRV 1.88 after a narrow ASCII grammar check matching
+the [pinned REST owner](contracts.md#rest-input-validation); this avoids a separate
+handwritten calendar parser in Rust. The public crate does not declare `url`; only the internal trial transport
 uses it directly. The unused `serde_repr`
 declaration and probe dependency were removed through a pinned template override.
 The selected asynchronous `reqwest` transport requires a Tokio execution context;

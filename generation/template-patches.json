@@ -128,6 +128,16 @@
     ]
   },
   {
+    "template": "python/model_oneof.mustache",
+    "sha256": "2d6fa7b88da47b5cc64817ae392664b218b2b5b934b4d3700fdf6f53c322e14a",
+    "edits": [
+      {
+        "before": "    model_config = ConfigDict(",
+        "after": "    model_config = ConfigDict(\n        hide_input_in_errors=True,"
+      }
+    ]
+  },
+  {
     "template": "go/model_simple.mustache",
     "sha256": "03cb79d0f03fd1ac67cd9c0ab0ae71a00e0596d68b633efb5a3834408d1852d5",
     "edits": [

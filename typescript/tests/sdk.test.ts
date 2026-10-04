@@ -45,6 +45,17 @@ const restFixtures = JSON.parse(
   readFileSync(new URL('../../conformance/rest/cases.json', import.meta.url), 'utf8'),
 ) as Fixture[];
 
+interface InputCase {
+  id: string;
+  operationId: string;
+  parameters: Record<string, string>;
+  body?: CreateGrantRequest;
+  accepted: boolean;
+}
+const inputCases = JSON.parse(
+  readFileSync(new URL('../../conformance/rest/input-validation.json', import.meta.url), 'utf8'),
+) as InputCase[];
+
 describe('public SDK contract', () => {
   let server: ReturnType<typeof createServer>;
   let origin: string;
@@ -131,6 +142,67 @@ describe('public SDK contract', () => {
         throw new Error('Unknown fixture operation');
     }
   }
+  it.each(inputCases)('shared input: $id', async (fixture) => {
+    const response = restFixtures.find(
+      (f) => f.operationId === fixture.operationId && f.expectedStatus === 200,
+    )!.response;
+    respond(200, response);
+    const client = rest(origin);
+    const invoke = () => {
+      switch (fixture.operationId) {
+        case 'searchUsers':
+          return client.searchUsers({ displayName: fixture.parameters['displayName']! });
+        case 'createBundleGrant':
+          return client.createBundleGrant({
+            bundleId: fixture.parameters['bundleId']!,
+            createGrantRequest: fixture.body!,
+          });
+        case 'listBundleGrants':
+          return client.listBundleGrants({
+            ...fixture.parameters,
+            bundleId: fixture.parameters['bundleId']!,
+          });
+        default:
+          throw new Error('Unknown input operation');
+      }
+    };
+    if (!fixture.accepted) {
+      await expect(invoke()).rejects.toMatchObject({ kind: 'validation' });
+      expect(requests).toHaveLength(0);
+    } else {
+      await invoke();
+      expect(requests).toHaveLength(1);
+      if (fixture.body) expect(JSON.parse(requests[0]!.body)).toEqual(fixture.body);
+      const query = new URL(requests[0]!.url, origin).searchParams;
+      for (const [key, value] of Object.entries(fixture.parameters))
+        if (key !== 'bundleId') expect(query.get(key)).toBe(value);
+    }
+    // A rejected input must not poison the next independent request.
+    respond(200, { bundles: [], limit: 50 });
+    await client.listBundles();
+    expect(requests).toHaveLength(fixture.accepted ? 2 : 1);
+  });
+  it('supplementary Unicode survives search pagination', async () => {
+    const displayName = '😀'.repeat(30);
+    let page = 0;
+    handler = (_request, response) => {
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(
+        JSON.stringify({
+          users: [],
+          limit: 10,
+          query: displayName,
+          ...(page++ === 0 ? { nextCursor: userId } : {}),
+        }),
+      );
+    };
+    for await (const page of rest(origin).searchUsersPages({ displayName })) {
+      expect(page.users).toEqual([]);
+    }
+    expect(requests).toHaveLength(2);
+    for (const request of requests)
+      expect(new URL(request.url, origin).searchParams.get('displayName')).toBe(displayName);
+  });
   it('C01: construction/builders are offline and hide credentials', () => {
     const fetch = vi.fn();
     const a = rest(origin, { fetch });

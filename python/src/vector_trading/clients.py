@@ -17,7 +17,7 @@ from ._generated.models.users_search_response import UsersSearchResponse
 from .errors import SdkError
 from .signals import StrategySignalPayload, serialize_signal
 from .transport import Transport
-from .validation import OPERATIONS, validate, validate_model, validate_response
+from .validation import OPERATIONS, validate, validate_body, validate_response
 
 T = TypeVar("T")
 
@@ -98,8 +98,7 @@ class RestClient(_Client):
             raise SdkError("validation", "Request parameters do not match the public contract")
         if isinstance(body, BaseModel):
             body = json.loads(cast(Any, body).to_json())
-        if body is not None:
-            validate_model("CreateGrantRequest", body)
+        validate_body(operation, body)
         status, result = self._transport.request(
             method,
             path,

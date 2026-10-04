@@ -667,3 +667,81 @@ async fn mutation_failures_never_retry_and_delivery_preserves_metadata() {
     );
     assert_eq!(server.count(), 1);
 }
+
+#[tokio::test]
+async fn shared_input_validation() {
+    let cases: Vec<Value> =
+        serde_json::from_str(include_str!("../../conformance/rest/input-validation.json")).unwrap();
+    for case in cases {
+        let operation = case["operationId"].as_str().unwrap();
+        let response = rest_cases()
+            .into_iter()
+            .find(|c| c["operationId"] == operation && c["expectedStatus"] == 200)
+            .unwrap()["response"]
+            .clone();
+        let server = Server::new(move |r| {
+            if r.target == "/api/rest/v1/bundles" {
+                Reply::json(&json!({"bundles": [], "limit": 50}))
+            } else {
+                Reply::json(&response)
+            }
+        });
+        let client =
+            RestClient::new(&format!("{}/api/rest", server.url), ACCOUNT, options()).unwrap();
+        let parameters = &case["parameters"];
+        let result = match operation {
+            "searchUsers" => client
+                .search_users(
+                    parameters["displayName"].as_str().unwrap(),
+                    PageOptions::default(),
+                )
+                .await
+                .map(|_| ()),
+            "createBundleGrant" => client
+                .create_bundle_grant(parameters["bundleId"].as_str().unwrap(), &case["body"])
+                .await
+                .map(|_| ()),
+            "listBundleGrants" => {
+                let mut query = parameters.clone();
+                query.as_object_mut().unwrap().remove("bundleId");
+                client
+                    .list_bundle_grants(
+                        parameters["bundleId"].as_str().unwrap(),
+                        serde_json::from_value(query).unwrap(),
+                    )
+                    .await
+                    .map(|_| ())
+            }
+            _ => unreachable!(),
+        };
+        let accepted = case["accepted"].as_bool().unwrap();
+        if accepted {
+            result.unwrap_or_else(|e| panic!("{}: {e}", case["id"]));
+            assert_eq!(server.count(), 1, "{}", case["id"]);
+            {
+                let requests = server.requests.lock().unwrap();
+                let expected: std::collections::BTreeMap<_, _> = parameters
+                    .as_object()
+                    .unwrap()
+                    .iter()
+                    .filter(|(k, _)| k.as_str() != "bundleId")
+                    .map(|(k, v)| (k.clone(), v.as_str().unwrap().to_owned()))
+                    .collect();
+                assert_eq!(requests[0].query(), expected, "{}", case["id"]);
+                if let Some(body) = case.get("body") {
+                    assert_eq!(requests[0].json(), *body);
+                }
+            }
+        } else {
+            assert_eq!(
+                result.unwrap_err().kind,
+                ErrorKind::Validation,
+                "{}",
+                case["id"]
+            );
+            assert_eq!(server.count(), 0, "{}", case["id"]);
+        }
+        client.list_bundles(PageOptions::default()).await.unwrap();
+        assert_eq!(server.count(), if accepted { 2 } else { 1 });
+    }
+}

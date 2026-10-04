@@ -71,6 +71,10 @@ func operationFor(name string) (string, string, operation) {
 	}
 	panic("missing generated SDK operation")
 }
+
+// Native time.Parse also accepts relaxed spellings that the pinned server rejects.
+var restDateTime = regexp.MustCompile(`^[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\.[0-9]+)?(?:Z|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])$`)
+
 func decodeValue(data []byte) (any, error) {
 	var v any
 	if err := json.Unmarshal(data, &v); err != nil {
@@ -160,6 +164,9 @@ func validate(s schema, v any) error {
 			}
 		}
 		if s.Format == "date-time" {
+			if !restDateTime.MatchString(x) {
+				return bad()
+			}
 			if _, err := time.Parse(time.RFC3339Nano, x); err != nil {
 				return bad()
 			}

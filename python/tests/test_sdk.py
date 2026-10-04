@@ -526,3 +526,97 @@ def test_mutation_timeout_is_not_retried(receiver):
             client.create_bundle_grant(ID, {"userId": ID, "grantType": "gift"})
         assert error.value.kind == "timeout"
     assert len(receiver.requests) == 1
+
+
+INPUT_CASES = json.loads((ROOT / "conformance/rest/input-validation.json").read_text())
+
+
+@pytest.mark.parametrize("case", INPUT_CASES, ids=lambda c: c["id"])
+def test_shared_input_validation(receiver, case):
+    response = next(
+        c["response"]
+        for c in REST
+        if c["operationId"] == case["operationId"] and c["expectedStatus"] == 200
+    )
+    receiver.responses.append((200, response, {}))
+    with rest(receiver) as client:
+        parameters = {
+            ALIASES.get(k, k): v for k, v in case["parameters"].items() if k != "bundleId"
+        }
+
+        def invoke():
+            match case["operationId"]:
+                case "searchUsers":
+                    return client.search_users(**parameters)
+                case "listBundleGrants":
+                    return client.list_bundle_grants(case["parameters"]["bundleId"], **parameters)
+                case "createBundleGrant":
+                    return client.create_bundle_grant(case["parameters"]["bundleId"], case["body"])
+
+        if not case["accepted"]:
+            with pytest.raises(sdk.SdkError) as error:
+                invoke()
+            assert error.value.kind == "validation"
+            assert receiver.requests == []
+            receiver.responses.clear()
+        else:
+            invoke()
+            assert len(receiver.requests) == 1
+            sent = receiver.requests[0]
+            assert parse_qs(urlsplit(sent["path"]).query) == {
+                k: [v] for k, v in case["parameters"].items() if k != "bundleId"
+            }
+            if "body" in case:
+                assert json.loads(sent["body"]) == case["body"]
+        receiver.responses.append((200, {"bundles": [], "limit": 50}, {}))
+        client.list_bundles()
+        assert len(receiver.requests) == (2 if case["accepted"] else 1)
+
+
+@pytest.mark.parametrize("route", ["constructor", "assignment", "from_dict", "from_json", "leaf"])
+def test_grant_diagnostics_hide_private_values(route):
+    marker = "invoice:synthetic private value"
+    body = {"userId": ID, "grantType": "paid_external", "sourceId": marker}
+    with pytest.raises((ValidationError, ValueError)) as error:
+        match route:
+            case "constructor":
+                sdk.CreateGrantRequest(actual_instance=body)
+            case "assignment":
+                model = sdk.CreateGrantRequest()
+                model.actual_instance = body
+            case "from_dict":
+                sdk.CreateGrantRequest.from_dict(body)
+            case "from_json":
+                sdk.CreateGrantRequest.from_json(json.dumps(body))
+            case "leaf":
+                sdk.PaidExternalGrantRequest(
+                    user_id=ID, grant_type="paid_external", source_id=marker
+                )
+    for rendered in [
+        str(error.value),
+        repr(error.value),
+        "".join(traceback.format_exception(error.value)),
+    ]:
+        assert marker not in rendered
+
+
+@pytest.mark.parametrize("empty", [None, sdk.CreateGrantRequest()])
+def test_required_body_after_model_serialization(receiver, empty):
+    with rest(receiver) as client:
+        with pytest.raises(sdk.SdkError) as error:
+            client.create_bundle_grant(ID, empty)
+        assert error.value.kind == "validation"
+        assert receiver.requests == []
+        for case in REST:
+            if case["operationId"] == "createBundleGrant" and case["expectedStatus"] == 200:
+                receiver.responses.append((200, case["response"], {}))
+                model = sdk.CreateGrantRequest.from_dict(case["request"]["body"])
+                client.create_bundle_grant(ID, model)
+                assert json.loads(receiver.requests[-1]["body"]) == json.loads(model.to_json())
+        for operation in ["listBundles", "revokeBundleGrant"]:
+            case = next(
+                c for c in REST if c["operationId"] == operation and c["expectedStatus"] == 200
+            )
+            receiver.responses.append((200, case["response"], {}))
+            call_fixture(client, case)
+            assert receiver.requests[-1]["body"] == b""

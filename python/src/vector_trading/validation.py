@@ -62,7 +62,8 @@ def validate(schema: dict[str, Any], value: Any) -> None:
                 raise ValueError("invalid pattern")
             if schema.get("format") == "date-time":
                 if not re.fullmatch(
-                    r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)", value, re.I
+                    r"[0-9]{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\.[0-9]+)?(?:Z|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])",
+                    value,
                 ):
                     raise ValueError("expected ISO datetime")
                 datetime.fromisoformat(value)
@@ -85,6 +86,24 @@ def validate(schema: dict[str, Any], value: Any) -> None:
         case "boolean":
             if not isinstance(value, bool):
                 raise ValueError("expected boolean")
+
+
+def validate_body(operation: str, value: Any) -> None:
+    """Apply the operation's body contract after public model serialization."""
+    body = OPERATIONS[operation][2].get("requestBody")
+    try:
+        if body:
+            if value is None:
+                if body.get("required"):
+                    raise ValueError("missing body")
+            else:
+                validate(body["content"]["application/json"]["schema"], value)
+        elif value is not None:
+            raise ValueError("unexpected body")
+        return
+    except (ValueError, TypeError, OverflowError):
+        pass
+    raise SdkError("validation", "Request body does not match the public contract")
 
 
 def validate_model(name: str, value: Any) -> None:

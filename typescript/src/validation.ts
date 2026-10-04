@@ -42,6 +42,21 @@ export function object(value: unknown): value is Record<string, unknown> {
     (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)
   );
 }
+function validDateTime(value: string): boolean {
+  const match =
+    /^([0-9]{4})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](?:\.[0-9]+)?(?:Z|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])$/.exec(
+      value,
+    );
+  if (!match || match[0] !== value) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  // Date.parse normalizes impossible dates instead of rejecting them.
+  return day <= days[month - 1]! && Number.isFinite(Date.parse(value));
+}
+
 // Only the schema features present in the pinned transport contract are evaluated.
 function validate(schema: Schema, value: unknown, path: string): void {
   if (schema.$ref) return validate(schemas[schema.$ref.split('/').at(-1)!]!, value, path);
@@ -87,18 +102,18 @@ function validate(schema: Schema, value: unknown, path: string): void {
       break;
     case 'string':
       if (typeof value !== 'string') invalid(path);
-      if (
-        (schema.minLength !== undefined && value.length < schema.minLength) ||
-        (schema.maxLength !== undefined && value.length > schema.maxLength) ||
-        (schema.pattern && !new RegExp(schema.pattern).test(value))
-      )
-        invalid(path);
-      if (
-        schema.format === 'date-time' &&
-        (!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/i.test(value) ||
-          !Number.isFinite(Date.parse(value)))
-      )
-        invalid(path);
+      if (schema.minLength !== undefined || schema.maxLength !== undefined) {
+        let length = 0;
+        // OpenAPI length limits count code points, not UTF-16 code units.
+        for (let index = 0; index < value.length;) {
+          index += value.codePointAt(index)! > 0xffff ? 2 : 1;
+          length++;
+          if (schema.maxLength !== undefined && length > schema.maxLength) invalid(path);
+        }
+        if (schema.minLength !== undefined && length < schema.minLength) invalid(path);
+      }
+      if (schema.pattern && !new RegExp(schema.pattern).test(value)) invalid(path);
+      if (schema.format === 'date-time' && !validDateTime(value)) invalid(path);
       break;
     case 'integer':
     case 'number':

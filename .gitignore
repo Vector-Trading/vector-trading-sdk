@@ -42,6 +42,7 @@ playwright-report/
 tmp/
 release/artifacts/
 release/staging/
+release/outcomes/
 *.tgz
 *.whl
 *.crate

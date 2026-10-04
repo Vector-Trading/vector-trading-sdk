@@ -48,6 +48,7 @@ if (action === 'verify') {
     'typecheck',
     'docs:check',
     'ci:check',
+    'release:check',
     'contracts:check',
     'generated:check',
     'generation:probe',
@@ -73,7 +74,14 @@ if (action === 'verify') {
     ])
       pnpm(command);
   } else if (area === 'documentation') {
-    for (const command of ['format:check', 'lint', 'typecheck', 'docs:check', 'ci:check'])
+    for (const command of [
+      'format:check',
+      'lint',
+      'typecheck',
+      'docs:check',
+      'ci:check',
+      'release:check',
+    ])
       pnpm(command);
   } else if (languages.some((language) => language === area)) {
     test(area!);

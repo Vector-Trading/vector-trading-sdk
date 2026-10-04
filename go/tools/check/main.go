@@ -136,7 +136,8 @@ func nativeChecks(goBinary string) {
 }
 
 const modulePath = "github.com/Vector-Trading/vector-trading-sdk/go"
-const version = "v0.1.0"
+
+var version string
 
 func allowed(name string) bool {
 	if name == "go.mod" || name == "README.md" || name == "LICENSE" {
@@ -223,7 +224,7 @@ func consumer(goBinary string, data []byte) {
 	fail(os.MkdirAll(versions, 0755))
 	mod, err := os.ReadFile(filepath.Join(root, "go.mod"))
 	fail(err)
-	for name, contents := range map[string][]byte{version + ".zip": data, version + ".mod": mod, version + ".info": []byte(`{"Version":"v0.1.0","Time":"2000-01-01T00:00:00Z"}`), "list": []byte(version + "\n")} {
+	for name, contents := range map[string][]byte{version + ".zip": data, version + ".mod": mod, version + ".info": []byte(`{"Version":"` + version + `","Time":"2000-01-01T00:00:00Z"}`), "list": []byte(version + "\n")} {
 		fail(os.WriteFile(filepath.Join(versions, name), contents, 0644))
 	}
 	project := filepath.Join(temp, "consumer")
@@ -272,6 +273,13 @@ func main() {
 	data, err := os.ReadFile(filepath.Join(root, "toolchains.json"))
 	fail(err)
 	fail(json.Unmarshal(data, &config))
+	var release struct {
+		Version string `json:"version"`
+	}
+	data, err = os.ReadFile(filepath.Join(root, "../release/version.json"))
+	fail(err)
+	fail(json.Unmarshal(data, &release))
+	version = "v" + release.Version
 	if len(os.Args) != 2 {
 		fail(fmt.Errorf("usage: go run ./tools/check test|build|package"))
 	}

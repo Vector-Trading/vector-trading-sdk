@@ -38,7 +38,11 @@
     "verify": "node scripts/workspace.ts verify",
     "docs:check": "node scripts/check-docs.ts",
     "ci:check": "node scripts/check-ci.ts",
-    "check:area": "node scripts/workspace.ts ci"
+    "check:area": "node scripts/workspace.ts ci",
+    "release:check": "node scripts/release.ts check-version && node scripts/check-release.ts",
+    "release:prepare": "node scripts/release.ts prepare",
+    "release:verify": "node scripts/release.ts verify",
+    "release:version": "node scripts/release.ts set-version"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

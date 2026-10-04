@@ -13,6 +13,13 @@ const action = process.argv[2];
 if (!action || !['test', 'build', 'package'].includes(action))
   throw new Error('Usage: check.ts test|build|package');
 const versions = ['1.99.0', '1.88.0'];
+const packageVersion = await (async (): Promise<string> => {
+  const value = (await readFile(join(crate, 'Cargo.toml'), 'utf8')).match(
+    /^version = "([^"]+)"$/m,
+  )?.[1];
+  if (!value || !/^\d+\.\d+\.\d+$/.test(value)) throw new Error('Invalid crate version');
+  return value;
+})();
 function run(version: string, args: string[], cwd = crate, env = process.env): string {
   return execFileSync(cargo, [`+${version}`, ...args, '--offline'], {
     cwd,
@@ -70,7 +77,7 @@ async function packageCheck(): Promise<void> {
   for (const version of versions) {
     run(version, ['package', '--locked', '--allow-dirty']);
     const target = process.env['CARGO_TARGET_DIR'] ?? join(crate, 'target');
-    const archive = join(target, 'package/vector-trading-sdk-0.1.0.crate');
+    const archive = join(target, `package/vector-trading-sdk-${packageVersion}.crate`);
     const firstHash = createHash('sha256')
       .update(await readFile(archive))
       .digest('hex');
@@ -84,8 +91,11 @@ async function packageCheck(): Promise<void> {
     const hash = createHash('sha256').update(bytes).digest('hex');
     if (firstHash !== hash) throw new Error('Repeated packaging differs on the same toolchain');
     const entries = execFileSync('tar', ['-tzf', archive], { encoding: 'utf8' }).trim().split('\n');
-    const allowed =
-      /^vector-trading-sdk-0\.1\.0\/(Cargo\.(toml(?:\.orig)?|lock)|LICENSE|README\.md|\.cargo_vcs_info\.json|src\/[^/]+\.rs|generated\/(contract\.json|src\/models\/[^/]+\.rs)|examples\/[^/]+\.rs)$/;
+    const allowed = new RegExp(
+      '^vector-trading-sdk-' +
+        packageVersion.replaceAll('.', '\\.') +
+        String.raw`/(Cargo\.(toml(?:\.orig)?|lock)|LICENSE|README\.md|\.cargo_vcs_info\.json|src/[^/]+\.rs|generated/(contract\.json|src/models/[^/]+\.rs)|examples/[^/]+\.rs)$`,
+    );
     if (!entries.every((entry) => allowed.test(entry)))
       throw new Error('Unexpected crate archive file');
     for (const required of [
@@ -97,7 +107,7 @@ async function packageCheck(): Promise<void> {
       'generated/contract.json',
       'examples/integration.rs',
     ]) {
-      if (!entries.includes(`vector-trading-sdk-0.1.0/${required}`))
+      if (!entries.includes(`vector-trading-sdk-${packageVersion}/${required}`))
         throw new Error(`Missing ${required}`);
     }
     // Cargo versions use different tar timestamps for normalized manifests;
@@ -115,8 +125,8 @@ async function packageCheck(): Promise<void> {
     sourceHash = payloadHash;
     const filename =
       version === versions[0]
-        ? 'vector-trading-sdk-0.1.0.crate'
-        : `vector-trading-sdk-0.1.0-rust-${version}.crate`;
+        ? `vector-trading-sdk-${packageVersion}.crate`
+        : `vector-trading-sdk-${packageVersion}-rust-${version}.crate`;
     await copyFile(archive, join(crate, 'dist', filename));
     await consumer(version, archive);
     console.log(
@@ -194,7 +204,7 @@ async function consumer(version: string, archive: string): Promise<void> {
   });
   try {
     execFileSync('tar', ['-xzf', archive, '-C', temp]);
-    const sdk = join(temp, 'vector-trading-sdk-0.1.0');
+    const sdk = join(temp, `vector-trading-sdk-${packageVersion}`);
     const project = join(temp, 'consumer');
     await mkdir(join(project, 'src'), { recursive: true });
     await writeFile(

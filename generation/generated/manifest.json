@@ -13,7 +13,7 @@
     "generation/template-patches.json": "a169a2ba6e99fb1e10ae519b280d7dbdd6c580fa0b25a7cff867aaf3ddc08908",
     "generation/toolchains.json": "9ebec1258705e5bc2965bff0707673fc53df7c364d117e2a0cfb87921c42bc04",
     "generation/typescript.yaml": "3e28779356a594623c0be378a4513def1c2584538b8503f8ba9e0951961ab43f",
-    "package.json": "fe64126abb0a3a841e8bdb90f97dce695d336a9cdcb12b2b924608fb0473bcf6",
+    "package.json": "b4415fef5948bef28cc44ff413863cc6cb7fd54a8d180e35f53540393c46fefc",
     "pnpm-lock.yaml": "bf22a2a2d08af9f5c250c1a9fbf56875be6ac76dc64281eecbf3be6c852f878c",
     "scripts/generation.ts": "c8d92fce011fd8f88baeca5cad3544ce28540e91ecaffbdc68732429bd9d8d05"
   },

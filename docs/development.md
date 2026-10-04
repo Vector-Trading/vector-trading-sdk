@@ -478,6 +478,17 @@ Regenerate whenever generation inputs change; new Pine implementation bytes need
 new actual Pine Editor evidence. Dependency update automation does not publish or
 change repository settings.
 
+## Release preparation checks
+
+`pnpm release:check` verifies package/lockfile/shared version alignment and release
+workflow permissions, source gates, artifact reuse and actionlint. It is part of
+ordinary verification. The release scenario tests belong to `pnpm test:shared`.
+`pnpm release:prepare` runs full verification and freezes verified archives plus
+an immutable manifest without publishing. Use a fresh ignored bundle path; a local
+uncommitted preview is explicitly marked and cannot be published. See the
+[release guide](releasing.md) for dispatch inputs, first-upload bootstrapping,
+reconciliation, partial outcomes and credential boundaries.
+
 ## Files and local artifacts
 
 `.editorconfig` specifies UTF-8 and LF; `.gitattributes` normalizes text files in Git.

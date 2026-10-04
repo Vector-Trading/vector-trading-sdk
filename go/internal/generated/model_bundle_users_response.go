@@ -22,7 +22,7 @@ var _ MappedNullable = &BundleUsersResponse{}
 type BundleUsersResponse struct {
 	Limit int32 `json:"limit"`
 	// Opaque owner-scoped cursor to pass unchanged on the next page request.
-	NextCursor           *string                    `json:"nextCursor,omitempty" validate:"regexp=^(?:grant|scan):[a-f0-9]{32}$"`
+	NextCursor           *string                    `json:"nextCursor,omitempty"`
 	Users                []TradingBundleGrantedUser `json:"users"`
 	AdditionalProperties map[string]interface{}
 }

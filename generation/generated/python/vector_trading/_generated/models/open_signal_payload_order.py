@@ -90,6 +90,7 @@ class OpenSignalPayloadOrder(BaseModel):
     model_config = ConfigDict(
         allow_inf_nan=False,
         hide_input_in_errors=True,
+        extra="forbid",
         validate_by_name=True,
         validate_by_alias=True,
         validate_assignment=True,
@@ -145,14 +146,6 @@ class OpenSignalPayloadOrder(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({key: value for key, value in {
-            "amountPerc": obj.get("amountPerc"),
-            "price": obj.get("price"),
-            "side": obj.get("side"),
-            "stop": obj.get("stop"),
-            "takeProfits": [OpenSignalPayloadOrderTakeProfitsInner.from_dict(_item) for _item in obj["takeProfits"]] if obj.get("takeProfits") is not None else None,
-            "triggerPrice": obj.get("triggerPrice")
-        }.items() if key in obj})
-        return _obj
+        return cls.model_validate(obj)
 
 

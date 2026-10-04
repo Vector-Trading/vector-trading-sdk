@@ -18,6 +18,15 @@ httpx.Client.send = original_send
 
 requests = []
 account_key, strategy_key, identifier = "vt_consumer_synthetic", "a" * 32, "b" * 32
+second_strategy_key = "c" * 32
+for public_type in (
+    "OwnedTradingBundleSummary",
+    "TradingBundleGrantedUser",
+    "TradingBundleAccessGrantSummary",
+    "CheckoutDetailsDiscount",
+    "TradingBundleAccessGrantType",
+):
+    assert getattr(sdk, public_type) is not None
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -64,9 +73,7 @@ try:
         sdk.RestClient(
             base_url=origin + "/api/rest", account_api_key=account_key, allow_local_http=True
         ) as rest,
-        sdk.SignalsClient(
-            base_url=origin, strategy_api_key=strategy_key, allow_local_http=True
-        ) as signals,
+        sdk.SignalsClient(base_url=origin, allow_local_http=True) as signals,
     ):
         assert requests == []
         rest.list_bundles()
@@ -87,14 +94,17 @@ try:
             for action in ("cancel", "close", "start", "pause", "stop", "delete")
         ]
         for message in messages:
-            assert signals.send(message) is None
-        signals.send(messages[0])
-    assert len(requests) == 16
+            assert signals.send(message, strategy_api_key=strategy_key) is None
+        signals.send(messages[0], strategy_api_key=strategy_key)
+        signals.send(messages[0], strategy_api_key=second_strategy_key)
+    assert len(requests) == 17
     assert all(item[2] == "Bearer " + account_key for item in requests[:7])
-    assert all(item[2] is None and item[1].endswith(strategy_key) for item in requests[7:])
+    assert all(item[2] is None and item[1].endswith(strategy_key) for item in requests[7:-1])
+    assert requests[-1][2] is None and requests[-1][1].endswith(second_strategy_key)
     assert requests[7][3] == requests[-1][3]
     assert json.loads(requests[8][3])["order"]["takeProfits"] == []
     assert account_key not in log_stream.getvalue() and strategy_key not in log_stream.getvalue()
+    assert second_strategy_key not in log_stream.getvalue()
     print(
         "Installed package: seven REST methods, eight signals, stable delivery, safe logging, and TP clearing passed."
     )

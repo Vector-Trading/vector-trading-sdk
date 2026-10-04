@@ -56,6 +56,7 @@ class SignalPayload(BaseModel):
 
     model_config = ConfigDict(
         hide_input_in_errors=True,
+        extra="forbid",
         validate_assignment=True,
         protected_namespaces=(),
     )

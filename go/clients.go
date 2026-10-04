@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"iter"
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -14,9 +13,13 @@ import (
 // RestClient sends account-key requests. Close releases idle resources.
 type RestClient struct{ transport *transport }
 
-// NewRestClient performs no network work and requires an absolute /api/rest base.
-func NewRestClient(baseURL, accountKey string, options ClientOptions) (*RestClient, error) {
-	t, err := newTransport(baseURL, accountKey, options)
+// NewRestClient performs no network work. BaseURL defaults to production /api/rest.
+func NewRestClient(accountKey string, options ClientOptions) (*RestClient, error) {
+	baseURL := options.BaseURL
+	if baseURL == "" {
+		baseURL = "https://www.vector-trading.app/api/rest"
+	}
+	t, err := newTransport(baseURL, &accountKey, options)
 	if err != nil {
 		return nil, err
 	}
@@ -27,12 +30,13 @@ func (c *RestClient) Close() { c.transport.close() }
 // SignalsClient sends strategy-key signals separately from the REST account key.
 type SignalsClient struct{ transport *transport }
 
-// NewSignalsClient uses a server origin or explicit path prefix, not /api/rest.
-func NewSignalsClient(baseURL, strategyKey string, options ClientOptions) (*SignalsClient, error) {
-	if ok, _ := regexp.MatchString(`^[a-f0-9]{32}$`, strategyKey); !ok {
-		return nil, sdkError("validation", "Invalid strategy credential")
+// NewSignalsClient defaults to the production origin; BaseURL overrides it.
+func NewSignalsClient(options ClientOptions) (*SignalsClient, error) {
+	baseURL := options.BaseURL
+	if baseURL == "" {
+		baseURL = "https://www.vector-trading.app"
 	}
-	t, err := newTransport(baseURL, strategyKey, options)
+	t, err := newTransport(baseURL, nil, options)
 	if err != nil {
 		return nil, err
 	}
@@ -41,12 +45,21 @@ func NewSignalsClient(baseURL, strategyKey string, options ClientOptions) (*Sign
 func (c *SignalsClient) Close() { c.transport.close() }
 
 // Send returns nil only for 204 enqueue acceptance. It never refreshes metadata.
-func (c *SignalsClient) Send(ctx context.Context, payload any) error {
+func (c *SignalsClient) Send(ctx context.Context, strategyKey string, payload any) error {
+	if len(strategyKey) != 32 {
+		return sdkError("validation", "Invalid strategy credential")
+	}
+	for i := range len(strategyKey) {
+		b := strategyKey[i]
+		if !(b >= '0' && b <= '9' || b >= 'a' && b <= 'f') {
+			return sdkError("validation", "Invalid strategy credential")
+		}
+	}
 	data, err := SerializeSignal(payload)
 	if err != nil {
 		return err
 	}
-	_, err = c.transport.request(ctx, "POST", "/webhooks/signals/v1/"+c.transport.key, nil, data, true)
+	_, err = c.transport.request(ctx, "POST", "/webhooks/signals/v1/"+strategyKey, nil, data, strategyKey)
 	return err
 }
 
@@ -110,12 +123,7 @@ func (c *RestClient) call(ctx context.Context, name string, values map[string]an
 			}
 			continue
 		}
-		s := p.Schema
-		if p.Name == "cursor" {
-			s.Pattern = ""
-			s.MinLength = Ptr(1)
-		}
-		if validate(s, value) != nil {
+		if validate(p.Schema, value) != nil {
 			return sdkError("validation", "Request parameter does not match public contract")
 		}
 		switch p.In {
@@ -146,7 +154,7 @@ func (c *RestClient) call(ctx context.Context, name string, values map[string]an
 			return err
 		}
 	}
-	response, err := c.transport.request(ctx, method, path, query, data, false)
+	response, err := c.transport.request(ctx, method, path, query, data, "")
 	if err != nil {
 		return err
 	}

@@ -45,9 +45,7 @@ def rest(receiver, **options):
 
 
 def signals(receiver, **options):
-    return sdk.SignalsClient(
-        base_url=receiver.url, strategy_api_key=KEY, allow_local_http=True, **options
-    )
+    return sdk.SignalsClient(base_url=receiver.url, allow_local_http=True, **options)
 
 
 def call_fixture(client, case, body_model=False):
@@ -115,7 +113,7 @@ def test_signal_fixtures(receiver, case):
             return
         message = sdk.build_signal(case["payload"])
         assert json.loads(sdk.serialize_signal(message)) == case["payload"]
-        assert client.send(message) is None
+        assert client.send(message, strategy_api_key=KEY) is None
         sent = receiver.requests[0]
         assert sent["path"] == "/webhooks/signals/v1/" + KEY
         assert sent["auth"] is None
@@ -126,7 +124,7 @@ def test_import_and_construction_offline(monkeypatch):
     monkeypatch.setattr(httpx.Client, "send", lambda *_args, **_kw: pytest.fail("Unexpected I/O"))
     with sdk.RestClient(base_url="https://example.com/api/rest", account_api_key=ACCOUNT):
         pass
-    with sdk.SignalsClient(base_url="https://example.com", strategy_api_key=KEY):
+    with sdk.SignalsClient(base_url="https://example.com"):
         assert sdk.build_start_signal(version=1).timestamp.isdecimal()
     for url in [
         "http://example.com",
@@ -137,8 +135,9 @@ def test_import_and_construction_offline(monkeypatch):
     ]:
         with pytest.raises(sdk.SdkError):
             sdk.RestClient(base_url=url, account_api_key=ACCOUNT)
-    with pytest.raises(sdk.SdkError):
-        sdk.SignalsClient(base_url="https://example.com", strategy_api_key=ACCOUNT)
+    with sdk.SignalsClient(base_url="https://example.com") as client:
+        with pytest.raises(sdk.SdkError):
+            client.send(sdk.build_start_signal(version=1), strategy_api_key=ACCOUNT)
     for timeout in [None, "slow", True, 0, -1, math.inf, math.nan]:
         with pytest.raises(sdk.SdkError):
             sdk.RestClient(base_url="https://example.com", account_api_key=ACCOUNT, timeout=timeout)
@@ -160,8 +159,8 @@ def test_named_builders_and_omission(receiver):
         built.append(getattr(sdk, "build_" + action + "_signal")(version=1.5, timestamp="123"))
     with signals(receiver) as client:
         for message in built:
-            client.send(message)
-        client.send(built[0])
+            client.send(message, strategy_api_key=KEY)
+        client.send(built[0], strategy_api_key=KEY)
     assert len(receiver.requests) == 9
     assert receiver.requests[0]["body"] == receiver.requests[-1]["body"]
     assert "takeProfits" not in json.loads(receiver.requests[0]["body"])["order"]
@@ -306,7 +305,7 @@ def test_errors_and_no_retries(receiver, status):
         )
     with signals(receiver) as client:
         with pytest.raises(sdk.SdkError) as error:
-            client.send(sdk.build_start_signal(version=1))
+            client.send(sdk.build_start_signal(version=1), strategy_api_key=KEY)
         assert (error.value.status, error.value.code, error.value.request_id) == (
             status,
             "errors.vector.501",
@@ -341,7 +340,7 @@ def test_safe_errors_and_httpx_logging(receiver, caplog):
             assert sensitive not in str(error.value)
     with signals(receiver) as client:
         with pytest.raises(sdk.SdkError) as error:
-            client.send(sdk.build_start_signal(version=1))
+            client.send(sdk.build_start_signal(version=1), strategy_api_key=KEY)
         for sensitive in [ACCOUNT, KEY]:
             assert sensitive not in str(error.value)
     assert ACCOUNT not in caplog.text and KEY not in caplog.text
@@ -352,10 +351,10 @@ def test_safe_errors_and_httpx_logging(receiver, caplog):
         raise httpx.ConnectError(message, request=request)
 
     with sdk.SignalsClient(
-        base_url="https://example.com", strategy_api_key=KEY, transport=httpx.MockTransport(fail)
+        base_url="https://example.com", transport=httpx.MockTransport(fail)
     ) as client:
         with pytest.raises(sdk.SdkError) as error:
-            client.send(sdk.build_start_signal(version=1))
+            client.send(sdk.build_start_signal(version=1), strategy_api_key=KEY)
         rendered = "".join(traceback.format_exception(error.value))
         assert KEY not in rendered and ACCOUNT not in rendered
         assert error.value.kind == "transport" and error.value.__context__ is None
@@ -371,7 +370,7 @@ def test_deadlines_cancellation_and_cleanup(receiver):
     receiver.handler = hang
     with signals(receiver, timeout=0.02) as client:
         with pytest.raises(sdk.SdkError) as error:
-            client.send(sdk.build_start_signal(version=1))
+            client.send(sdk.build_start_signal(version=1), strategy_api_key=KEY)
         assert error.value.kind == "timeout"
     assert len(receiver.requests) == 1
     event = Event()
@@ -430,10 +429,10 @@ def test_redirects_and_protocol(receiver):
         assert error.value.status == 307
     with signals(receiver) as client:
         with pytest.raises(sdk.SdkError) as error:
-            client.send(sdk.build_start_signal(version=1))
+            client.send(sdk.build_start_signal(version=1), strategy_api_key=KEY)
         assert error.value.status == 307
         with pytest.raises(sdk.SdkError) as error:
-            client.send(sdk.build_start_signal(version=1))
+            client.send(sdk.build_start_signal(version=1), strategy_api_key=KEY)
         assert error.value.kind == "protocol"
     assert len(receiver.requests) == 3
 
@@ -451,7 +450,7 @@ def test_utf8_body_limit_and_unicode(receiver):
         sdk.build_signal(wire)
     wire["timestamp"] = "0" * 16000
     with signals(receiver) as client:
-        client.send(sdk.build_signal(wire))
+        client.send(sdk.build_signal(wire), strategy_api_key=KEY)
     assert len(receiver.requests[0]["body"]) <= 16384
     with pytest.raises(sdk.SdkError):
         sdk.build_signal({"action": "pause", "version": 1, "timestamp": "1", "extra": "данные"})
@@ -509,7 +508,7 @@ def test_lost_mutation_responses_are_not_retried(receiver):
         assert error.value.kind == "transport" and "unknown" in str(error.value)
     with signals(receiver) as client:
         with pytest.raises(sdk.SdkError) as error:
-            client.send(sdk.build_start_signal(version=1))
+            client.send(sdk.build_start_signal(version=1), strategy_api_key=KEY)
         assert error.value.kind == "transport"
     assert len(receiver.requests) == 2
 

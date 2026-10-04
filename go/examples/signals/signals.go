@@ -3,7 +3,6 @@ package signalexample
 
 import (
 	"context"
-	"net/http"
 
 	vectortrading "github.com/Vector-Trading/vector-trading-sdk/go"
 )
@@ -13,12 +12,7 @@ func PrepareClear(strategyVersion float64) (*vectortrading.UpdateSignalPayload, 
 	return vectortrading.BuildUpdateSignal(strategyVersion, 100, vectortrading.UpdateSignalPayloadOrder{Side: "buy", TakeProfits: []vectortrading.OpenSignalPayloadOrderTakeProfitsInner{}}, vectortrading.SignalOptions{})
 }
 
-// SendPrepared sends existing metadata without creating a new timestamp.
-func SendPrepared(ctx context.Context, baseURL, strategyKey string, message *vectortrading.UpdateSignalPayload, allowLocalHTTP bool) error {
-	client, err := vectortrading.NewSignalsClient(baseURL, strategyKey, vectortrading.ClientOptions{HTTPClient: &http.Client{}, AllowHTTPForLocalhost: allowLocalHTTP})
-	if err != nil {
-		return err
-	}
-	defer client.Close()
-	return client.Send(ctx, message)
+// SendPrepared reuses a client and sends existing metadata with this request's key.
+func SendPrepared(ctx context.Context, client *vectortrading.SignalsClient, strategyKey string, message *vectortrading.UpdateSignalPayload) error {
+	return client.Send(ctx, strategyKey, message)
 }

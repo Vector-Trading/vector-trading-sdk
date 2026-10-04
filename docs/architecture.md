@@ -85,7 +85,12 @@ and grant discriminators for generators; numeric transport models use double
 precision, avoiding Go's default `float32`. The original snapshots are unchanged.
 Tests compare all 40 signal schema outcomes and grant requiredness with the source.
 The generator also emits TypeScript `contract.ts` and Python/Go/Rust `contract.json` metadata
-from those same schemas and REST operations. Public runtime validation uses this accepted metadata without
+from those same schemas and REST operations. The SDK projection removes format/length
+constraints from request `cursor` and response `nextCursor` fields: tokens remain optional
+strings and are forwarded unchanged, including empty strings. Only absence ends traversal.
+The pinned server snapshot remains unchanged; the server interprets tokens. Request model
+reachability is annotated from REST bodies and `SignalPayload`, including nested objects.
+Public runtime validation uses this accepted metadata without
 a runtime schema-validation dependency or a separate handwritten contract.
 
 `generation/template-patches.json` holds nine narrow upstream-template overrides.
@@ -96,7 +101,9 @@ Each override pins the upstream template's SHA-256 and requires a unique match:
   non-finite numbers.
 - Python hides private input values in validation-error messages and preserves omitted fields while rejecting explicit `None`/`null` for
   non-nullable fields and non-finite numbers. Field validators also allow valid
-  assignment without treating unrelated unset fields as explicit nulls.
+  assignment without treating unrelated unset fields as explicit nulls. Reachable request
+  models reject unknown fields during construction and conversion without pre-filtering
+  dictionaries; response models retain forward-compatible handling of extra fields.
 - Go prefixes enum constants, selects disjoint unions by their discriminator,
   preserves non-nil empty TP slices through generated `MarshalJSON`, and rejects
   explicit nulls on non-nullable fields. Its internal trial HTTP template also normalizes diagnostic style and rejects the unused broken `*os.File` decode path; the public JSON-only transport does not use it.
@@ -138,7 +145,10 @@ the package. There is one authoritative generated tree, not a separately edited 
 validation. Cross-field signal checks implement the verified outgoing subset;
 they do not replace the server's authorization or trade processing.
 
-`SignalsClient` owns strategy-key delivery separately from account-key REST. Eight
+`SignalsClient` owns delivery separately from account-key REST. Every send requires its
+strategy key; key-bearing URLs and diagnostic cleanup belong to that call. Clients reuse
+their HTTP transport without storing strategy keys or creating an account authorization
+header for signals. This applies to all four language packages. Eight
 offline builders clone valid messages and fix timestamps before sending. The transport
 bounds requests through response-body receipt, does not follow redirects, and never
 retries automatically. Public errors expose bounded, redacted details without raw
@@ -207,8 +217,8 @@ wrappers expose seven asynchronous REST operations, four lazy page traversals, e
 offline named signal builders, validated serialization, and a separate strategy-key
 sender. Generated model enums preserve wire discriminators; nullable optional fields
 preserve omission/null, and `Option<Vec<T>>` preserves explicit empty TP arrays.
-Validation consumes generated schema/operation metadata and fails closed for unknown
-snapshot patterns. No generated file is edited by hand.
+Validation consumes generated schema/operation metadata; opaque pagination cursors
+are forwarded without format interpretation. No generated file is edited by hand.
 
 The managed reqwest client uses HTTPS with verified certificates, HTTP/1, no idle
 connection reuse, no redirects, and an explicit never-retry policy. Total timeouts

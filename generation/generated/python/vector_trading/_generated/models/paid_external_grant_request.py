@@ -88,6 +88,7 @@ class PaidExternalGrantRequest(BaseModel):
     model_config = ConfigDict(
         allow_inf_nan=False,
         hide_input_in_errors=True,
+        extra="forbid",
         validate_by_name=True,
         validate_by_alias=True,
         validate_assignment=True,
@@ -137,12 +138,6 @@ class PaidExternalGrantRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({key: value for key, value in {
-            "endsAt": obj.get("endsAt"),
-            "grantType": obj.get("grantType"),
-            "sourceId": obj.get("sourceId"),
-            "userId": obj.get("userId")
-        }.items() if key in obj})
-        return _obj
+        return cls.model_validate(obj)
 
 

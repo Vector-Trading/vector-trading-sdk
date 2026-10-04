@@ -16,6 +16,43 @@ import {
 } from './generation.ts';
 
 describe('canonical contract and generation boundaries', () => {
+  it('projects opaque cursors and strict input models without modifying the server snapshot', async () => {
+    const rest = await readJson<Specification>(join(root, 'contracts/rest.openapi.json'));
+    const before = JSON.stringify(rest);
+    const spec = project(rest, await readJson(join(root, 'contracts/signals.schema.json')));
+    expect(JSON.stringify(rest)).toBe(before);
+    for (const path of Object.values(spec.paths))
+      for (const operation of Object.values(path))
+        for (const parameter of operation.parameters ?? [])
+          if (parameter.name === 'cursor') {
+            expect(parameter.schema.type).toBe('string');
+            for (const constraint of ['pattern', 'format', 'minLength', 'maxLength'])
+              expect(parameter.schema[constraint]).toBeUndefined();
+          }
+    expect(
+      spec.components.schemas['BundleUsersResponse']?.properties?.['nextCursor']?.['pattern'],
+    ).toBeUndefined();
+    for (const name of [
+      'CreateGrantRequest',
+      'OtherGrantRequest',
+      'PaidExternalGrantRequest',
+      'SignalPayload',
+      'OpenSignalPayload',
+    ])
+      expect(spec.components.schemas[name]?.['x-vector-strict-input']).toBe(true);
+    for (const name of [
+      'BundlesResponse',
+      'BundleUsersResponse',
+      'CheckoutDetails',
+      'TradingBundleAccessGrantSummary',
+    ])
+      expect(spec.components.schemas[name]?.['x-vector-strict-input']).toBeUndefined();
+    expect(
+      spec.components.schemas['OpenSignalPayload']?.properties?.['order']?.[
+        'x-vector-strict-input'
+      ],
+    ).toBe(true);
+  });
   it('preserves all signal fixture acceptance through the OpenAPI projection', async () => {
     const rest = await readJson<Specification>(join(root, 'contracts/rest.openapi.json'));
     const signals = await readJson<{ definitions: Record<string, Schema>; oneOf: Schema[] }>(
@@ -33,7 +70,14 @@ describe('canonical contract and generation boundaries', () => {
     );
     for (const fixture of fixtures)
       expect(validate(fixture.payload), fixture.id).toBe(fixture.schemaAccepted);
-    expect(spec.paths).toEqual(rest.paths);
+    const paths = structuredClone(rest.paths);
+    for (const path of Object.values(paths))
+      for (const operation of Object.values(path))
+        for (const parameter of operation.parameters ?? [])
+          if (parameter.name === 'cursor' && parameter.in === 'query')
+            for (const constraint of ['pattern', 'format', 'minLength', 'maxLength'])
+              delete parameter.schema[constraint];
+    expect(spec.paths).toEqual(paths);
   });
   it('keeps grant requiredness, shared fields, null and strict-object behavior', async () => {
     const rest = await readJson<Specification>(join(root, 'contracts/rest.openapi.json'));

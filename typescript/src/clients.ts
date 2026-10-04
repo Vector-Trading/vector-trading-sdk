@@ -9,24 +9,40 @@ import {
   type RevokeBundleGrantRequest,
 } from '../../generation/generated/typescript/apis/DefaultApi.js';
 import { Configuration, FetchError } from '../../generation/generated/typescript/runtime.js';
-import type { SignalPayload } from '../../generation/generated/typescript/models/SignalPayload.js';
 import { SdkError } from './errors.js';
-import { serializeSignal } from './signals.js';
-import { Transport, type TransportOptions, type RequestOptions } from './transport.js';
+import { serializeSignal, type StrategySignalPayload } from './signals.js';
+import {
+  Transport,
+  validateCredential,
+  type TransportOptions,
+  type RequestOptions,
+} from './transport.js';
 import { object, validateModel, validateParameters } from './validation.js';
 
 export interface RestClientOptions extends TransportOptions {
   accountApiKey: string;
 }
-export interface SignalsClientOptions extends TransportOptions {
+export type SignalsClientOptions = TransportOptions;
+export interface SendSignalRequest {
   strategyApiKey: string;
+  payload: StrategySignalPayload;
 }
 
 export class RestClient {
   #transport: Transport;
   #key: string;
   constructor(options: RestClientOptions) {
-    this.#transport = new Transport(options, options.accountApiKey);
+    validateCredential(options.accountApiKey);
+    this.#transport = new Transport(
+      {
+        ...options,
+        baseUrl:
+          options.baseUrl === undefined
+            ? 'https://www.vector-trading.app/api/rest'
+            : options.baseUrl,
+      },
+      options.accountApiKey,
+    );
     this.#key = options.accountApiKey;
   }
   async #call<T>(
@@ -138,23 +154,35 @@ export class RestClient {
 
 export class SignalsClient {
   #transport: Transport;
-  #url: string;
-  constructor(options: SignalsClientOptions) {
-    if (!/^[a-f0-9]{32}$/.test(options.strategyApiKey))
+  constructor(options: SignalsClientOptions = {}) {
+    this.#transport = new Transport({
+      ...options,
+      baseUrl: options.baseUrl === undefined ? 'https://www.vector-trading.app' : options.baseUrl,
+    });
+  }
+  async send(request: SendSignalRequest, options: RequestOptions = {}): Promise<void> {
+    const strategyApiKey = object(request) ? request.strategyApiKey : undefined;
+    if (
+      typeof strategyApiKey !== 'string' ||
+      strategyApiKey.length !== 32 ||
+      !/^[a-f0-9]{32}$/.test(strategyApiKey)
+    )
       throw new SdkError(
         'validation',
         'strategyApiKey must be 32 lowercase hexadecimal characters',
       );
-    this.#transport = new Transport(options, options.strategyApiKey);
-    this.#url = this.#transport.url + '/webhooks/signals/v1/' + options.strategyApiKey;
-  }
-  async send(payload: SignalPayload, options: RequestOptions = {}): Promise<void> {
-    const body = serializeSignal(payload);
-    await this.#transport.request(this.#url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      ...(options.signal ? { signal: options.signal } : {}),
-    });
+    const body = serializeSignal(request.payload);
+    const url = this.#transport.url + '/webhooks/signals/v1/' + strategyApiKey;
+    await this.#transport.request(
+      url,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        ...(options.signal ? { signal: options.signal } : {}),
+      },
+      undefined,
+      strategyApiKey,
+    );
   }
 }

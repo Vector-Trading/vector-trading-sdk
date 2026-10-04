@@ -105,7 +105,6 @@ describe('public SDK contract', () => {
   const webhook = (base: string, options = {}) =>
     new SignalsClient({
       baseUrl: base,
-      strategyApiKey: strategyKey,
       allowLocalHttp: true,
       ...options,
     });
@@ -224,9 +223,6 @@ describe('public SDK contract', () => {
       () =>
         new RestClient({ baseUrl: 'https://user:secret@example.com', accountApiKey: accountKey }),
     ).toThrow(SdkError);
-    expect(
-      () => new SignalsClient({ baseUrl: 'https://example.com', strategyApiKey: accountKey }),
-    ).toThrow(SdkError);
   });
   it.each(restFixtures)('C02: REST fixture $id', async (fixture) => {
     respond(fixture.expectedStatus, fixture.response);
@@ -256,7 +252,7 @@ describe('public SDK contract', () => {
     }
     expect(JSON.parse(serializeSignal(fixture.payload))).toEqual(fixture.payload);
     respond(204, undefined);
-    await webhook(origin).send(fixture.payload);
+    await webhook(origin).send({ strategyApiKey: strategyKey, payload: fixture.payload });
     expect(JSON.parse(requests[0]!.body)).toEqual(fixture.payload);
     expect(requests[0]!.url).toBe('/webhooks/signals/v1/' + strategyKey);
     expect(requests[0]!.authorization).toBeUndefined();
@@ -322,8 +318,8 @@ describe('public SDK contract', () => {
     expect(omitted.timestamp).toBe('1720000000000');
     expect(omitted.version).toBe(1.5);
     clock.mockReturnValue(1720000000001);
-    await webhook(origin).send(omitted);
-    await webhook(origin).send(omitted);
+    await webhook(origin).send({ strategyApiKey: strategyKey, payload: omitted });
+    await webhook(origin).send({ strategyApiKey: strategyKey, payload: omitted });
     expect(requests[0]!.body).toBe(requests[1]!.body);
     expect(buildStartSignal({ version: 1, timestamp: '12' }).timestamp).toBe('12');
     expect(buildDeleteSignal({ version: 1 }).timestamp).toBe('1720000000001');
@@ -414,7 +410,12 @@ describe('public SDK contract', () => {
       });
       expect(requests).toHaveLength(1);
       requests.length = 0;
-      await expect(webhook(origin).send(buildStartSignal({ version: 1 }))).rejects.toMatchObject({
+      await expect(
+        webhook(origin).send({
+          strategyApiKey: strategyKey,
+          payload: buildStartSignal({ version: 1 }),
+        }),
+      ).rejects.toMatchObject({
         kind: 'http',
         status,
       });
@@ -423,7 +424,12 @@ describe('public SDK contract', () => {
   );
   it('C07: error variants, private data and credentials never leak', async () => {
     respond(500, { errorCode: 'errors.vector.501', message: 'Unavailable', requestId: 'req-123' });
-    await expect(webhook(origin).send(buildStartSignal({ version: 1 }))).rejects.toMatchObject({
+    await expect(
+      webhook(origin).send({
+        strategyApiKey: strategyKey,
+        payload: buildStartSignal({ version: 1 }),
+      }),
+    ).rejects.toMatchObject({
       status: 500,
       code: 'errors.vector.501',
       requestId: 'req-123',
@@ -463,9 +469,19 @@ describe('public SDK contract', () => {
   });
   it('C08/C09: acknowledgement, timeouts and cancellation have no automatic retries', async () => {
     respond(204, undefined);
-    await expect(webhook(origin).send(buildStartSignal({ version: 1 }))).resolves.toBeUndefined();
+    await expect(
+      webhook(origin).send({
+        strategyApiKey: strategyKey,
+        payload: buildStartSignal({ version: 1 }),
+      }),
+    ).resolves.toBeUndefined();
     respond(200, {});
-    await expect(webhook(origin).send(buildStartSignal({ version: 1 }))).rejects.toMatchObject({
+    await expect(
+      webhook(origin).send({
+        strategyApiKey: strategyKey,
+        payload: buildStartSignal({ version: 1 }),
+      }),
+    ).rejects.toMatchObject({
       kind: 'protocol',
     });
     requests.length = 0;
@@ -507,7 +523,10 @@ describe('public SDK contract', () => {
     expect(requests).toHaveLength(1);
     requests.length = 0;
     await expect(
-      webhook(origin, { timeoutMs: 30 }).send(buildStartSignal({ version: 1 })),
+      webhook(origin, { timeoutMs: 30 }).send({
+        strategyApiKey: strategyKey,
+        payload: buildStartSignal({ version: 1 }),
+      }),
     ).rejects.toMatchObject({ kind: 'timeout' });
     expect(requests).toHaveLength(1);
   });
@@ -523,7 +542,12 @@ describe('public SDK contract', () => {
     try {
       respond(307, '', { Location: 'http://127.0.0.1:' + addr.port + '/target' });
       await expect(rest(origin).listBundles()).rejects.toMatchObject({ kind: 'http', status: 307 });
-      await expect(webhook(origin).send(buildStartSignal({ version: 1 }))).rejects.toMatchObject({
+      await expect(
+        webhook(origin).send({
+          strategyApiKey: strategyKey,
+          payload: buildStartSignal({ version: 1 }),
+        }),
+      ).rejects.toMatchObject({
         kind: 'http',
         status: 307,
       });
@@ -539,7 +563,10 @@ describe('public SDK contract', () => {
     expect(new URL(requests[0]!.url, origin).searchParams.get('displayName')).toBe('Ал"\\');
     const before = requests.length;
     await expect(
-      webhook(origin).send({ action: 'start', version: 1, timestamp: '0'.repeat(16 * 1024) }),
+      webhook(origin).send({
+        strategyApiKey: strategyKey,
+        payload: { action: 'start', version: 1, timestamp: '0'.repeat(16 * 1024) },
+      }),
     ).rejects.toMatchObject({ kind: 'validation', message: 'Signal body exceeds 16 KiB' });
     expect(() => buildStartSignal({ version: 1, timestamp: '0'.repeat(16 * 1024) })).toThrow(
       'Signal body exceeds 16 KiB',
@@ -557,7 +584,9 @@ describe('public SDK contract', () => {
     const huge = buildStartSignal({ version: 1 });
     // @ts-expect-error unknown fields cannot bypass body/shape checks
     huge.extra = 'я'.repeat(9000);
-    await expect(webhook(origin).send(huge)).rejects.toMatchObject({ kind: 'validation' });
+    await expect(
+      webhook(origin).send({ strategyApiKey: strategyKey, payload: huge }),
+    ).rejects.toMatchObject({ kind: 'validation' });
     expect(requests).toHaveLength(before);
     await expect(rest(origin).searchUsers({ displayName: 'x'.repeat(31) })).rejects.toMatchObject({
       kind: 'validation',

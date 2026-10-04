@@ -6,6 +6,6 @@ def open_then_clear_targets(base_url: str, strategy_api_key: str, strategy_versi
     clearing = build_update_signal(
         version=strategy_version, market_price=100, order={"side": "buy", "takeProfits": []}
     )
-    with SignalsClient(base_url=base_url, strategy_api_key=strategy_api_key) as client:
-        client.send(opening)
-        client.send(clearing)
+    with SignalsClient(base_url=base_url) as client:
+        client.send(opening, strategy_api_key=strategy_api_key)
+        client.send(clearing, strategy_api_key=strategy_api_key)

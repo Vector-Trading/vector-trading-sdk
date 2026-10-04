@@ -10,7 +10,7 @@ import (
 
 // Run lists bundles using a caller-supplied address and account key.
 func Run(ctx context.Context, baseURL, accountKey string, allowLocalHTTP bool) error {
-	client, err := vectortrading.NewRestClient(baseURL, accountKey, vectortrading.ClientOptions{HTTPClient: &http.Client{}, AllowHTTPForLocalhost: allowLocalHTTP})
+	client, err := vectortrading.NewRestClient(accountKey, vectortrading.ClientOptions{BaseURL: baseURL, HTTPClient: &http.Client{}, AllowHTTPForLocalhost: allowLocalHTTP})
 	if err != nil {
 		return err
 	}

@@ -18,17 +18,15 @@ is reproducible, while applications resolve compatible dependencies in their own
 
 ## REST requests
 
-Use the deployment's absolute REST base ending in `/api/rest`. Account keys are
-intended for server-side integrations. Construction performs no network work.
+REST defaults to `https://www.vector-trading.app/api/rest`; signals default to
+`https://www.vector-trading.app`. Set `ClientOptions.base_url` to `Some(url)` for
+another deployment; `None` uses production and a REST override includes `/api/rest`.
+Account keys are intended for server-side integrations. Construction performs no network work.
 
 ```rust,no_run
 use vector_trading_sdk::{ClientOptions, PageOptions, RestClient};
 # async fn example() -> vector_trading_sdk::Result<()> {
-let client = RestClient::new(
-    "https://your-deployment.example/api/rest",
-    "ACCOUNT_KEY_FROM_PRIVATE_CONFIGURATION",
-    ClientOptions::default(),
-)?;
+let client = RestClient::new("ACCOUNT_KEY_FROM_PRIVATE_CONFIGURATION", ClientOptions::default())?;
 let first = client.list_bundles(PageOptions { limit: Some(20), ..Default::default() }).await?;
 let mut pages = client.users_pages("Example", PageOptions::default())?;
 while let Some(page) = pages.next().await? {
@@ -101,17 +99,21 @@ are rejected before a request. Generated field serializers also reject non-finit
 ```rust,no_run
 use vector_trading_sdk::{build_start_signal, ClientOptions, SignalOptions, SignalsClient};
 # async fn example() -> vector_trading_sdk::Result<()> {
-let client = SignalsClient::new(
-    "https://your-deployment.example",
-    "00000000000000000000000000000000", // Replace from private configuration.
-    ClientOptions::default(),
-)?;
+let client = SignalsClient::new(ClientOptions::default())?;
 let prepared = build_start_signal(1.0, SignalOptions::default())?;
-client.send(&prepared).await?;
+let strategy_key = std::env::var("VECTOR_STRATEGY_KEY").expect("strategy key");
+let other_key = std::env::var("VECTOR_OTHER_STRATEGY_KEY").expect("other strategy key");
+client.send(&strategy_key, &prepared).await?;
+client.send(&other_key, &prepared).await?;
 client.close();
 # Ok(())
 # }
 ```
+
+The client stores no strategy credential. Every `send` requires exactly 32 lowercase
+ASCII hexadecimal characters; invalid keys fail locally before serialization or HTTP.
+One client and its clones can send concurrently to different strategies without
+changing the prepared payload. Configure account keys separately on `RestClient`.
 
 A webhook `204` confirms enqueue acceptance, not an executed trade. Neither failures
 nor timeouts cause automatic retries. There is no permanent deduplication guarantee.
@@ -137,6 +139,11 @@ is bounded/redacted; errors retain no raw HTTP causes or request bodies. Client 
 output excludes credentials and URLs. Public error codes and request IDs are preserved
 when safe. The SDK does not log requests; application middleware must also avoid
 private headers, URL paths, and bodies.
+Messages redact supplied string, numeric, and boolean body values. Error codes and
+request IDs retain their public meaning while redacting the current request's
+credential and private URLs. A string `requestId` in an error body takes priority;
+otherwise the SDK uses a safe `x-request-id` response header, including for empty or
+non-JSON errors. A failed or cancelled send leaves later independent sends usable.
 
 ## Development and packaging
 

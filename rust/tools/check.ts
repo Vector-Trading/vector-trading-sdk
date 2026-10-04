@@ -128,6 +128,7 @@ async function consumer(version: string, archive: string): Promise<void> {
   const temp = await mkdtemp(join(tmpdir(), 'vector-sdk-rust-consumer-'));
   const account = 'vt_synthetic_consumer_account';
   const strategy = '7ab97361321c46f2bc7300a04fd6d133';
+  const otherStrategy = '8ab97361321c46f2bc7300a04fd6d133';
   const bundle = '2be97361321c46f2bc7300a04fd6d133';
   const user = '3ce97361321c46f2bc7300a04fd6d244';
   const checkout = '6fe97361321c46f2bc7300a04fd6d577';
@@ -151,7 +152,7 @@ async function consumer(version: string, archive: string): Promise<void> {
       received.push({ path, body });
       if (path.startsWith('/webhooks/')) {
         if (
-          path !== `/webhooks/signals/v1/${strategy}` ||
+          ![strategy, otherStrategy].some((key) => path === `/webhooks/signals/v1/${key}`) ||
           request.headers.authorization !== undefined ||
           request.method !== 'POST'
         )
@@ -261,6 +262,7 @@ async function consumer(version: string, archive: string): Promise<void> {
       VECTOR_LOCAL_TEST: '1',
       VECTOR_ACCOUNT_KEY: account,
       VECTOR_STRATEGY_KEY: strategy,
+      VECTOR_OTHER_STRATEGY_KEY: otherStrategy,
       VECTOR_BUNDLE_ID: bundle,
       VECTOR_USER_ID: user,
       VECTOR_CHECKOUT_ID: checkout,
@@ -280,6 +282,9 @@ async function consumer(version: string, archive: string): Promise<void> {
     if (failure) throw failure;
     if (
       received.length !== 15 ||
+      ![strategy, otherStrategy].every((key) =>
+        received.some((r) => r.path === `/webhooks/signals/v1/${key}`),
+      ) ||
       new Set(
         received
           .filter((r) => r.path.startsWith('/webhooks/'))

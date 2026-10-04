@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 from pydantic import field_validator
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
 from typing import Annotated
 from vector_trading._generated.models.trading_bundle_granted_user import TradingBundleGrantedUser
@@ -31,20 +31,10 @@ class BundleUsersResponse(BaseModel):
     BundleUsersResponse
     """ # noqa: E501
     limit: Annotated[int, Field(le=100, strict=True, ge=1)] = Field(json_schema_extra={"examples": [50]})
-    next_cursor: Optional[Annotated[str, Field(strict=True)]] = Field(default=None, description="Opaque owner-scoped cursor to pass unchanged on the next page request.", alias="nextCursor")
+    next_cursor: Optional[StrictStr] = Field(default=None, description="Opaque owner-scoped cursor to pass unchanged on the next page request.", alias="nextCursor")
     users: List[TradingBundleGrantedUser]
     additional_properties: Dict[str, Any] = {}
     __properties: ClassVar[List[str]] = ["limit", "nextCursor", "users"]
-
-    @field_validator('next_cursor', mode="before")
-    def next_cursor_validate_regular_expression(cls, value):
-        """Validates the regular expression"""
-        if value is None:
-            return value
-
-        if isinstance(value, str) and not re.match(r"^(?:grant|scan):[a-f0-9]{32}$", value):
-            raise ValueError(r"must validate the regular expression /^(?:grant|scan):[a-f0-9]{32}$/")
-        return value
 
     @field_validator("limit", mode="before")
     @classmethod

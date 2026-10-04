@@ -17,12 +17,14 @@ Actual GitHub/public proxy installation is verified at the release step.
 
 ## REST integration
 
-Account keys belong to server integrations. Supply an absolute base URL ending in
-`/api/rest`, an account key from your application's secret configuration, and an
-explicit HTTP client:
+Account keys belong to server integrations. The REST base defaults to
+`https://www.vector-trading.app/api/rest`; signal clients default to
+`https://www.vector-trading.app`. Set `ClientOptions.BaseURL` for another deployment;
+an empty value uses production and a REST override includes `/api/rest`. Supply an
+account key from your application's secret configuration:
 
 ```go
-client, err := vectortrading.NewRestClient(baseURL, accountKey, vectortrading.ClientOptions{
+client, err := vectortrading.NewRestClient(accountKey, vectortrading.ClientOptions{
     HTTPClient: &http.Client{},
     Timeout: 10 * time.Second,
 })
@@ -66,7 +68,8 @@ Revocation retains the server's cascading effects.
 `BundlesPages`, `UsersPages`, `BundleUsersPages`, and `BundleGrantsPages` yield page/error
 pairs through Go iterators. Empty pages with `nextCursor` continue. All filters and the
 caller context are preserved; repeated cursors fail explicitly. `PageOptions` has
-`Limit` and opaque `Cursor`. `GrantsOptions` additionally has `UserID`, `GrantType`,
+`Limit` and opaque `Cursor`; a non-nil pointer to an empty cursor is sent as `cursor=`.
+Only an absent `nextCursor` ends traversal. `GrantsOptions` additionally has `UserID`, `GrantType`,
 `SourceID`, `StartsAfter`, `StartsBefore`, `EndsAfter`, `EndsBefore`, `CreatedAfter`,
 `CreatedBefore`, `Sort`, and `Dir`. Optional inputs are pointers; `Ptr` is a convenience.
 
@@ -88,19 +91,30 @@ if err != nil {
     return err
 }
 
-signals, err := vectortrading.NewSignalsClient(serverOrigin, strategyKey, vectortrading.ClientOptions{
+signals, err := vectortrading.NewSignalsClient(vectortrading.ClientOptions{
     HTTPClient: &http.Client{},
 })
 if err != nil {
     return err
 }
 defer signals.Close()
-return signals.Send(ctx, message)
+if err := signals.Send(ctx, strategyKey, message); err != nil {
+    return err
+}
+return signals.Send(ctx, anotherStrategyKey, message)
 ```
 
 A nil TP slice omits `takeProfits`; a non-nil empty slice emits `[]` to clear targets;
 a populated slice replaces them. Generated codecs preserve this distinction even though
 an ordinary slice with `omitempty` would lose the empty array. Raw JSON null is rejected.
+
+`NewSignalsClient` takes transport options, including the optional `BaseURL`.
+`Send(ctx, strategyKey, payload)` requires a 32-character lowercase hexadecimal key
+for each call, before payload serialization or HTTP. One client supports concurrent
+calls with different keys; no strategy key is stored in the client. The key belongs
+to the webhook URL path and never to the JSON body or an `Authorization` header.
+The REST account key stays in `NewRestClient`. Pine Script builds JSON offline;
+TradingView configures the webhook URL with its strategy key separately.
 
 `BuildOpenSignal` and `BuildUpdateSignal` take strategy version, market price, their
 respective order model, and options. `BuildCancelSignal` and `BuildCloseSignal` take
@@ -132,9 +146,11 @@ private URLs, headers, or bodies. Responses are closed and bounded to 1 MiB.
 Use `errors.As(err, &sdkError)` with `var sdkError *vectortrading.Error`. Fields are
 `Kind`, `Message`, `Status`, `Code`, and `RequestID`. Kinds include `validation`, `http`,
 `transport`, `timeout`, `cancelled`, `protocol`, `pagination`, and `closed`. Diagnostics
-are bounded and redact credentials, private URLs, and supplied body/query strings;
+are bounded and redact credentials, private URLs, and supplied body/query values;
 raw requests, responses, and underlying causes are not retained. A timeout or lost
 response can leave a mutation's outcome unknown; the client makes one attempt.
+`RequestID` uses a string `requestId` from the response body, otherwise the
+`x-request-id` header, with the same credential and URL redaction for either source.
 
 Response models retain unknown optional fields. Nullable `PublicUser.Avatar` exposes
 `IsSet` and `Get` to distinguish omission from explicit null. For common semantics,

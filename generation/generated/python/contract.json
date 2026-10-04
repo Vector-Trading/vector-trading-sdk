@@ -22,7 +22,6 @@
             "name": "cursor",
             "required": false,
             "schema": {
-              "pattern": "^[a-f0-9]{32}$",
               "type": "string"
             }
           }
@@ -228,7 +227,6 @@
             "name": "cursor",
             "required": false,
             "schema": {
-              "pattern": "^[a-f0-9]{32}$",
               "type": "string"
             }
           },
@@ -664,7 +662,6 @@
             "name": "cursor",
             "required": false,
             "schema": {
-              "pattern": "^(?:grant|scan):[a-f0-9]{32}$",
               "type": "string"
             }
           }
@@ -914,7 +911,6 @@
             "name": "cursor",
             "required": false,
             "schema": {
-              "pattern": "^[a-f0-9]{32}$",
               "type": "string"
             }
           }
@@ -1099,7 +1095,6 @@
         },
         "nextCursor": {
           "description": "Opaque owner-scoped cursor to pass unchanged on the next page request.",
-          "pattern": "^(?:grant|scan):[a-f0-9]{32}$",
           "type": "string",
           "x-vector-optional-nonnullable": true
         },
@@ -1156,7 +1151,8 @@
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "CheckoutDetails": {
       "description": "Short-lived checkout details for an owner checkout. price, currency, and discount are current bundle display terms; trialPeriodDays is intentionally not returned.",
@@ -1260,7 +1256,8 @@
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "CreateGrantRequest": {
       "discriminator": {
@@ -1279,7 +1276,8 @@
         {
           "$ref": "#/components/schemas/OtherGrantRequest"
         }
-      ]
+      ],
+      "x-vector-strict-input": true
     },
     "DeleteSignalPayload": {
       "additionalProperties": false,
@@ -1313,7 +1311,8 @@
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "ErrorResponse": {
       "properties": {
@@ -1439,7 +1438,8 @@
                   "price",
                   "percent"
                 ],
-                "type": "object"
+                "type": "object",
+                "x-vector-strict-input": true
               },
               "maxItems": 10,
               "type": "array",
@@ -1457,7 +1457,8 @@
           "required": [
             "side"
           ],
-          "type": "object"
+          "type": "object",
+          "x-vector-strict-input": true
         },
         "timestamp": {
           "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
@@ -1479,7 +1480,8 @@
         "marketPrice",
         "order"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "OtherGrantRequest": {
       "additionalProperties": false,
@@ -1517,7 +1519,8 @@
         "grantType",
         "userId"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "OwnedTradingBundleSummary": {
       "properties": {
@@ -1616,7 +1619,8 @@
         "sourceId",
         "userId"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "PauseSignalPayload": {
       "additionalProperties": false,
@@ -1650,7 +1654,8 @@
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "PublicUser": {
       "properties": {
@@ -1738,7 +1743,8 @@
         {
           "$ref": "#/components/schemas/DeleteSignalPayload"
         }
-      ]
+      ],
+      "x-vector-strict-input": true
     },
     "StartSignalPayload": {
       "additionalProperties": false,
@@ -1772,7 +1778,8 @@
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "StopSignalPayload": {
       "additionalProperties": false,
@@ -1806,7 +1813,8 @@
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "TradingBundleAccessGrantSummary": {
       "properties": {
@@ -1974,7 +1982,8 @@
                   "price",
                   "percent"
                 ],
-                "type": "object"
+                "type": "object",
+                "x-vector-strict-input": true
               },
               "maxItems": 10,
               "type": "array",
@@ -1992,7 +2001,8 @@
           "required": [
             "side"
           ],
-          "type": "object"
+          "type": "object",
+          "x-vector-strict-input": true
         },
         "timestamp": {
           "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
@@ -2014,7 +2024,8 @@
         "marketPrice",
         "order"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "UsersSearchResponse": {
       "properties": {

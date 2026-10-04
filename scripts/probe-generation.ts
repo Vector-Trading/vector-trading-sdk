@@ -1,9 +1,10 @@
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { root, languages, readJson, compareGenerated, generatedPath } from './generation.ts';
 import { checkContracts } from './check-contracts.ts';
+import { prepareRustProbe } from './rust-probe.ts';
 
 await checkContracts();
 await compareGenerated();
@@ -32,7 +33,7 @@ function run(command: string, args: string[], cwd: string, env: NodeJS.ProcessEn
   }
 }
 try {
-  for (const language of languages)
+  for (const language of languages.filter((language) => language !== 'rust'))
     await cp(generatedPath(language), join(temp, language), {
       recursive: true,
     });
@@ -91,10 +92,7 @@ try {
   if (externalModules) throw new Error('Go must have no external modules: ' + externalModules);
   run(go, ['test', '-mod=readonly', '-v', '.'], join(temp, 'go'), goEnv);
   console.log('Go compiled and passed fixtures with no external modules and GOPROXY=off.');
-  await mkdir(join(temp, 'rust/src/bin'), { recursive: true });
-  await cp(join(root, 'generation/probes/rust.rs'), join(temp, 'rust/src/bin/probe.rs'));
-  for (const name of ['Cargo.toml', 'Cargo.lock'])
-    await cp(join(root, 'generation/probes/rust', name), join(temp, 'rust', name));
+  await prepareRustProbe(join(temp, 'rust'));
   const target = process.env['CARGO_TARGET_DIR'] ?? join(root, '.cache/generation/rust-target');
   for (const version of [tools.rust, tools.rustMSRV]) {
     run(

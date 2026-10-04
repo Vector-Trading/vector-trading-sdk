@@ -667,7 +667,7 @@ class DefaultApi:
         created_after: Optional[datetime] = None,
         created_before: Optional[datetime] = None,
         limit: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque cursor from the previous response. Keep filters and sorting unchanged between pages.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous response. Keep filters and sorting unchanged between pages.")] = None,
         sort: Optional[StrictStr] = None,
         dir: Optional[StrictStr] = None,
         _request_timeout: Union[
@@ -794,7 +794,7 @@ class DefaultApi:
         created_after: Optional[datetime] = None,
         created_before: Optional[datetime] = None,
         limit: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque cursor from the previous response. Keep filters and sorting unchanged between pages.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous response. Keep filters and sorting unchanged between pages.")] = None,
         sort: Optional[StrictStr] = None,
         dir: Optional[StrictStr] = None,
         _request_timeout: Union[
@@ -921,7 +921,7 @@ class DefaultApi:
         created_after: Optional[datetime] = None,
         created_before: Optional[datetime] = None,
         limit: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque cursor from the previous response. Keep filters and sorting unchanged between pages.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous response. Keep filters and sorting unchanged between pages.")] = None,
         sort: Optional[StrictStr] = None,
         dir: Optional[StrictStr] = None,
         _request_timeout: Union[
@@ -1218,7 +1218,7 @@ class DefaultApi:
         self,
         bundle_id: Annotated[str, Field(strict=True)],
         limit: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque owner-scoped cursor from the previous response. A filtered page can be empty with nextCursor; continue until it is absent.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque owner-scoped cursor from the previous response. A filtered page can be empty with nextCursor; continue until it is absent.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1300,7 +1300,7 @@ class DefaultApi:
         self,
         bundle_id: Annotated[str, Field(strict=True)],
         limit: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque owner-scoped cursor from the previous response. A filtered page can be empty with nextCursor; continue until it is absent.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque owner-scoped cursor from the previous response. A filtered page can be empty with nextCursor; continue until it is absent.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1382,7 +1382,7 @@ class DefaultApi:
         self,
         bundle_id: Annotated[str, Field(strict=True)],
         limit: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque owner-scoped cursor from the previous response. A filtered page can be empty with nextCursor; continue until it is absent.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque owner-scoped cursor from the previous response. A filtered page can be empty with nextCursor; continue until it is absent.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1533,7 +1533,7 @@ class DefaultApi:
     async def list_bundles(
         self,
         limit: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque cursor from the previous response.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous response.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1611,7 +1611,7 @@ class DefaultApi:
     async def list_bundles_with_http_info(
         self,
         limit: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque cursor from the previous response.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous response.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -1689,7 +1689,7 @@ class DefaultApi:
     async def list_bundles_without_preload_content(
         self,
         limit: Optional[Annotated[int, Field(le=100, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque cursor from the previous response.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous response.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2135,7 +2135,7 @@ class DefaultApi:
         self,
         display_name: Annotated[str, Field(min_length=2, strict=True, max_length=30, description="Display name prefix searched across active users except the API key owner.")],
         limit: Optional[Annotated[int, Field(le=50, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque cursor from the previous response. Keep displayName unchanged between pages.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous response. Keep displayName unchanged between pages.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2216,7 +2216,7 @@ class DefaultApi:
         self,
         display_name: Annotated[str, Field(min_length=2, strict=True, max_length=30, description="Display name prefix searched across active users except the API key owner.")],
         limit: Optional[Annotated[int, Field(le=50, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque cursor from the previous response. Keep displayName unchanged between pages.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous response. Keep displayName unchanged between pages.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],
@@ -2297,7 +2297,7 @@ class DefaultApi:
         self,
         display_name: Annotated[str, Field(min_length=2, strict=True, max_length=30, description="Display name prefix searched across active users except the API key owner.")],
         limit: Optional[Annotated[int, Field(le=50, strict=True, ge=1)]] = None,
-        cursor: Annotated[Optional[Annotated[str, Field(strict=True)]], Field(description="Opaque cursor from the previous response. Keep displayName unchanged between pages.")] = None,
+        cursor: Annotated[Optional[StrictStr], Field(description="Opaque cursor from the previous response. Keep displayName unchanged between pages.")] = None,
         _request_timeout: Union[
             None,
             Annotated[StrictFloat, Field(gt=0)],

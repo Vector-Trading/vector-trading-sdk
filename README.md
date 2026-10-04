@@ -30,6 +30,13 @@ without publishing credentials.
 Tool setup and commands are covered in the [development guide](docs/development.md).
 Current responsibilities are described in the [architecture](docs/architecture.md).
 
-The SDK sends HTTP requests and build JSON signals. Trading rules, authorization,
+The SDK sends HTTP requests and builds JSON signals. Trading rules, authorization,
 and execution belong to the server. REST account API keys are intended for server-side
 integrations; webhook strategy API keys are separate credentials.
+
+Create one signal client per transport configuration and provide the strategy key for
+each send. REST clients keep their account key. See the package guides and
+[delivery contract](docs/contracts.md#webhook-delivery-result) for public signatures.
+
+Clients default to `https://www.vector-trading.app` (REST adds `/api/rest`).
+The base URL remains configurable for other deployments; see [the address contract](docs/contracts.md#rest-address-key-and-permissions).

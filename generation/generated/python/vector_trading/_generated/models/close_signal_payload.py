@@ -98,6 +98,7 @@ class CloseSignalPayload(BaseModel):
     model_config = ConfigDict(
         allow_inf_nan=False,
         hide_input_in_errors=True,
+        extra="forbid",
         validate_by_name=True,
         validate_by_alias=True,
         validate_assignment=True,
@@ -147,13 +148,6 @@ class CloseSignalPayload(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({key: value for key, value in {
-            "action": obj.get("action"),
-            "hashtag": obj.get("hashtag"),
-            "marketPrice": obj.get("marketPrice"),
-            "timestamp": obj.get("timestamp"),
-            "version": obj.get("version")
-        }.items() if key in obj})
-        return _obj
+        return cls.model_validate(obj)
 
 

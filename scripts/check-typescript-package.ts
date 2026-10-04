@@ -27,6 +27,7 @@ const exercise = String.raw`
 async function exercise(sdk) {
   const accountApiKey = 'vt_consumer_synthetic';
   const strategyApiKey = 'a'.repeat(32);
+  const secondStrategyApiKey = 'e'.repeat(32);
   const id = 'b'.repeat(32);
   const requests = [];
   const server = createServer((req,res) => {
@@ -47,7 +48,7 @@ async function exercise(sdk) {
   const origin = 'http://127.0.0.1:'+server.address().port;
   try {
     const rest = new sdk.RestClient({baseUrl:origin+'/api/rest',accountApiKey,allowLocalHttp:true});
-    const signals = new sdk.SignalsClient({baseUrl:origin,strategyApiKey,allowLocalHttp:true});
+    const signals = new sdk.SignalsClient({baseUrl:origin,allowLocalHttp:true});
     assert.equal(requests.length,0);
     await assert.rejects(import('@vector-trading/sdk/dist/index.js'), {code:'ERR_PACKAGE_PATH_NOT_EXPORTED'});
     await rest.listBundles();await rest.searchUsers({displayName:'Al'});await rest.getCheckout({checkoutId:id});
@@ -55,10 +56,10 @@ async function exercise(sdk) {
     await rest.createBundleGrant({bundleId:id,createGrantRequest:{userId:id,grantType:'gift'}});
     await rest.revokeBundleGrant({bundleId:id,grantId:id});
     const built = [sdk.buildOpenSignal({version:1,marketPrice:100,order:{side:'buy'}}),sdk.buildUpdateSignal({version:1,marketPrice:100,order:{side:'buy',takeProfits:[]}}),sdk.buildCancelSignal({version:1}),sdk.buildCloseSignal({version:1}),sdk.buildStartSignal({version:1}),sdk.buildPauseSignal({version:1}),sdk.buildStopSignal({version:1}),sdk.buildDeleteSignal({version:1})];
-    for (const signal of built) assert.equal(await signals.send(signal),undefined);
+    for (const [index, signal] of built.entries()) assert.equal(await signals.send({strategyApiKey: index % 2 ? secondStrategyApiKey : strategyApiKey, payload: signal}),undefined);
     assert.equal(requests.length,15);
     for(const request of requests.slice(0,7))assert.equal(request.auth,'Bearer '+accountApiKey);
-    for(const request of requests.slice(7)) {assert.equal(request.auth,undefined);assert.ok(request.url.endsWith(strategyApiKey));assert.equal(typeof JSON.parse(request.body).timestamp,'string');}
+    for(const [index, request] of requests.slice(7).entries()) {assert.equal(request.auth,undefined);assert.ok(request.url.endsWith(index % 2 ? secondStrategyApiKey : strategyApiKey));assert.equal(typeof JSON.parse(request.body).timestamp,'string');}
     assert.deepEqual(JSON.parse(requests[8].body).order.takeProfits,[]);
     assert.ok(!requests.some(request=>request.url.includes(accountApiKey)));
     console.log('Installed consumer passed seven REST methods, eight signals, credentials, and TP clearing.');
@@ -68,8 +69,17 @@ async function exercise(sdk) {
 const commonTypes = `
 const client = new sdk.RestClient({ baseUrl: 'https://example.com/api/rest', accountApiKey: 'vt_synthetic' });
 const message: sdk.StrategySignalPayload = sdk.buildUpdateSignal({ version: 1, marketPrice: 100, order: { side: 'buy', takeProfits: [] } });
-void client; void message;
+const signals = new sdk.SignalsClient({baseUrl:'https://example.com'});
+new sdk.SignalsClient();
+new sdk.RestClient({accountApiKey:'vt_synthetic'});
+const request: sdk.SendSignalRequest = {strategyApiKey:'a'.repeat(32), payload:message};
+void client; void message; void request;
 if (false) {
+signals.send(request);
+// @ts-expect-error strategy key is mandatory per send
+signals.send({payload:message});
+// @ts-expect-error strategy key is no longer a constructor option
+new sdk.SignalsClient({baseUrl:'https://example.com',strategyApiKey:'a'.repeat(32)});
 // @ts-expect-error version is mandatory
 sdk.buildStartSignal({});
 // @ts-expect-error paid_external requires sourceId

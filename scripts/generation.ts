@@ -28,6 +28,7 @@ export interface Schema {
 }
 export interface Operation {
   operationId: string;
+  parameters?: { name: string; in: string; schema: Schema }[];
   requestBody?: { content: Record<string, { schema: Schema }> };
   responses: Record<string, { content?: Record<string, { schema: Schema }> }>;
 }
@@ -130,6 +131,35 @@ export function project(
       ),
     },
   };
+  const visited = new Set<Schema>();
+  function markInput(schema: Schema): void {
+    if (visited.has(schema)) return;
+    visited.add(schema);
+    if (schema.$ref) {
+      const target = spec.components.schemas[schema.$ref.split('/').at(-1)!];
+      if (!target) throw new Error('Unknown request model reference');
+      markInput(target);
+      return;
+    }
+    if (schema.type === 'object' || schema.oneOf) schema['x-vector-strict-input'] = true;
+    Object.values(schema.properties ?? {}).forEach(markInput);
+    if (schema['items']) markInput(schema['items'] as Schema);
+    for (const branch of schema.oneOf ?? []) markInput(branch);
+  }
+  markInput(spec.components.schemas['SignalPayload']!);
+  for (const path of Object.values(spec.paths)) {
+    for (const operation of Object.values(path)) {
+      for (const content of Object.values(operation.requestBody?.content ?? {}))
+        markInput(content.schema);
+      for (const parameter of operation.parameters ?? []) {
+        if (parameter.in === 'query' && parameter.name === 'cursor') opaqueCursor(parameter.schema);
+      }
+    }
+  }
+  function opaqueCursor(schema: Schema): void {
+    // SDKs forward tokens; the server remains responsible for interpreting them.
+    for (const key of ['pattern', 'format', 'minLength', 'maxLength']) delete schema[key];
+  }
   function annotate(value: unknown): void {
     if (Array.isArray(value)) {
       value.forEach(annotate);
@@ -142,6 +172,7 @@ export function project(
       schema['x-vector-finite'] = true;
     }
     for (const [key, property] of Object.entries(schema.properties ?? {})) {
+      if (key === 'nextCursor') opaqueCursor(property);
       if (!schema.required?.includes(key) && !property.nullable)
         property['x-vector-optional-nonnullable'] = true;
     }

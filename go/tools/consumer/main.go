@@ -25,6 +25,7 @@ func main() {
 	const bundle = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 	const user = "cccccccccccccccccccccccccccccccc"
 	const strategy = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	const otherStrategy = "dddddddddddddddddddddddddddddddd"
 	const account = "vt_synthetic_consumer_secret"
 	var calls atomic.Int32
 	var signals atomic.Int32
@@ -32,12 +33,19 @@ func main() {
 		calls.Add(1)
 		body, _ := io.ReadAll(r.Body)
 		if strings.HasPrefix(r.URL.Path, "/webhooks/") {
-			signals.Add(1)
-			if r.URL.Path != "/webhooks/signals/v1/"+strategy || r.Header.Get("Authorization") != "" {
+			n := signals.Add(1)
+			key := strategy
+			if n == 2 {
+				key = otherStrategy
+			}
+			if r.URL.Path != "/webhooks/signals/v1/"+key || r.Header.Get("Authorization") != "" {
 				panic("credential isolation")
 			}
 			var v map[string]any
 			check(json.Unmarshal(body, &v))
+			if _, ok := v["strategyApiKey"]; ok {
+				panic("strategy key entered the signal body")
+			}
 			if v["timestamp"] == nil {
 				panic("timestamp")
 			}
@@ -81,10 +89,10 @@ func main() {
 	}))
 	defer server.Close()
 	options := sdk.ClientOptions{HTTPClient: server.Client(), AllowHTTPForLocalhost: true}
-	rest, err := sdk.NewRestClient(server.URL+"/api/rest", account, options)
+	rest, err := sdk.NewRestClient(account, sdk.ClientOptions{BaseURL: server.URL + "/api/rest", HTTPClient: options.HTTPClient, AllowHTTPForLocalhost: options.AllowHTTPForLocalhost, Timeout: options.Timeout})
 	check(err)
 	defer rest.Close()
-	signalsClient, err := sdk.NewSignalsClient(server.URL, strategy, options)
+	signalsClient, err := sdk.NewSignalsClient(sdk.ClientOptions{BaseURL: server.URL, HTTPClient: options.HTTPClient, AllowHTTPForLocalhost: options.AllowHTTPForLocalhost, Timeout: options.Timeout})
 	check(err)
 	defer signalsClient.Close()
 	if calls.Load() != 0 {
@@ -109,28 +117,28 @@ func main() {
 	opts := sdk.SignalOptions{Timestamp: sdk.Ptr("1780000000000")}
 	open, err := sdk.BuildOpenSignal(1.5, 100, sdk.OpenSignalPayloadOrder{Side: "buy"}, sdk.OpenSignalOptions{SignalOptions: opts, Force: sdk.Ptr(false)})
 	check(err)
-	check(signalsClient.Send(ctx, open))
+	check(signalsClient.Send(ctx, strategy, open))
 	update, err := sdk.BuildUpdateSignal(1, 100, sdk.UpdateSignalPayloadOrder{Side: "buy", TakeProfits: []sdk.OpenSignalPayloadOrderTakeProfitsInner{}}, opts)
 	check(err)
-	check(signalsClient.Send(ctx, update))
+	check(signalsClient.Send(ctx, otherStrategy, update))
 	cancel, err := sdk.BuildCancelSignal(1, sdk.ExitSignalOptions{SignalOptions: opts})
 	check(err)
-	check(signalsClient.Send(ctx, cancel))
+	check(signalsClient.Send(ctx, strategy, cancel))
 	closeSignal, err := sdk.BuildCloseSignal(1, sdk.ExitSignalOptions{SignalOptions: opts})
 	check(err)
-	check(signalsClient.Send(ctx, closeSignal))
+	check(signalsClient.Send(ctx, strategy, closeSignal))
 	start, err := sdk.BuildStartSignal(1, opts)
 	check(err)
-	check(signalsClient.Send(ctx, start))
+	check(signalsClient.Send(ctx, strategy, start))
 	pause, err := sdk.BuildPauseSignal(1, opts)
 	check(err)
-	check(signalsClient.Send(ctx, pause))
+	check(signalsClient.Send(ctx, strategy, pause))
 	stop, err := sdk.BuildStopSignal(1, opts)
 	check(err)
-	check(signalsClient.Send(ctx, stop))
+	check(signalsClient.Send(ctx, strategy, stop))
 	deleteSignal, err := sdk.BuildDeleteSignal(1, opts)
 	check(err)
-	check(signalsClient.Send(ctx, deleteSignal))
+	check(signalsClient.Send(ctx, strategy, deleteSignal))
 	if calls.Load() != 15 || signals.Load() != 8 {
 		panic("coverage")
 	}
@@ -139,11 +147,11 @@ func main() {
 	check(err)
 	first, err := sdk.SerializeSignal(prepared)
 	check(err)
-	check(signalexample.SendPrepared(ctx, server.URL, strategy, prepared, true))
+	check(signalexample.SendPrepared(ctx, signalsClient, strategy, prepared))
 	second, err := sdk.SerializeSignal(prepared)
 	check(err)
 	if string(first) != string(second) {
 		panic("timestamp refreshed")
 	}
-	fmt.Println("Clean module consumer: 7 REST methods, 8 signals, examples, dates, credential isolation, TP clearing and stable metadata passed")
+	fmt.Println("Clean module consumer: 7 REST methods, 8 signals, two keys on one client, examples, dates, credential isolation, TP clearing and stable metadata passed")
 }

@@ -86,7 +86,7 @@ runs:
       run: cargo +1.99.0 fetch --manifest-path rust/Cargo.toml --locked
     - if: inputs.area == 'contracts'
       shell: bash
-      run: cargo +1.99.0 fetch --manifest-path generation/probes/rust/Cargo.toml --locked
+      run: corepack pnpm generation:rust-setup
     - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
       if: inputs.area == 'contracts'
       with:

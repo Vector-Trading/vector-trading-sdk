@@ -24,7 +24,7 @@ class Transport:
     def __init__(
         self,
         base_url: str,
-        secret: str,
+        secret: str | None = None,
         *,
         timeout: float = 10.0,
         allow_local_http: bool = False,
@@ -45,7 +45,9 @@ class Transport:
             valid = False
         if not valid:
             raise SdkError("validation", "base_url requires HTTPS or explicitly allowed local HTTP")
-        if not isinstance(secret, str) or not secret or any(char in secret for char in "\r\n"):
+        if secret is not None and (
+            not isinstance(secret, str) or not secret or any(char in secret for char in "\r\n")
+        ):
             raise SdkError("validation", "A valid credential is required")
         if (
             isinstance(timeout, bool)
@@ -73,10 +75,17 @@ class Transport:
     def __exit__(self, *_args: object) -> None:
         self.close()
 
-    def _clean(self, value: Any, body: str | None, *, submitted: bool = True) -> str | None:
+    def _clean(
+        self,
+        value: Any,
+        body: str | None,
+        request_secret: str | None,
+        *,
+        submitted: bool = True,
+    ) -> str | None:
         if not isinstance(value, str):
             return None
-        sensitive = [self.__secret]
+        sensitive = [secret for secret in (self.__secret, request_secret) if secret is not None]
         if submitted and body:
 
             def leaves(obj: Any) -> list[str]:
@@ -84,6 +93,8 @@ class Transport:
                     return [leaf for item in obj.values() for leaf in leaves(item)]
                 if isinstance(obj, list):
                     return [leaf for item in obj for leaf in leaves(item)]
+                if isinstance(obj, bool):
+                    return [json.dumps(obj)]
                 return [str(obj)] if isinstance(obj, (str, int, float)) else []
 
             sensitive.extend(leaves(json.loads(body)))
@@ -103,6 +114,7 @@ class Transport:
         params: dict[str, Any] | None = None,
         body: str | None = None,
         account_key: bool = False,
+        request_secret: str | None = None,
         cancel_event: Event | None = None,
     ) -> tuple[int, Any]:
         if self.__client.is_closed:
@@ -113,6 +125,8 @@ class Transport:
             raise SdkError("validation", "Request body exceeds 16 KiB")
         headers = {"Content-Type": "application/json"} if body is not None else {}
         if account_key:
+            if self.__secret is None:
+                raise SdkError("validation", "An account credential is required")
             headers["Authorization"] = "Bearer " + self.__secret
         request = self.__client.build_request(
             method,
@@ -161,13 +175,14 @@ class Transport:
             details = parsed if isinstance(parsed, dict) else {}
             raise SdkError(
                 "http",
-                self._clean(details.get("message", details.get("error")), body)
+                self._clean(details.get("message", details.get("error")), body, request_secret)
                 or f"HTTP request failed ({response.status_code})",
                 status=response.status_code,
-                code=self._clean(details.get("errorCode"), body, submitted=False),
+                code=self._clean(details.get("errorCode"), body, request_secret, submitted=False),
                 request_id=self._clean(
                     details.get("requestId", response.headers.get("x-request-id")),
                     body,
+                    request_secret,
                     submitted=False,
                 ),
             )

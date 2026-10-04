@@ -177,8 +177,11 @@ external module dependencies or `go.sum`. It checks its module graph and runs wi
 `GOPROXY=off`, `GOSUMDB=off`, and `GOTOOLCHAIN=local`; select the pinned binary through
 `PATH` or `SDK_PROBE_GO`. If Go manages toolchains automatically, explicitly prepare
 it with `GOTOOLCHAIN=go1.26.0 go env GOROOT`, then select that directory's `bin/go`
-through `SDK_PROBE_GO`. Prepare Cargo dependencies with `cargo +1.99.0 fetch --locked`
-in `generation/probes/rust/`. The Go module and Cargo manifest/lockfile are test
+through `SDK_PROBE_GO`. Prepare Cargo probe dependencies with `pnpm generation:rust-setup`. It assembles the
+real generated library and probe binary with their pinned manifest/lockfile in temporary
+storage, runs `cargo +1.99.0 fetch --locked`, then removes the sources even on failure.
+The native probe uses the same assembly and executes with `--locked --offline`.
+Use `pnpm generation:rust-setup --offline` to verify preparation against an existing cache. The Go module and Cargo manifest/lockfile are test
 harness inputs; they are not public SDK packages. Install the two Rust toolchains
 through Rustup if absent, using the exact versions above.
 The [runtime dependency policy](architecture.md#runtime-dependencies) governs future

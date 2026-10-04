@@ -10,6 +10,7 @@ from ._generated.models.bundle_users_response import BundleUsersResponse
 from ._generated.models.bundles_response import BundlesResponse
 from ._generated.models.cancel_signal_payload import CancelSignalPayload
 from ._generated.models.checkout_details import CheckoutDetails
+from ._generated.models.checkout_details_discount import CheckoutDetailsDiscount
 from ._generated.models.close_signal_payload import CloseSignalPayload
 from ._generated.models.create_grant_request import CreateGrantRequest
 from ._generated.models.delete_signal_payload import DeleteSignalPayload
@@ -20,11 +21,15 @@ from ._generated.models.open_signal_payload_order_take_profits_inner import (
     OpenSignalPayloadOrderTakeProfitsInner,
 )
 from ._generated.models.other_grant_request import OtherGrantRequest
+from ._generated.models.owned_trading_bundle_summary import OwnedTradingBundleSummary
 from ._generated.models.paid_external_grant_request import PaidExternalGrantRequest
 from ._generated.models.pause_signal_payload import PauseSignalPayload
 from ._generated.models.public_user import PublicUser
 from ._generated.models.start_signal_payload import StartSignalPayload
 from ._generated.models.stop_signal_payload import StopSignalPayload
+from ._generated.models.trading_bundle_access_grant_summary import TradingBundleAccessGrantSummary
+from ._generated.models.trading_bundle_access_grant_type import TradingBundleAccessGrantType
+from ._generated.models.trading_bundle_granted_user import TradingBundleGrantedUser
 from ._generated.models.update_signal_payload import UpdateSignalPayload
 from ._generated.models.update_signal_payload_order import UpdateSignalPayloadOrder
 from ._generated.models.users_search_response import UsersSearchResponse
@@ -50,6 +55,7 @@ __all__ = [
     "BundleUsersResponse",
     "CancelSignalPayload",
     "CheckoutDetails",
+    "CheckoutDetailsDiscount",
     "CloseSignalPayload",
     "CreateGrantRequest",
     "DeleteSignalPayload",
@@ -58,11 +64,15 @@ __all__ = [
     "OpenSignalPayloadOrder",
     "OpenSignalPayloadOrderTakeProfitsInner",
     "OtherGrantRequest",
+    "OwnedTradingBundleSummary",
     "PaidExternalGrantRequest",
     "PauseSignalPayload",
     "PublicUser",
     "StartSignalPayload",
     "StopSignalPayload",
+    "TradingBundleAccessGrantSummary",
+    "TradingBundleAccessGrantType",
+    "TradingBundleGrantedUser",
     "UpdateSignalPayload",
     "UpdateSignalPayloadOrder",
     "UsersSearchResponse",

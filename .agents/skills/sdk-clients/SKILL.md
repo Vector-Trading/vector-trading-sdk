@@ -17,7 +17,7 @@ Read `AGENTS.md`, the package configuration, and the relevant section of `docs/d
 
 ## HTTP and failures
 
-- Client construction and imports do not perform network operations. Provide an explicit server address, bounded timeout, and cancellation; clients do not store keys in browsers or forward them across origins on redirects.
+- Client construction and imports do not perform network operations. Use the documented production base URL by default and preserve explicit deployment overrides, bounded timeout, and cancellation; clients do not store keys in browsers or forward them across origins on redirects.
 - Do not add automatic retries by default, including HTTP-library retries. A timed-out mutation may have an unknown outcome; do not report it as a confirmed server rejection.
 - Webhook `204` means accepted delivery, not an executed trade. Do not invent a server signal ID: successful response bodies are empty.
 - Normalize errors into a language-specific type with HTTP status, code/message when available, and `requestId`; handle `429`, empty/non-JSON bodies, and transport failures. Bound diagnostics and redact secrets, including strategy keys in URLs.

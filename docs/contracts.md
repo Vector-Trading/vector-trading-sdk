@@ -23,7 +23,14 @@ Snapshot version, package version, REST `/v1`, webhook `/v1`, and strategy versi
 ## REST: address, key, and permissions
 
 REST is served under `/api/rest/v1`. The relative OpenAPI `servers.url: /api/rest`
-requires an explicitly configured absolute client base URL outside a browser.
+is resolved by the SDK to `https://www.vector-trading.app/api/rest` by default.
+Signal clients default to `https://www.vector-trading.app`. Client construction
+performs no network work. Override the base URL to select another deployment; a REST
+override includes `/api/rest`, while a signal override supplies the origin or path prefix.
+TypeScript uses optional `baseUrl`, Python optional `base_url`, Go `ClientOptions.BaseURL`
+(empty uses production), and Rust `ClientOptions.base_url` (`None` uses production).
+Explicit invalid URLs still fail local validation; HTTP remains restricted to explicitly
+allowed loopback test receivers.
 The account key is sent as `Authorization: Bearer vt_<id>_<secret>` and is intended for
 server-side integration. It does not replace the webhook strategy key.
 
@@ -93,7 +100,11 @@ independent request on the same client.
 Application errors normally contain `errorCode`, `message`, optional string-valued
 `metadata`, and optional `requestId`. Rate-limit error `429` has a separate shape:
 `{ "success": false, "error": "..." }`. A proxy or network failure may produce an empty
-or non-JSON body; clients must not assume one schema covers every error.
+or non-JSON body; clients must not assume one schema covers every error. Clients expose a safe body `requestId` or
+the `x-request-id` response header when available.
+Error messages redact submitted string, numeric, and boolean JSON values. Public codes
+and request IDs are retained after credential and URL redaction; applications must not
+log private inputs or raw transport data.
 
 Invalid or revoked keys and CIDR mismatches return `401`; insufficient account, key,
 or owner permissions return `403`. JSON bodies are limited to 16 KiB of UTF-8:
@@ -160,6 +171,13 @@ and strategy state are checked later in the server pipeline. Invalid paths retur
 `404`, the shared webhook key returns `410`, invalid bodies return `400`, oversized
 bodies return `413`, and other HTTP methods return `405`. Queue failures may return
 `500`; webhook error shapes differ from REST.
+
+All four HTTP SDKs require the strategy key on each signal send. A signal client stores
+transport settings, not a strategy credential; sequential and concurrent sends may use
+different keys. The key is validated locally before serialization, appears only in the
+webhook path, and is never inserted into the JSON payload or an `Authorization` header.
+Account REST clients keep their separate account key. Pine builds JSON offline; TradingView
+receives the strategy key through the separately configured webhook URL.
 
 An empty `204` response means the signal was enqueued. It does not confirm a trade or
 guarantee permanent idempotency. The SDK does not automatically resend signals after

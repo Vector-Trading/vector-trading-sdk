@@ -4,6 +4,10 @@ This package provides seven account-key REST operations and eight strategy signa
 builders, plus explicit webhook delivery. It has no external runtime dependencies.
 Node.js 22 and 24 are tested. Account keys belong in server-side integrations.
 
+Omitting `baseUrl` selects `https://www.vector-trading.app/api/rest` for REST and
+`https://www.vector-trading.app` for signals. Supply `baseUrl` to use another deployment;
+a REST override includes `/api/rest`.
+
 The package is prepared locally; it has not been published to npm. From the repository:
 
 ```sh
@@ -25,7 +29,6 @@ import {
 } from '@vector-trading/sdk';
 
 const rest = new RestClient({
-  baseUrl: 'https://your-vector-host.example/api/rest',
   accountApiKey: process.env.VECTOR_ACCOUNT_KEY!,
   timeoutMs: 10_000,
 });
@@ -33,17 +36,15 @@ for await (const page of rest.listBundlesPages({ limit: 50 })) {
   // Consume page.bundles in your application.
 }
 
-const signals = new SignalsClient({
-  baseUrl: 'https://your-webhook-host.example',
-  strategyApiKey: process.env.VECTOR_STRATEGY_KEY!,
-});
+const signals = new SignalsClient();
 const message = buildOpenSignal({
   version: 1,
   marketPrice: 100,
   order: { side: 'buy', stop: 90, takeProfits: [{ price: 110, percent: 100 }] },
 });
 try {
-  await signals.send(message);
+  await signals.send({ strategyApiKey: process.env.VECTOR_STRATEGY_KEY!, payload: message });
+  await signals.send({ strategyApiKey: process.env.VECTOR_OTHER_STRATEGY_KEY!, payload: message });
 } catch (error) {
   if (error instanceof SdkError) {
     // Inspect kind, status, code, and requestId without logging private inputs.
@@ -72,6 +73,10 @@ Builders are `buildOpenSignal`, `buildUpdateSignal`, `buildCancelSignal`,
 `buildCloseSignal`, `buildStartSignal`, `buildPauseSignal`, `buildStopSignal`, and
 `buildDeleteSignal`. `buildSignal` accepts an explicit action; `serializeSignal`
 validates an already prepared payload and returns its JSON. Builders work offline.
+The signal client stores transport settings only. Supply the strategy key for every `send`;
+one client can serve multiple strategies, including concurrent calls. The key is carried
+in the webhook path and is never added to the signal JSON.
+
 Each builder requires the strategy's positive finite `version` and fixes a decimal
 millisecond `timestamp` before delivery; a caller may supply it explicitly.
 Sending the same prepared message again does not create another timestamp.
@@ -97,7 +102,8 @@ enqueue acceptance, not a completed trade. A timeout or transport failure may le
 the mutation's outcome unknown. `SdkError.kind` distinguishes `validation`, `http`,
 `transport`, `timeout`, `cancelled`, `protocol`, and `pagination`; HTTP errors preserve
 status and available code/request ID. Diagnostics are bounded and redact credentials,
-sensitive URLs, and submitted values; raw response bodies and underlying errors are
+sensitive URLs, and submitted string/number/boolean values in messages. Safe public error
+codes and request IDs retain their values after credential/URL redaction; raw response bodies and underlying errors are
 not exposed as exception causes.
 
 ## Development

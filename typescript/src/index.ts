@@ -1,5 +1,5 @@
 export { RestClient, SignalsClient } from './clients.js';
-export type { RestClientOptions, SignalsClientOptions } from './clients.js';
+export type { RestClientOptions, SignalsClientOptions, SendSignalRequest } from './clients.js';
 export { SdkError } from './errors.js';
 export type { ErrorKind } from './errors.js';
 export type { Fetch, TransportOptions, RequestOptions } from './transport.js';

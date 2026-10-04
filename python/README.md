@@ -19,13 +19,15 @@ the SDK itself uses Python's built-in typing facilities and does not require `py
 ## Account-key REST
 
 Account keys are for server-side integrations and differ from strategy keys.
-Always select an explicit HTTPS server address; the REST base URL ends in `/api/rest`.
+The default REST base is `https://www.vector-trading.app/api/rest`; signal clients
+default to `https://www.vector-trading.app`. Override `base_url` for another deployment;
+the REST override includes `/api/rest`.
 Imports and constructors perform no HTTP work.
 
 ```python
 from vector_trading import RestClient, SdkError
 
-with RestClient(base_url="https://example.com/api/rest", account_api_key=account_key) as client:
+with RestClient(account_api_key=account_key) as client:
     try:
         for page in client.list_bundles_pages(limit=50):
             names = [bundle.name for bundle in page.bundles]
@@ -86,9 +88,16 @@ message = build_update_signal(
     market_price=100,
     order=UpdateSignalPayloadOrder(side="buy", take_profits=[]),
 )
-with SignalsClient(base_url="https://example.com", strategy_api_key=strategy_key) as client:
-    client.send(message)
+with SignalsClient() as client:
+    client.send(message, strategy_api_key=first_strategy_key)
+    client.send(message, strategy_api_key=second_strategy_key)
 ```
+
+`SignalsClient` retains transport configuration, not a strategy credential. Every
+`send` requires the keyword `strategy_api_key`, so the same client can deliver to
+different strategies, including concurrent calls. Keys remain in the webhook URL;
+the JSON body contains only the prepared signal. The former constructor key option
+is no longer accepted. Account credentials remain on `RestClient`.
 
 The eight builders are `build_open_signal`, `build_update_signal`, `build_cancel_signal`,
 `build_close_signal`, `build_start_signal`, `build_pause_signal`, `build_stop_signal`,

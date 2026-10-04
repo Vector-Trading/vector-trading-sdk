@@ -107,7 +107,7 @@
     "edits": [
       {
         "before": "    model_config = ConfigDict(",
-        "after": "    model_config = ConfigDict(\n        allow_inf_nan=False,\n        hide_input_in_errors=True,"
+        "after": "    model_config = ConfigDict(\n        allow_inf_nan=False,\n        hide_input_in_errors=True,{{#vendorExtensions.x-vector-strict-input}}\n        extra=\"forbid\",{{/vendorExtensions.x-vector-strict-input}}"
       },
       {
         "before": "import json",
@@ -119,11 +119,15 @@
       },
       {
         "before": "        _obj = cls.model_validate({",
-        "after": "        _obj = cls.model_validate({key: value for key, value in {"
+        "after": "{{#vendorExtensions.x-vector-strict-input}}        return cls.model_validate(obj)\n{{/vendorExtensions.x-vector-strict-input}}{{^vendorExtensions.x-vector-strict-input}}        _obj = cls.model_validate({key: value for key, value in {"
       },
       {
         "before": "        })\n        {{#isAdditionalPropertiesTrue}}",
         "after": "        }.items() if key in obj})\n        {{#isAdditionalPropertiesTrue}}"
+      },
+      {
+        "before": "        return _obj\n    {{/hasChildren}}",
+        "after": "        return _obj\n{{/vendorExtensions.x-vector-strict-input}}\n    {{/hasChildren}}"
       }
     ]
   },
@@ -133,7 +137,7 @@
     "edits": [
       {
         "before": "    model_config = ConfigDict(",
-        "after": "    model_config = ConfigDict(\n        hide_input_in_errors=True,"
+        "after": "    model_config = ConfigDict(\n        hide_input_in_errors=True,{{#vendorExtensions.x-vector-strict-input}}\n        extra=\"forbid\",{{/vendorExtensions.x-vector-strict-input}}"
       }
     ]
   },

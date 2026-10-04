@@ -50,16 +50,21 @@ func errorKind(t *testing.T, err error, kind string) *Error {
 	}
 	return e
 }
+func withBaseURL(base string, options ClientOptions) ClientOptions {
+	options.BaseURL = base
+	return options
+}
+
 func clients(t *testing.T, h http.HandlerFunc, timeout time.Duration) (*RestClient, *SignalsClient, *httptest.Server) {
 	t.Helper()
 	s := httptest.NewServer(h)
 	t.Cleanup(s.Close)
 	opts := ClientOptions{HTTPClient: s.Client(), AllowHTTPForLocalhost: true, Timeout: timeout}
-	r, err := NewRestClient(s.URL+"/api/rest", accountKey, opts)
+	r, err := NewRestClient(accountKey, withBaseURL(s.URL+"/api/rest", opts))
 	if err != nil {
 		t.Fatal(err)
 	}
-	sig, err := NewSignalsClient(s.URL, strategyKey, opts)
+	sig, err := NewSignalsClient(withBaseURL(s.URL, opts))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +211,7 @@ func TestSignalFixtures(t *testing.T) {
 				w.WriteHeader(204)
 			}, 0)
 			for i := 0; i < 2; i++ {
-				if err := c.Send(context.Background(), model); err != nil {
+				if err := c.Send(context.Background(), strategyKey, model); err != nil {
 					t.Fatal(err)
 				}
 			}
@@ -418,7 +423,7 @@ func TestErrorsNoRetriesAndRedaction(t *testing.T) {
 				t.Fatal("private diagnostics")
 			}
 			message, _ := BuildPauseSignal(1, SignalOptions{})
-			err = sig.Send(context.Background(), message)
+			err = sig.Send(context.Background(), strategyKey, message)
 			errorKind(t, err, "http")
 			if calls.Load() != 2 {
 				t.Fatal("mutation retried")
@@ -504,16 +509,16 @@ func TestRedirectsResponsesAndLocalConfiguration(t *testing.T) {
 	_, err := r.ListBundles(context.Background(), PageOptions{})
 	errorKind(t, err, "protocol")
 	p, _ := BuildPauseSignal(1, SignalOptions{})
-	errorKind(t, sig.Send(context.Background(), p), "protocol")
+	errorKind(t, sig.Send(context.Background(), strategyKey, p), "protocol")
 	if forwarded.Load() != 0 {
 		t.Fatal("redirect followed")
 	}
 	for _, base := range []string{"relative", "http://example.invalid", "https://user:password@example.invalid", "https://example.invalid?key=secret", "https://example.invalid#fragment", "http://127.0.0.1:1234"} {
-		if _, err := NewRestClient(base, accountKey, ClientOptions{}); err == nil {
+		if _, err := NewRestClient(accountKey, ClientOptions{BaseURL: base}); err == nil {
 			t.Error("unsafe URL accepted")
 		}
 	}
-	if _, err := NewRestClient("https://example.invalid/api/rest", accountKey, ClientOptions{Timeout: -1}); err == nil {
+	if _, err := NewRestClient(accountKey, ClientOptions{BaseURL: "https://example.invalid/api/rest", Timeout: -1}); err == nil {
 		t.Error("negative timeout")
 	}
 	for _, body := range []string{`null`, `{}`, `{"bundles":null,"limit":1}`, `{"bundles":[],"limit":"one"}`, `not json`} {
@@ -528,7 +533,7 @@ func TestRedirectsResponsesAndLocalConfiguration(t *testing.T) {
 	_, err = r.ListBundles(context.Background(), PageOptions{})
 	errorKind(t, err, "closed")
 	sig.Close()
-	errorKind(t, sig.Send(context.Background(), p), "closed")
+	errorKind(t, sig.Send(context.Background(), strategyKey, p), "closed")
 }
 func TestResponseEvolutionDatesAndNullable(t *testing.T) {
 	date := time.Date(2026, 7, 19, 12, 0, 0, 123456000, time.FixedZone("offset", 7200))
@@ -568,7 +573,7 @@ func TestResourceCleanupNoConstructionIOAndConcurrency(t *testing.T) {
 		return &http.Response{StatusCode: 200, Header: make(http.Header), Body: &trackingBody{Reader: strings.NewReader(`{"bundles":[],"limit":1}`), closed: &closes}}, nil
 	})
 	original := &http.Client{Transport: rt}
-	r, err := NewRestClient("https://example.invalid/api/rest", accountKey, ClientOptions{HTTPClient: original})
+	r, err := NewRestClient(accountKey, ClientOptions{BaseURL: "https://example.invalid/api/rest", HTTPClient: original})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -590,7 +595,7 @@ func TestResourceCleanupNoConstructionIOAndConcurrency(t *testing.T) {
 	if calls.Load() != 12 || closes.Load() != 12 {
 		t.Fatal("cleanup")
 	}
-	c, err := NewRestClient("https://example.invalid", accountKey, ClientOptions{HTTPClient: &http.Client{Transport: roundTripFunc(func(_ *http.Request) (*http.Response, error) { return nil, fmt.Errorf("private URL %s", accountKey) })}})
+	c, err := NewRestClient(accountKey, ClientOptions{BaseURL: "https://example.invalid", HTTPClient: &http.Client{Transport: roundTripFunc(func(_ *http.Request) (*http.Response, error) { return nil, fmt.Errorf("private URL %s", accountKey) })}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -658,7 +663,7 @@ func TestAmbiguousUnionsAndUnexpectedSuccess(t *testing.T) {
 	errorKind(t, err, "validation")
 	_, err = r.ListBundles(context.Background(), PageOptions{})
 	errorKind(t, err, "protocol")
-	errorKind(t, sig.Send(context.Background(), pause), "protocol")
+	errorKind(t, sig.Send(context.Background(), strategyKey, pause), "protocol")
 }
 func TestBodyClosureOnFailureAndSizeLimit(t *testing.T) {
 	for _, mode := range []string{"http", "oversize", "protocol"} {
@@ -674,7 +679,7 @@ func TestBodyClosureOnFailureAndSizeLimit(t *testing.T) {
 			if mode == "oversize" {
 				body = strings.Repeat("x", 1024*1024+1)
 			}
-			c, err := NewRestClient("https://example.invalid", accountKey, ClientOptions{HTTPClient: &http.Client{Transport: roundTripFunc(func(_ *http.Request) (*http.Response, error) {
+			c, err := NewRestClient(accountKey, ClientOptions{BaseURL: "https://example.invalid", HTTPClient: &http.Client{Transport: roundTripFunc(func(_ *http.Request) (*http.Response, error) {
 				return &http.Response{StatusCode: status, Header: make(http.Header), Body: &trackingBody{Reader: strings.NewReader(body), closed: &closes}}, nil
 			})}})
 			if err != nil {
@@ -716,7 +721,7 @@ func TestTLSProtocolAndPublicErrorIdentifiers(t *testing.T) {
 	server.EnableHTTP2 = true
 	server.StartTLS()
 	defer server.Close()
-	client, err := NewRestClient(server.URL, accountKey, ClientOptions{HTTPClient: server.Client()})
+	client, err := NewRestClient(accountKey, ClientOptions{BaseURL: server.URL, HTTPClient: server.Client()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -738,7 +743,7 @@ func TestCustomizedProcessDefaultTransport(t *testing.T) {
 		calls.Add(1)
 		return &http.Response{StatusCode: 200, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(`{"bundles":[],"limit":1}`))}, nil
 	})
-	client, err := NewRestClient("https://example.invalid", accountKey, ClientOptions{})
+	client, err := NewRestClient(accountKey, ClientOptions{BaseURL: "https://example.invalid"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -840,5 +845,46 @@ func TestSharedInputValidation(t *testing.T) {
 				t.Fatal("independent request did not recover")
 			}
 		})
+	}
+}
+
+func TestProductionDefaults(t *testing.T) {
+	var requests []string
+	opts := ClientOptions{HTTPClient: &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		requests = append(requests, r.URL.Scheme+"://"+r.URL.Host+r.URL.Path)
+		status := 200
+		body := `{"bundles":[],"limit":50}`
+		if strings.HasPrefix(r.URL.Path, "/webhooks/") {
+			status = 204
+			body = ""
+		}
+		return &http.Response{StatusCode: status, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(body))}, nil
+	})}}
+	rest, err := NewRestClient(accountKey, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rest.Close()
+	signals, err := NewSignalsClient(opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer signals.Close()
+	if len(requests) != 0 {
+		t.Fatal("Construction sent HTTP")
+	}
+	if _, err := rest.ListBundles(context.Background(), PageOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	payload, err := BuildStartSignal(1, SignalOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := signals.Send(context.Background(), strategyKey, payload); err != nil {
+		t.Fatal(err)
+	}
+	expected := []string{"https://www.vector-trading.app/api/rest/v1/bundles", "https://www.vector-trading.app/webhooks/signals/v1/" + strategyKey}
+	if !reflect.DeepEqual(requests, expected) {
+		t.Fatalf("Unexpected endpoints: %v", requests)
 	}
 }

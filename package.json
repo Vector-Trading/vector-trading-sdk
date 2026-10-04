@@ -14,6 +14,7 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --project tsconfig.json --noEmit && pnpm --dir typescript typecheck",
     "generation:setup": "node scripts/setup-generation.ts",
+    "generation:rust-setup": "node scripts/rust-probe.ts",
     "contracts:check": "node scripts/check-contracts.ts",
     "generate": "node scripts/generate.ts",
     "generated:check": "node scripts/check-generated.ts",

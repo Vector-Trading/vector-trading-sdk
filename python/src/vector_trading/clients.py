@@ -26,7 +26,7 @@ class _Client:
     def __init__(
         self,
         base_url: str,
-        secret: str,
+        secret: str | None = None,
         *,
         timeout: float = 10.0,
         allow_local_http: bool = False,
@@ -54,12 +54,18 @@ class RestClient(_Client):
     def __init__(
         self,
         *,
-        base_url: str,
+        base_url: str = "https://www.vector-trading.app/api/rest",
         account_api_key: str,
         timeout: float = 10.0,
         allow_local_http: bool = False,
         transport: httpx.BaseTransport | None = None,
     ) -> None:
+        if (
+            not isinstance(account_api_key, str)
+            or not account_api_key
+            or any(char in account_api_key for char in "\r\n")
+        ):
+            raise SdkError("validation", "A valid credential is required")
         super().__init__(
             base_url,
             account_api_key,
@@ -335,11 +341,24 @@ class SignalsClient(_Client):
     def __init__(
         self,
         *,
-        base_url: str,
-        strategy_api_key: str,
+        base_url: str = "https://www.vector-trading.app",
         timeout: float = 10.0,
         allow_local_http: bool = False,
         transport: httpx.BaseTransport | None = None,
+    ) -> None:
+        super().__init__(
+            base_url,
+            timeout=timeout,
+            allow_local_http=allow_local_http,
+            transport=transport,
+        )
+
+    def send(
+        self,
+        payload: StrategySignalPayload | dict[str, Any],
+        *,
+        strategy_api_key: str,
+        cancel_event: Event | None = None,
     ) -> None:
         if (
             not isinstance(strategy_api_key, str)
@@ -348,20 +367,12 @@ class SignalsClient(_Client):
             raise SdkError(
                 "validation", "strategy_api_key must be 32 lowercase hexadecimal characters"
             )
-        super().__init__(
-            base_url,
-            strategy_api_key,
-            timeout=timeout,
-            allow_local_http=allow_local_http,
-            transport=transport,
-        )
-        self.__path = "/webhooks/signals/v1/" + strategy_api_key
-
-    def send(
-        self, payload: StrategySignalPayload | dict[str, Any], *, cancel_event: Event | None = None
-    ) -> None:
         status, _ = self._transport.request(
-            "POST", self.__path, body=serialize_signal(payload), cancel_event=cancel_event
+            "POST",
+            "/webhooks/signals/v1/" + strategy_api_key,
+            body=serialize_signal(payload),
+            request_secret=strategy_api_key,
+            cancel_event=cancel_event,
         )
         if status != 204:
             raise SdkError("protocol", "Expected webhook enqueue acknowledgement (204)")

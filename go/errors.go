@@ -1,8 +1,11 @@
 package vectortrading
 
 import (
+	"bytes"
 	"encoding/json"
 	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -23,7 +26,10 @@ var urlPattern = regexp.MustCompile(`(?i)https?://[^\s"'<>]+`)
 var keyPattern = regexp.MustCompile(`\b(?:vt_[A-Za-z0-9_]+|[a-f0-9]{32})\b`)
 
 func safeText(s string, secrets []string) string {
-	for _, secret := range secrets {
+	// Redact full values before shorter submitted values can split them.
+	ordered := append([]string(nil), secrets...)
+	sort.Slice(ordered, func(i, j int) bool { return len(ordered[i]) > len(ordered[j]) })
+	for _, secret := range ordered {
 		if secret != "" {
 			s = strings.ReplaceAll(s, secret, "[redacted]")
 		}
@@ -44,6 +50,10 @@ func safeText(s string, secrets []string) string {
 func privateValues(v any) []string {
 	var values []string
 	switch x := v.(type) {
+	case json.Number:
+		values = append(values, x.String())
+	case bool:
+		values = append(values, strconv.FormatBool(x))
 	case string:
 		if x != "" {
 			values = append(values, x)
@@ -59,8 +69,17 @@ func privateValues(v any) []string {
 	}
 	return values
 }
-func responseError(status int, body []byte, secrets, messageSecrets []string) *Error {
-	e := &Error{Kind: "http", Status: status, Message: "HTTP request failed"}
+
+// Preserve the submitted JSON number spelling without changing validation's float64 decoder.
+func diagnosticValue(body []byte) (any, error) {
+	decoder := json.NewDecoder(bytes.NewReader(body))
+	decoder.UseNumber()
+	var value any
+	err := decoder.Decode(&value)
+	return value, err
+}
+func responseError(status int, body []byte, secrets, messageSecrets []string, headerRequestID string) *Error {
+	e := &Error{Kind: "http", Status: status, Message: "HTTP request failed", RequestID: safeText(headerRequestID, secrets)}
 	var value map[string]any
 	if json.Unmarshal(body, &value) == nil {
 		if message, ok := value["message"].(string); ok {

@@ -23,7 +23,6 @@ export const contract = {
             "name": "cursor",
             "required": false,
             "schema": {
-              "pattern": "^[a-f0-9]{32}$",
               "type": "string"
             }
           }
@@ -229,7 +228,6 @@ export const contract = {
             "name": "cursor",
             "required": false,
             "schema": {
-              "pattern": "^[a-f0-9]{32}$",
               "type": "string"
             }
           },
@@ -665,7 +663,6 @@ export const contract = {
             "name": "cursor",
             "required": false,
             "schema": {
-              "pattern": "^(?:grant|scan):[a-f0-9]{32}$",
               "type": "string"
             }
           }
@@ -915,7 +912,6 @@ export const contract = {
             "name": "cursor",
             "required": false,
             "schema": {
-              "pattern": "^[a-f0-9]{32}$",
               "type": "string"
             }
           }
@@ -1100,7 +1096,6 @@ export const contract = {
         },
         "nextCursor": {
           "description": "Opaque owner-scoped cursor to pass unchanged on the next page request.",
-          "pattern": "^(?:grant|scan):[a-f0-9]{32}$",
           "type": "string",
           "x-vector-optional-nonnullable": true
         },
@@ -1157,7 +1152,8 @@ export const contract = {
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "CheckoutDetails": {
       "description": "Short-lived checkout details for an owner checkout. price, currency, and discount are current bundle display terms; trialPeriodDays is intentionally not returned.",
@@ -1261,7 +1257,8 @@ export const contract = {
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "CreateGrantRequest": {
       "discriminator": {
@@ -1280,7 +1277,8 @@ export const contract = {
         {
           "$ref": "#/components/schemas/OtherGrantRequest"
         }
-      ]
+      ],
+      "x-vector-strict-input": true
     },
     "DeleteSignalPayload": {
       "additionalProperties": false,
@@ -1314,7 +1312,8 @@ export const contract = {
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "ErrorResponse": {
       "properties": {
@@ -1440,7 +1439,8 @@ export const contract = {
                   "price",
                   "percent"
                 ],
-                "type": "object"
+                "type": "object",
+                "x-vector-strict-input": true
               },
               "maxItems": 10,
               "type": "array",
@@ -1458,7 +1458,8 @@ export const contract = {
           "required": [
             "side"
           ],
-          "type": "object"
+          "type": "object",
+          "x-vector-strict-input": true
         },
         "timestamp": {
           "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
@@ -1480,7 +1481,8 @@ export const contract = {
         "marketPrice",
         "order"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "OtherGrantRequest": {
       "additionalProperties": false,
@@ -1518,7 +1520,8 @@ export const contract = {
         "grantType",
         "userId"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "OwnedTradingBundleSummary": {
       "properties": {
@@ -1617,7 +1620,8 @@ export const contract = {
         "sourceId",
         "userId"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "PauseSignalPayload": {
       "additionalProperties": false,
@@ -1651,7 +1655,8 @@ export const contract = {
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "PublicUser": {
       "properties": {
@@ -1739,7 +1744,8 @@ export const contract = {
         {
           "$ref": "#/components/schemas/DeleteSignalPayload"
         }
-      ]
+      ],
+      "x-vector-strict-input": true
     },
     "StartSignalPayload": {
       "additionalProperties": false,
@@ -1773,7 +1779,8 @@ export const contract = {
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "StopSignalPayload": {
       "additionalProperties": false,
@@ -1807,7 +1814,8 @@ export const contract = {
         "version",
         "timestamp"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "TradingBundleAccessGrantSummary": {
       "properties": {
@@ -1975,7 +1983,8 @@ export const contract = {
                   "price",
                   "percent"
                 ],
-                "type": "object"
+                "type": "object",
+                "x-vector-strict-input": true
               },
               "maxItems": 10,
               "type": "array",
@@ -1993,7 +2002,8 @@ export const contract = {
           "required": [
             "side"
           ],
-          "type": "object"
+          "type": "object",
+          "x-vector-strict-input": true
         },
         "timestamp": {
           "description": "Milliseconds as a decimal string representing a safe integer; SDK version is not strategy version.",
@@ -2015,7 +2025,8 @@ export const contract = {
         "marketPrice",
         "order"
       ],
-      "type": "object"
+      "type": "object",
+      "x-vector-strict-input": true
     },
     "UsersSearchResponse": {
       "properties": {

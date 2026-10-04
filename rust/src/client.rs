@@ -21,6 +21,8 @@ use std::{
 
 #[derive(Clone, Debug)]
 pub struct ClientOptions {
+    /// Overrides the production REST base or signal origin. None uses production.
+    pub base_url: Option<String>,
     /// Bounds the entire operation, including streamed response bodies.
     pub timeout: Duration,
     /// Permits HTTP only for an explicitly selected loopback test receiver.
@@ -31,6 +33,7 @@ pub struct ClientOptions {
 impl Default for ClientOptions {
     fn default() -> Self {
         Self {
+            base_url: None,
             timeout: Duration::from_secs(10),
             allow_http_for_localhost: false,
             root_certificate: None,
@@ -77,12 +80,12 @@ pub struct GrantOptions {
 struct Transport {
     http: reqwest::Client,
     base: Url,
-    key: String,
-    authorization: HeaderValue,
+    account_key: Option<String>,
+    authorization: Option<HeaderValue>,
     closed: AtomicBool,
 }
 impl Transport {
-    fn new(base: &str, key: &str, options: ClientOptions, strategy: bool) -> Result<Self> {
+    fn new(base: &str, account_key: Option<&str>, options: ClientOptions) -> Result<Self> {
         let mut url = Url::parse(base).map_err(|_| Error::validation())?;
         let loopback = url.host_str().is_some_and(|s| {
             s == "localhost"
@@ -97,22 +100,20 @@ impl Transport {
             || (url.scheme() != "https"
                 && !(url.scheme() == "http" && options.allow_http_for_localhost && loopback))
             || options.timeout.is_zero()
-            || key.is_empty()
-            || key.chars().any(|c| c.is_control() || c.is_whitespace())
         {
             return Err(Error::validation());
         }
-        if strategy
-            && !(key.len() == 32
-                && key
-                    .bytes()
-                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)))
-        {
-            return Err(Error::validation());
-        }
-        let mut authorization =
-            HeaderValue::from_str(&format!("Bearer {key}")).map_err(|_| Error::validation())?;
-        authorization.set_sensitive(true);
+        let authorization = account_key
+            .map(|key| {
+                if key.is_empty() || key.chars().any(|c| c.is_control() || c.is_whitespace()) {
+                    return Err(Error::validation());
+                }
+                let mut value = HeaderValue::from_str(&format!("Bearer {key}"))
+                    .map_err(|_| Error::validation())?;
+                value.set_sensitive(true);
+                Ok(value)
+            })
+            .transpose()?;
         url.set_path(url.path().trim_end_matches('/').to_owned().as_str());
         let mut builder = reqwest::Client::builder()
             .timeout(options.timeout)
@@ -129,7 +130,7 @@ impl Transport {
         Ok(Self {
             http,
             base: url,
-            key: key.into(),
+            account_key: account_key.map(str::to_owned),
             authorization,
             closed: AtomicBool::new(false),
         })
@@ -144,7 +145,7 @@ impl Transport {
         query: &[(String, String)],
         body: Option<Vec<u8>>,
         expected: u16,
-        strategy: bool,
+        strategy_key: Option<&str>,
     ) -> Result<Vec<u8>> {
         if self.closed.load(Ordering::Acquire) {
             return Err(Error::new(ErrorKind::Closed, "Client is closed"));
@@ -155,22 +156,33 @@ impl Transport {
             self.base.path().trim_end_matches('/'),
             path
         ));
-        let mut private = vec![self.key.clone(), url.to_string()];
+        let mut secrets = vec![url.to_string()];
+        secrets.extend(
+            strategy_key
+                .or(self.account_key.as_deref())
+                .map(str::to_owned),
+        );
+        let mut private = secrets.clone();
         private.extend(query.iter().map(|(_, v)| v.clone()));
         if let Some(bytes) = &body {
-            if let Ok(v) = serde_json::from_slice(bytes) {
-                private_values(&v, &mut private);
-            }
+            private_values(bytes, &mut private);
         }
         let mut request = self.http.request(method, url).query(query);
-        if !strategy {
-            request = request.header(AUTHORIZATION, self.authorization.clone());
+        if strategy_key.is_none() {
+            if let Some(authorization) = &self.authorization {
+                request = request.header(AUTHORIZATION, authorization.clone());
+            }
         }
         if let Some(bytes) = body {
             request = request.header(CONTENT_TYPE, "application/json").body(bytes);
         }
         let mut response = request.send().await.map_err(Error::network)?;
         let status = response.status().as_u16();
+        let request_id = response
+            .headers()
+            .get("x-request-id")
+            .and_then(|v| v.to_str().ok())
+            .map(str::to_owned);
         let mut bytes = Vec::new();
         while let Some(chunk) = response.chunk().await.map_err(Error::network)? {
             if bytes.len() + chunk.len() > 1024 * 1024 {
@@ -185,8 +197,9 @@ impl Transport {
             return Err(Error::response(
                 status,
                 &bytes,
-                std::slice::from_ref(&self.key),
+                &secrets,
                 &private,
+                request_id.as_deref(),
             ));
         }
         Ok(bytes)
@@ -204,9 +217,13 @@ impl fmt::Debug for RestClient {
     }
 }
 impl RestClient {
-    pub fn new(base_url: &str, account_api_key: &str, options: ClientOptions) -> Result<Self> {
+    pub fn new(account_api_key: &str, options: ClientOptions) -> Result<Self> {
+        let base_url = options
+            .base_url
+            .clone()
+            .unwrap_or_else(|| "https://www.vector-trading.app/api/rest".into());
         Ok(Self {
-            transport: Arc::new(Transport::new(base_url, account_api_key, options, false)?),
+            transport: Arc::new(Transport::new(&base_url, Some(account_api_key), options)?),
         })
     }
     /// Prevent further requests across clones. Drop pending futures to cancel
@@ -283,7 +300,7 @@ impl RestClient {
                 &pairs,
                 bytes,
                 200,
-                false,
+                None,
             )
             .await?;
         let value: Value = serde_json::from_slice(&bytes)
@@ -472,7 +489,7 @@ impl<T: DeserializeOwned> Pages<T> {
     }
 }
 
-/// Strategy-key webhook client. Never uses account Authorization headers.
+/// Reusable webhook client. Strategy credentials belong to individual sends.
 #[derive(Clone)]
 pub struct SignalsClient {
     transport: Arc<Transport>,
@@ -483,27 +500,81 @@ impl fmt::Debug for SignalsClient {
     }
 }
 impl SignalsClient {
-    pub fn new(base_url: &str, strategy_api_key: &str, options: ClientOptions) -> Result<Self> {
+    pub fn new(options: ClientOptions) -> Result<Self> {
+        let base_url = options
+            .base_url
+            .clone()
+            .unwrap_or_else(|| "https://www.vector-trading.app".into());
         Ok(Self {
-            transport: Arc::new(Transport::new(base_url, strategy_api_key, options, true)?),
+            transport: Arc::new(Transport::new(&base_url, None, options)?),
         })
     }
     pub fn close(&self) {
         self.transport.close();
     }
     /// `Ok(())` means enqueue acceptance (204), not an executed trade.
-    pub async fn send<T: Serialize + ?Sized>(&self, signal: &T) -> Result<()> {
+    pub async fn send<T: Serialize + ?Sized>(
+        &self,
+        strategy_api_key: &str,
+        signal: &T,
+    ) -> Result<()> {
+        if !(strategy_api_key.len() == 32
+            && strategy_api_key
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)))
+        {
+            return Err(Error::validation());
+        }
         let bytes = serialize_signal(signal)?;
         self.transport
             .request(
                 Method::POST,
-                &format!("/webhooks/signals/v1/{}", self.transport.key),
+                &format!("/webhooks/signals/v1/{strategy_api_key}"),
                 &[],
                 Some(bytes),
                 204,
-                true,
+                Some(strategy_api_key),
             )
             .await?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod endpoint_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn production_defaults_and_explicit_overrides() {
+        let rest = RestClient::new("vt_synthetic", ClientOptions::default()).unwrap();
+        let signals = SignalsClient::new(ClientOptions::default()).unwrap();
+        assert_eq!(
+            rest.transport.base.as_str(),
+            "https://www.vector-trading.app/api/rest"
+        );
+        assert_eq!(
+            signals.transport.base.as_str(),
+            "https://www.vector-trading.app/"
+        );
+        let options = ClientOptions {
+            base_url: Some("https://example.invalid/prefix".into()),
+            ..Default::default()
+        };
+        let rest = RestClient::new("vt_synthetic", options.clone()).unwrap();
+        let signals = SignalsClient::new(options).unwrap();
+        assert_eq!(
+            rest.transport.base.as_str(),
+            "https://example.invalid/prefix"
+        );
+        assert_eq!(
+            signals.transport.base.as_str(),
+            "https://example.invalid/prefix"
+        );
+        let invalid = ClientOptions {
+            base_url: Some(String::new()),
+            ..Default::default()
+        };
+        assert!(RestClient::new("vt_synthetic", invalid.clone()).is_err());
+        assert!(SignalsClient::new(invalid).is_err());
     }
 }

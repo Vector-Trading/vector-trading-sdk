@@ -1,0 +1,214 @@
+[
+  {
+    "template": "typescript-fetch/modelGenericInterfaces.mustache",
+    "sha256": "01d87d60cd318726901f864b57cff53ed429f42d137f8b443bf2b3cdc80589b7",
+    "edits": [
+      {
+        "before": "{{#isNullable}} | null{{/isNullable}};",
+        "after": "{{#isNullable}} | null{{/isNullable}}{{^required}} | undefined{{/required}};"
+      }
+    ]
+  },
+  {
+    "template": "typescript-fetch/runtime.mustache",
+    "sha256": "2ce7ee1944e67dc062371f9b5487ec2c2d645dde81adca36daecdecb967e5b65",
+    "edits": [
+      {
+        "before": "    basePath?: string; // override base path",
+        "after": "    basePath?: (string) | undefined; // override base path"
+      },
+      {
+        "before": "    fetchApi?: FetchAPI; // override for fetch implementation",
+        "after": "    fetchApi?: (FetchAPI) | undefined; // override for fetch implementation"
+      },
+      {
+        "before": "    middleware?: Middleware[]; // middleware to apply before/after fetch requests",
+        "after": "    middleware?: (Middleware[]) | undefined; // middleware to apply before/after fetch requests"
+      },
+      {
+        "before": "    queryParamsStringify?: (params: HTTPQuery) => string; // stringify function for query strings",
+        "after": "    queryParamsStringify?: ((params: HTTPQuery) => string) | undefined; // stringify function for query strings"
+      },
+      {
+        "before": "    username?: string; // parameter for basic security",
+        "after": "    username?: (string) | undefined; // parameter for basic security"
+      },
+      {
+        "before": "    password?: string; // parameter for basic security",
+        "after": "    password?: (string) | undefined; // parameter for basic security"
+      },
+      {
+        "before": "    apiKey?: string | Promise<string> | ((name: string) => string | Promise<string>); // parameter for apiKey security",
+        "after": "    apiKey?: (string | Promise<string> | ((name: string) => string | Promise<string>)) | undefined; // parameter for apiKey security"
+      },
+      {
+        "before": "    accessToken?: string | Promise<string> | ((name?: string, scopes?: string[]) => string | Promise<string>); // parameter for oauth2 security",
+        "after": "    accessToken?: (string | Promise<string> | ((name?: string, scopes?: string[]) => string | Promise<string>)) | undefined; // parameter for oauth2 security"
+      },
+      {
+        "before": "    headers?: HTTPHeaders; //header params we want to use on every request",
+        "after": "    headers?: (HTTPHeaders) | undefined; //header params we want to use on every request"
+      },
+      {
+        "before": "    credentials?: RequestCredentials; //value for the credentials param we want to use on each request",
+        "after": "    credentials?: (RequestCredentials) | undefined; //value for the credentials param we want to use on each request"
+      },
+      {
+        "before": "    query?: HTTPQuery;",
+        "after": "    query?: (HTTPQuery) | undefined;"
+      },
+      {
+        "before": "    body?: HTTPBody;",
+        "after": "    body?: (HTTPBody) | undefined;"
+      },
+      {
+        "before": "    response?: Response;",
+        "after": "    response?: (Response) | undefined;"
+      },
+      {
+        "before": "    pre?(context: RequestContext): Promise<FetchParams | void>;",
+        "after": "    pre?: ((context: RequestContext) => Promise<FetchParams | void>) | undefined;"
+      },
+      {
+        "before": "    post?(context: ResponseContext): Promise<Response | void>;",
+        "after": "    post?: ((context: ResponseContext) => Promise<Response | void>) | undefined;"
+      },
+      {
+        "before": "    onError?(context: ErrorContext): Promise<Response | void>;",
+        "after": "    onError?: ((context: ErrorContext) => Promise<Response | void>) | undefined;"
+      },
+      {
+        "before": "export type HTTPRequestInit = { headers?: HTTPHeaders; method: HTTPMethod; credentials?: RequestCredentials; body?: HTTPBody };",
+        "after": "export type HTTPRequestInit = { headers?: HTTPHeaders | undefined; method: HTTPMethod; credentials?: RequestCredentials | undefined; body?: HTTPBody | undefined };"
+      },
+      {
+        "before": "            credentials: this.configuration.credentials,",
+        "after": "            ...(this.configuration.credentials === undefined ? {} : { credentials: this.configuration.credentials }),"
+      }
+    ]
+  },
+  {
+    "template": "typescript-fetch/modelGeneric.mustache",
+    "sha256": "826312cabf365896620ea4e9618893517e761e3a1059d5702dd87672db3fa104",
+    "edits": [
+      {
+        "before": "        return json;\n    }",
+        "after": "        return json;\n    }\n{{#vars}}\n{{#required}}    if (json['{{baseName}}'] === undefined) throw new TypeError('{{baseName}} is required');\n{{/required}}{{^isNullable}}    if (json['{{baseName}}'] === null) throw new TypeError('{{baseName}} must not be null');\n{{/isNullable}}\n{{#vendorExtensions.x-vector-finite}}    if (json['{{baseName}}'] !== undefined && !Number.isFinite(json['{{baseName}}'])) throw new TypeError('{{baseName}} must be finite');\n{{/vendorExtensions.x-vector-finite}}\n{{/vars}}"
+      },
+      {
+        "before": "        return value;\n    }",
+        "after": "        return value;\n    }\n{{#vars}}\n{{#required}}    if (value['{{name}}'] === undefined) throw new TypeError('{{baseName}} is required');\n{{/required}}{{^isNullable}}    if (value['{{name}}'] === null) throw new TypeError('{{baseName}} must not be null');\n{{/isNullable}}\n{{#vendorExtensions.x-vector-finite}}    if (value['{{name}}'] !== undefined && !Number.isFinite(value['{{name}}'])) throw new TypeError('{{baseName}} must be finite');\n{{/vendorExtensions.x-vector-finite}}\n{{/vars}}"
+      }
+    ]
+  },
+  {
+    "template": "python/model_generic.mustache",
+    "sha256": "7bdd8b95cd0931c0e47ff53d9e905eef20f7ad79f5794aca449695e657ad9b7b",
+    "edits": [
+      {
+        "before": "    model_config = ConfigDict(",
+        "after": "    model_config = ConfigDict(\n        allow_inf_nan=False,\n        hide_input_in_errors=True,{{#vendorExtensions.x-vector-strict-input}}\n        extra=\"forbid\",{{/vendorExtensions.x-vector-strict-input}}"
+      },
+      {
+        "before": "import json",
+        "after": "import json\nfrom pydantic import field_validator"
+      },
+      {
+        "before": "    model_config = ConfigDict(",
+        "after": "{{#vars}}{{^isNullable}}    @field_validator(\"{{name}}\", mode=\"before\")\n    @classmethod\n    def reject_null_{{name}}(cls, value):\n        if value is None:\n            raise ValueError(\"{{baseName}} must not be null\")\n        return value\n\n{{/isNullable}}{{/vars}}    model_config = ConfigDict("
+      },
+      {
+        "before": "        _obj = cls.model_validate({",
+        "after": "{{#vendorExtensions.x-vector-strict-input}}        return cls.model_validate(obj)\n{{/vendorExtensions.x-vector-strict-input}}{{^vendorExtensions.x-vector-strict-input}}        _obj = cls.model_validate({key: value for key, value in {"
+      },
+      {
+        "before": "        })\n        {{#isAdditionalPropertiesTrue}}",
+        "after": "        }.items() if key in obj})\n        {{#isAdditionalPropertiesTrue}}"
+      },
+      {
+        "before": "        return _obj\n    {{/hasChildren}}",
+        "after": "        return _obj\n{{/vendorExtensions.x-vector-strict-input}}\n    {{/hasChildren}}"
+      }
+    ]
+  },
+  {
+    "template": "python/model_oneof.mustache",
+    "sha256": "2d6fa7b88da47b5cc64817ae392664b218b2b5b934b4d3700fdf6f53c322e14a",
+    "edits": [
+      {
+        "before": "    model_config = ConfigDict(",
+        "after": "    model_config = ConfigDict(\n        hide_input_in_errors=True,{{#vendorExtensions.x-vector-strict-input}}\n        extra=\"forbid\",{{/vendorExtensions.x-vector-strict-input}}"
+      }
+    ]
+  },
+  {
+    "template": "go/model_simple.mustache",
+    "sha256": "03cb79d0f03fd1ac67cd9c0ab0ae71a00e0596d68b633efb5a3834408d1852d5",
+    "edits": [
+      {
+        "before": "\tfor _, requiredProperty := range(requiredProperties) {",
+        "after": "{{#vars}}{{^isNullable}}\tif value, exists := allProperties[\"{{baseName}}\"]; exists && value == nil {\n\t\treturn fmt.Errorf(\"{{baseName}} must not be null\")\n\t}\n{{/isNullable}}{{/vars}}\tfor _, requiredProperty := range(requiredProperties) {"
+      }
+    ]
+  },
+  {
+    "template": "rust/lib.mustache",
+    "sha256": "b07c5fd09e0341a199687f2bb392d71410c055d25899679bde09b474e043b256",
+    "edits": [
+      {
+        "before": "extern crate serde_repr;\n",
+        "after": ""
+      }
+    ]
+  },
+  {
+    "template": "rust/model.mustache",
+    "sha256": "64ae71196c6a82bad129f574b99d18794507780620869e7c294416da4b76048f",
+    "edits": [
+      {
+        "before": "    pub {{{name}}}:",
+        "after": "{{#vendorExtensions.x-vector-optional-nonnullable}}    #[serde(default, deserialize_with = \"crate::models::deserialize_non_null\")]\n{{/vendorExtensions.x-vector-optional-nonnullable}}{{#vendorExtensions.x-vector-finite}}    #[serde(serialize_with = \"crate::models::{{#required}}serialize_finite{{/required}}{{^required}}serialize_optional_finite{{/required}}\") ]\n{{/vendorExtensions.x-vector-finite}}    pub {{{name}}}:"
+      },
+      {
+        "before": "#[serde(tag = \"{{{propertyBaseName}}}\")]",
+        "after": "#[serde(untagged)]"
+      }
+    ]
+  },
+  {
+    "template": "rust/model_mod.mustache",
+    "sha256": "f0b34c83e6093f045264f3ebd45e2c182c5a151fea43911775014ef57fe5628f",
+    "edits": [
+      {
+        "before": "{{#models}}",
+        "after": "pub(crate) fn deserialize_non_null<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>\nwhere D: serde::Deserializer<'de>, T: serde::Deserialize<'de> {\n    T::deserialize(deserializer).map(Some)\n}\npub(crate) fn serialize_finite<S: serde::Serializer>(value: &f64, serializer: S) -> Result<S::Ok, S::Error> {\n    if !value.is_finite() { return Err(serde::ser::Error::custom(\"number must be finite\")); }\n    serializer.serialize_f64(*value)\n}\npub(crate) fn serialize_optional_finite<S: serde::Serializer>(value: &Option<f64>, serializer: S) -> Result<S::Ok, S::Error> {\n    match value { Some(v) => serialize_finite(v, serializer), None => serializer.serialize_none() }\n}\n{{#models}}"
+      }
+    ]
+  },
+  {
+    "template": "go/client.mustache",
+    "sha256": "6b49b53e55aa2598e57669d48dbe1587c179e46c63ca249f586a4f2cea99a16d",
+    "edits": [
+      {
+        "before": "\tif f, ok := v.(*os.File); ok {\n\t\tf, err = os.CreateTemp(\"\", \"HttpClientFile\")\n\t\tif err != nil {\n\t\t\treturn\n\t\t}\n\t\t_, err = f.Write(b)\n\t\tif err != nil {\n\t\t\treturn\n\t\t}\n\t\t_, err = f.Seek(0, io.SeekStart)\n\t\treturn\n\t}\n",
+        "after": "\tif _, ok := v.(*os.File); ok {\n\t\treturn errors.New(\"decoding into *os.File is unsupported; use **os.File\")\n\t}\n"
+      },
+      {
+        "before": "Cannot specify postBody and multipart form at the same time.",
+        "after": "cannot specify postBody and multipart form at the same time"
+      },
+      {
+        "before": "Cannot specify postBody and x-www-form-urlencoded form at the same time.",
+        "after": "cannot specify postBody and x-www-form-urlencoded form at the same time"
+      },
+      {
+        "before": "Unknown type with GetActualInstance but no unmarshalObj.UnmarshalJSON defined",
+        "after": "unknown type with GetActualInstance but no unmarshalObj.UnmarshalJSON defined"
+      },
+      {
+        "before": "fmt.Errorf(\"invalid body type %s\\n\", contentType)",
+        "after": "fmt.Errorf(\"invalid body type %s\", contentType)"
+      }
+    ]
+  }
+]

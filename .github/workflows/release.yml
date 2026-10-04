@@ -1,0 +1,292 @@
+name: SDK Release
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/release.yml
+      - .github/actions/setup-tools/action.yml
+      - release/**
+      - scripts/release*
+      - scripts/check-release.ts
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Prepare only, publish, or resume the same frozen artifacts
+        type: choice
+        options: [prepare, publish, resume]
+        default: prepare
+      version:
+        description: Unprefixed stable SDK version matching release/version.json
+        type: string
+        required: true
+        default: 0.1.0
+      source-run:
+        description: Successful main prepare run ID (required for publish/resume)
+        type: string
+      manifest-hash:
+        description: Reviewed prepare manifest SHA-256 (required for publish/resume)
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sdk-release-${{ inputs.version || github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv
+  CARGO_TARGET_DIR: ${{ github.workspace }}/.cache/rust-target
+  GOTOOLCHAIN: local
+
+jobs:
+  prepare:
+    name: prepare
+    if: github.event_name == 'pull_request' || inputs.mode == 'prepare'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-tools
+        with:
+          area: release
+      - name: Verify and freeze all packages
+        run: |
+          args=(prepare --bundle release/artifacts)
+          if [[ -n "$RELEASE_VERSION" ]]; then args+=(--version "$RELEASE_VERSION"); fi
+          node scripts/release.ts "${args[@]}"
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sdk-release
+          path: release/artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+  gate:
+    name: gate
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && (inputs.mode == 'publish' || inputs.mode == 'resume')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      commit: ${{ steps.source.outputs.commit }}
+      version: ${{ steps.source.outputs.version }}
+      manifest-hash: ${{ steps.source.outputs.manifest-sha256 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24.21.0
+      - name: Verify accepted source, CI, prepare run, and artifact identity
+        id: source
+        run: node scripts/release.ts gate --bundle release/staging --version "$RELEASE_VERSION" --source-run "$SOURCE_RUN" --manifest-hash "$MANIFEST_HASH"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          SOURCE_RUN: ${{ inputs.source-run }}
+          MANIFEST_HASH: ${{ inputs.manifest-hash }}
+  npm:
+    name: publish-npm
+    needs: gate
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    environment: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.gate.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24.21.0
+      - name: Download the original bundle
+        run: gh run download "$SOURCE_RUN" --repo Vector-Trading/vector-trading-sdk --name sdk-release --dir release/staging
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ inputs.source-run }}
+      - name: Reconcile and publish only a missing channel
+        run: node scripts/release.ts channel --bundle release/staging --version "$RELEASE_VERSION" --commit "$RELEASE_COMMIT" --manifest-hash "$MANIFEST_HASH" --channel npm --authorize "v$RELEASE_VERSION" --outcomes release/outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.gate.outputs.version }}
+          RELEASE_COMMIT: ${{ needs.gate.outputs.commit }}
+          MANIFEST_HASH: ${{ needs.gate.outputs.manifest-hash }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: sdk-release-outcome-npm-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release/outcomes/*.json
+          if-no-files-found: warn
+          retention-days: 90
+  pypi:
+    name: publish-pypi
+    needs: gate
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    environment: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.gate.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24.21.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+        with:
+          version: 0.12.1
+          enable-cache: false
+      - name: Download the original bundle
+        run: gh run download "$SOURCE_RUN" --repo Vector-Trading/vector-trading-sdk --name sdk-release --dir release/staging
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ inputs.source-run }}
+      - name: Reconcile and publish only a missing channel
+        run: node scripts/release.ts channel --bundle release/staging --version "$RELEASE_VERSION" --commit "$RELEASE_COMMIT" --manifest-hash "$MANIFEST_HASH" --channel pypi --authorize "v$RELEASE_VERSION" --outcomes release/outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.gate.outputs.version }}
+          RELEASE_COMMIT: ${{ needs.gate.outputs.commit }}
+          MANIFEST_HASH: ${{ needs.gate.outputs.manifest-hash }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: sdk-release-outcome-pypi-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release/outcomes/*.json
+          if-no-files-found: warn
+          retention-days: 90
+  crates:
+    name: publish-crates
+    needs: gate
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    environment: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.gate.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24.21.0
+      - name: Download the original bundle
+        run: gh run download "$SOURCE_RUN" --repo Vector-Trading/vector-trading-sdk --name sdk-release --dir release/staging
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ inputs.source-run }}
+      - name: Reconcile and publish only a missing channel
+        run: node scripts/release.ts channel --bundle release/staging --version "$RELEASE_VERSION" --commit "$RELEASE_COMMIT" --manifest-hash "$MANIFEST_HASH" --channel crates --authorize "v$RELEASE_VERSION" --outcomes release/outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.gate.outputs.version }}
+          RELEASE_COMMIT: ${{ needs.gate.outputs.commit }}
+          MANIFEST_HASH: ${{ needs.gate.outputs.manifest-hash }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: sdk-release-outcome-crates-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release/outcomes/*.json
+          if-no-files-found: warn
+          retention-days: 90
+  go:
+    name: publish-go
+    needs: gate
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    environment: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.gate.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24.21.0
+      - name: Download the original bundle
+        run: gh run download "$SOURCE_RUN" --repo Vector-Trading/vector-trading-sdk --name sdk-release --dir release/staging
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ inputs.source-run }}
+      - name: Reconcile and publish only a missing channel
+        run: node scripts/release.ts channel --bundle release/staging --version "$RELEASE_VERSION" --commit "$RELEASE_COMMIT" --manifest-hash "$MANIFEST_HASH" --channel go --authorize "v$RELEASE_VERSION" --outcomes release/outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.gate.outputs.version }}
+          RELEASE_COMMIT: ${{ needs.gate.outputs.commit }}
+          MANIFEST_HASH: ${{ needs.gate.outputs.manifest-hash }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: sdk-release-outcome-go-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release/outcomes/*.json
+          if-no-files-found: warn
+          retention-days: 90
+  summary:
+    name: release-summary
+    needs: [gate, npm, pypi, crates, go]
+    if: always() && needs.gate.result == 'success' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    environment: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.gate.outputs.commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24.21.0
+      - name: Download the original bundle
+        run: gh run download "$SOURCE_RUN" --repo Vector-Trading/vector-trading-sdk --name sdk-release --dir release/staging
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ inputs.source-run }}
+      - name: Record actual channel state and immutable release assets
+        run: node scripts/release.ts notes --bundle release/staging --version "$RELEASE_VERSION" --commit "$RELEASE_COMMIT" --manifest-hash "$MANIFEST_HASH" --outcomes release/outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.gate.outputs.version }}
+          RELEASE_COMMIT: ${{ needs.gate.outputs.commit }}
+          MANIFEST_HASH: ${{ needs.gate.outputs.manifest-hash }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: sdk-release-summary-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release/outcomes/*
+          if-no-files-found: warn
+          retention-days: 90

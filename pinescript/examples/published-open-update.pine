@@ -1,0 +1,14 @@
+//@version=6
+// SPDX-License-Identifier: MIT
+import Vector_Trading_PE/VectorTrading/1 as vt
+indicator("Vector Trading payload examples", overlay = true)
+
+// This example prepares JSON only. Your script chooses when to call alert().
+float strategyVersion = input.float(1, "Strategy version", minval = 0.000001)
+array<vt.TakeProfit> openingTargets = array.from(vt.TakeProfit.new(close * 1.02, 100))
+string opening = vt.openSignal(strategyVersion, close, "buy", stopPrice = close * 0.98, takeProfits = openingTargets)
+
+// Prepare a later replacement of TP targets and a new stop price.
+array<vt.TakeProfit> updatedTargets = array.from(vt.TakeProfit.new(close * 1.03, 100))
+string update = vt.updateSignal(strategyVersion, close, "buy", stopPrice = close * 0.99, takeProfits = updatedTargets)
+plot(na)

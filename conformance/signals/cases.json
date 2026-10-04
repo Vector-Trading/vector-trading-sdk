@@ -1,0 +1,857 @@
+[
+  {
+    "expected": {
+      "action": "open",
+      "force": false,
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "open-market-buy",
+    "orderType": "market",
+    "parserAccepted": true,
+    "payload": {
+      "action": "open",
+      "force": false,
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "price": 95,
+        "side": "buy",
+        "stop": 90,
+        "takeProfits": [
+          {
+            "percent": 100,
+            "price": 110
+          }
+        ]
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "open-limit-buy",
+    "orderType": "limit",
+    "parserAccepted": true,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "price": 95,
+        "side": "buy",
+        "stop": 90,
+        "takeProfits": [
+          {
+            "percent": 100,
+            "price": 110
+          }
+        ]
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "triggerPrice": 105
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "open-trigger-buy",
+    "orderType": "trigger",
+    "parserAccepted": true,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "triggerPrice": 105
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "price": 103,
+        "side": "buy",
+        "triggerPrice": 105
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "open-trigger-limit-buy",
+    "orderType": "trigger",
+    "parserAccepted": true,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "price": 103,
+        "side": "buy",
+        "triggerPrice": 105
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "open",
+      "hashtag": "example_1",
+      "marketPrice": 100,
+      "order": {
+        "amountPerc": 50,
+        "side": "sell",
+        "stop": 110,
+        "takeProfits": [
+          {
+            "percent": 40,
+            "price": 90
+          },
+          {
+            "percent": 60,
+            "price": 80
+          }
+        ]
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "open-market-sell",
+    "orderType": "market",
+    "parserAccepted": true,
+    "payload": {
+      "action": "open",
+      "hashtag": "example_1",
+      "marketPrice": 100,
+      "order": {
+        "amountPerc": 50,
+        "side": "sell",
+        "stop": 110,
+        "takeProfits": [
+          {
+            "percent": 40,
+            "price": 90
+          },
+          {
+            "percent": 60,
+            "price": 80
+          }
+        ]
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "update-preserve",
+    "orderType": "market",
+    "parserAccepted": true,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": []
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "update-clear",
+    "orderType": "market",
+    "parserAccepted": true,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": []
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": [
+          {
+            "percent": 50,
+            "price": 110
+          }
+        ]
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "update-replace",
+    "orderType": "market",
+    "parserAccepted": true,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": [
+          {
+            "percent": 50,
+            "price": 110
+          }
+        ]
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "price": 95,
+        "side": "buy",
+        "stop": 90
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "update-price-stop",
+    "orderType": "limit",
+    "parserAccepted": true,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "price": 95,
+        "side": "buy",
+        "stop": 90
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "cancel",
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "cancel",
+    "parserAccepted": true,
+    "payload": {
+      "action": "cancel",
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "cancel",
+      "marketPrice": 100,
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "cancel-market-price",
+    "parserAccepted": true,
+    "payload": {
+      "action": "cancel",
+      "marketPrice": 100,
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "close",
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "close",
+    "parserAccepted": true,
+    "payload": {
+      "action": "close",
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "close",
+      "marketPrice": 100,
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "close-market-price",
+    "parserAccepted": true,
+    "payload": {
+      "action": "close",
+      "marketPrice": 100,
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "start",
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "start",
+    "parserAccepted": true,
+    "payload": {
+      "action": "start",
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "pause",
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "pause",
+    "parserAccepted": true,
+    "payload": {
+      "action": "pause",
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "stop",
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "stop",
+    "parserAccepted": true,
+    "payload": {
+      "action": "stop",
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "expected": {
+      "action": "delete",
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "delete",
+    "parserAccepted": true,
+    "payload": {
+      "action": "delete",
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "id": "missing-version",
+    "parserAccepted": false,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": "1780000000000"
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "zero-version",
+    "parserAccepted": false,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": "1780000000000",
+      "version": 0
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "unknown-action",
+    "parserAccepted": false,
+    "payload": {
+      "action": "trade",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "missing-order",
+    "parserAccepted": false,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "null-market-price",
+    "parserAccepted": false,
+    "payload": {
+      "action": "open",
+      "marketPrice": null,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "tp-null",
+    "parserAccepted": false,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": null
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "tp-object",
+    "parserAccepted": false,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": {}
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "tp-negative-price",
+    "parserAccepted": false,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": [
+          {
+            "percent": 50,
+            "price": -1
+          }
+        ]
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "tp-zero-percent",
+    "parserAccepted": false,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": [
+          {
+            "percent": 0,
+            "price": 110
+          }
+        ]
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "tp-too-many",
+    "parserAccepted": false,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": [
+          {
+            "percent": 1,
+            "price": 110
+          },
+          {
+            "percent": 1,
+            "price": 110
+          },
+          {
+            "percent": 1,
+            "price": 110
+          },
+          {
+            "percent": 1,
+            "price": 110
+          },
+          {
+            "percent": 1,
+            "price": 110
+          },
+          {
+            "percent": 1,
+            "price": 110
+          },
+          {
+            "percent": 1,
+            "price": 110
+          },
+          {
+            "percent": 1,
+            "price": 110
+          },
+          {
+            "percent": 1,
+            "price": 110
+          },
+          {
+            "percent": 1,
+            "price": 110
+          },
+          {
+            "percent": 1,
+            "price": 110
+          }
+        ]
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "tp-total-above-100",
+    "parserAccepted": false,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": [
+          {
+            "percent": 60,
+            "price": 110
+          },
+          {
+            "percent": 50,
+            "price": 120
+          }
+        ]
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "id": "tp-wrong-side",
+    "parserAccepted": false,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "takeProfits": [
+          {
+            "percent": 50,
+            "price": 90
+          }
+        ]
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "id": "stop-wrong-side",
+    "parserAccepted": false,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "stop": 110
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "id": "limit-wrong-side",
+    "parserAccepted": false,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "price": 105,
+        "side": "buy"
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "id": "trigger-wrong-side",
+    "parserAccepted": false,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy",
+        "triggerPrice": 95
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": true
+  },
+  {
+    "id": "non-boolean-force",
+    "parserAccepted": false,
+    "payload": {
+      "action": "open",
+      "force": "yes",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "id": "unicode-hashtag",
+    "parserAccepted": false,
+    "payload": {
+      "action": "open",
+      "hashtag": "тест",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "expected": {
+      "action": "pause",
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "force-ignored-on-pause",
+    "parserAccepted": true,
+    "payload": {
+      "action": "pause",
+      "force": true,
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "expected": {
+      "action": "start",
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "market-price-ignored-on-start",
+    "parserAccepted": true,
+    "payload": {
+      "action": "start",
+      "marketPrice": 100,
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "expected": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "amountPerc": 10,
+        "side": "buy"
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "update-amount-percentage",
+    "orderType": "market",
+    "parserAccepted": true,
+    "payload": {
+      "action": "update",
+      "marketPrice": 100,
+      "order": {
+        "amountPerc": 10,
+        "side": "buy"
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  },
+  {
+    "expected": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": 1700000000000,
+      "version": 1
+    },
+    "id": "numeric-timestamp",
+    "orderType": "market",
+    "parserAccepted": true,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "schemaAccepted": false,
+    "timestampFromClock": true
+  },
+  {
+    "expected": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": 1700000000000,
+      "version": 1
+    },
+    "id": "missing-timestamp",
+    "orderType": "market",
+    "parserAccepted": true,
+    "payload": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "version": 1
+    },
+    "schemaAccepted": false,
+    "timestampFromClock": true
+  },
+  {
+    "expected": {
+      "action": "open",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": 1780000000000,
+      "version": 1
+    },
+    "id": "unknown-field",
+    "orderType": "market",
+    "parserAccepted": true,
+    "payload": {
+      "action": "open",
+      "extra": "ignored",
+      "marketPrice": 100,
+      "order": {
+        "side": "buy"
+      },
+      "timestamp": "1780000000000",
+      "version": 1
+    },
+    "schemaAccepted": false
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "contractVersion": "1.0.0",
+  "files": {
+    "conformance/rest/cases.json": {
+      "sha256": "4d25f13e3999c2e901ce76563d51c641e5ab799b1f97fa56b0d3dbec81568c13"
+    },
+    "conformance/signals/cases.json": {
+      "sha256": "e413a03d8736e2c9d8d9315b35e3f5826d51489b8a5e5b72ffd681cf9f2cd767"
+    },
+    "contracts/rest.openapi.json": {
+      "sha256": "ec1223b066cbfd97fefc57b23eced19eeef14a40642b64b7417f1215c369feea"
+    },
+    "contracts/signals.schema.json": {
+      "sha256": "05d628e553082bbc524e70890c4b6a58ba842fceb278d5299d35d74d30b8a78d"
+    }
+  },
+  "format": 1,
+  "status": "committed"
+}

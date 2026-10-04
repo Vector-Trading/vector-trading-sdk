@@ -1,0 +1,6 @@
+{
+  "go": "1.26.0",
+  "goAlsoTested": "1.27.1",
+  "staticcheck": "v0.8.1",
+  "staticcheckGo": "1.27.1"
+}

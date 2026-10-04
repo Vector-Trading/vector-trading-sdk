@@ -1,0 +1,13 @@
+packages:
+  - typescript
+
+engineStrict: true
+packageManagerStrict: true
+saveExact: true
+strictPeerDependencies: true
+minimumReleaseAgeStrict: true
+verifyDepsBeforeRun: error
+storeDir: .cache/pnpm/store
+enableGlobalVirtualStore: false
+allowBuilds:
+  esbuild: true

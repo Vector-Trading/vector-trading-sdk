@@ -1,0 +1,36 @@
+name: Bug report
+description: Report a reproducible SDK problem with synthetic inputs.
+title: '[Bug]: '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report security vulnerabilities privately using SECURITY.md. Do not include
+        real API keys, webhook URLs, account data, or private request bodies.
+  - type: dropdown
+    id: language
+    attributes:
+      label: SDK language
+      options: [TypeScript / JavaScript, Python, Go, Rust, Pine Script, Shared tooling]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: SDK version or source commit, and runtime version
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Use synthetic data and an isolated receiver; include setup and steps.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Expected and actual behavior
+      description: Include safe error kinds/statuses and whether a request was sent.
+    validations:
+      required: true

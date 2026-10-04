@@ -1,0 +1,64 @@
+# Dependency directories and local environments
+node_modules/
+.pnpm-store/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Caches and build output
+.cache/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.nox/
+dist/
+build/
+target/
+*.tsbuildinfo
+
+# Test reports
+coverage/
+.coverage
+.coverage.*
+htmlcov/
+test-results/
+playwright-report/
+
+# Local credentials
+.env
+.env.*
+!.env.example
+.aws/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Temporary release artifacts
+.tmp/
+tmp/
+release/artifacts/
+release/staging/
+release/outcomes/
+*.tgz
+*.whl
+*.crate
+
+# Local editor and operating-system files
+.DS_Store
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.code-workspace
+.project
+.classpath
+.settings/
+*.swp
+*.swo
+*~
+*.log

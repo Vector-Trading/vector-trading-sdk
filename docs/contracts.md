@@ -69,6 +69,11 @@ consequences; the SDK sends one HTTP request.
 
 ## REST: input validation
 
+TypeScript REST request objects reject unknown own enumerable string keys before
+HTTP delivery, including keys whose value is `undefined`. Known optional parameters
+retain their omission rules. A misspelled filter therefore fails locally rather than
+sending a less restrictive request; the generated grant body argument remains supported.
+
 Schema string length limits count Unicode code points, not UTF-16 code units or
 visual graphemes. The user search parameter therefore accepts 2–30 code points,
 including supplementary characters, without SDK Unicode normalization.
@@ -100,11 +105,28 @@ independent request on the same client.
 Application errors normally contain `errorCode`, `message`, optional string-valued
 `metadata`, and optional `requestId`. Rate-limit error `429` has a separate shape:
 `{ "success": false, "error": "..." }`. A proxy or network failure may produce an empty
-or non-JSON body; clients must not assume one schema covers every error. Clients expose a safe body `requestId` or
-the `x-request-id` response header when available.
+or non-JSON body; clients must not assume one schema covers every error. A string
+`requestId` in the body has priority over the `x-request-id` response header. An absent
+or non-string body value falls back to the header. An empty string is still a body
+value and does not select the header. Selected identifiers undergo credential and URL
+redaction; existing language-specific empty-string representations are retained.
 Error messages redact submitted string, numeric, and boolean JSON values. Public codes
 and request IDs are retained after credential and URL redaction; applications must not
 log private inputs or raw transport data.
+
+SDK transports enforce a numerical response-body limit of 1 MiB (1,048,576 bytes),
+including error responses. TypeScript and Python count actual bytes after their
+standard HTTP decoding, including supported decompression, without relying on
+`Content-Length`. A body exactly at the limit is permitted; a larger body fails with
+`protocol` before JSON parsing or diagnostic extraction. This is an SDK resource
+policy, not a restriction in the pinned server response schema. Go and Rust retain
+their existing decoding policies; Rust does not enable HTTP decompression features.
+
+The limit bounds accumulated SDK body data, not total process memory or a chunk
+already allocated by the HTTP library or an injected transport. Receiving a large
+response, timing out, or cancelling stops that request's local processing without
+closing the client or retrying delivery. A sent mutation or signal can still have an
+unknown server outcome; subsequent independent calls remain available.
 
 Invalid or revoked keys and CIDR mismatches return `401`; insufficient account, key,
 or owner permissions return `403`. JSON bodies are limited to 16 KiB of UTF-8:

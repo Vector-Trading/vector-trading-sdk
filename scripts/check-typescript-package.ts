@@ -25,6 +25,11 @@ function run(command: string, args: string[], cwd = root) {
 }
 const exercise = String.raw`
 async function exercise(sdk) {
+  assert.deepEqual(Object.keys(sdk).sort(), [
+    'RestClient','SignalsClient','SdkError','buildSignal','buildOpenSignal',
+    'buildUpdateSignal','buildCancelSignal','buildCloseSignal','buildStartSignal',
+    'buildPauseSignal','buildStopSignal','buildDeleteSignal','serializeSignal',
+  ].sort());
   const accountApiKey = 'vt_consumer_synthetic';
   const strategyApiKey = 'a'.repeat(32);
   const secondStrategyApiKey = 'e'.repeat(32);
@@ -67,6 +72,142 @@ async function exercise(sdk) {
 }
 `;
 const commonTypes = `
+import type {
+  CheckoutDetailsDiscount,
+  OpenSignalPayloadOrderTakeProfitsInner,
+  OtherGrantRequest,
+  PaidExternalGrantRequest,
+  CheckoutDetailsDiscountTypeEnum,
+  OtherGrantRequestGrantTypeEnum,
+  PaidExternalGrantRequestGrantTypeEnum,
+  OwnedTradingBundleSummaryAccessEnum,
+  OwnedTradingBundleSummaryStatusEnum,
+  OpenSignalPayloadOrderSideEnum,
+  UpdateSignalPayloadOrderSideEnum,
+  ListBundleGrantsSortEnum,
+  ListBundleGrantsDirEnum,
+  OpenSignalPayloadActionEnum,
+  UpdateSignalPayloadActionEnum,
+  CancelSignalPayloadActionEnum,
+  CloseSignalPayloadActionEnum,
+  StartSignalPayloadActionEnum,
+  PauseSignalPayloadActionEnum,
+  StopSignalPayloadActionEnum,
+  DeleteSignalPayloadActionEnum,
+  TradingBundleAccessGrantType,
+} from '@vector-trading/sdk';
+const discount: CheckoutDetailsDiscount = {type:'percent',value:10};
+const target: OpenSignalPayloadOrderTakeProfitsInner = {percent:20,price:110};
+const other: OtherGrantRequest = {userId:'b'.repeat(32),grantType:'gift'};
+const paid: PaidExternalGrantRequest = {userId:'b'.repeat(32),grantType:'paid_external',sourceId:'invoice:example'};
+const checkoutDiscount: sdk.CheckoutDetails['discount'] = discount;
+const targets: sdk.OpenSignalPayloadOrder['takeProfits'] = [target];
+const updatedTargets: sdk.UpdateSignalPayloadOrder['takeProfits'] = [target];
+const grants: sdk.CreateGrantRequest[] = [other,paid];
+const omittedDiscount: CheckoutDetailsDiscount = {};
+const emptyTargets: sdk.UpdateSignalPayloadOrder['takeProfits'] = [];
+void checkoutDiscount; void targets; void updatedTargets; void grants; void omittedDiscount; void emptyTargets;
+const enum0: CheckoutDetailsDiscountTypeEnum = 'percent'; void enum0;
+const enum1: OtherGrantRequestGrantTypeEnum = 'gift'; void enum1;
+const enum2: PaidExternalGrantRequestGrantTypeEnum = 'paid_external'; void enum2;
+const enum3: OwnedTradingBundleSummaryAccessEnum = 'private'; void enum3;
+const enum4: OwnedTradingBundleSummaryStatusEnum = 'active'; void enum4;
+const enum5: OpenSignalPayloadOrderSideEnum = 'buy'; void enum5;
+const enum6: UpdateSignalPayloadOrderSideEnum = 'sell'; void enum6;
+const enum7: ListBundleGrantsSortEnum = 'createdAt'; void enum7;
+const enum8: ListBundleGrantsDirEnum = 'asc'; void enum8;
+const enum9: OpenSignalPayloadActionEnum = 'open'; void enum9;
+const enum10: UpdateSignalPayloadActionEnum = 'update'; void enum10;
+const enum11: CancelSignalPayloadActionEnum = 'cancel'; void enum11;
+const enum12: CloseSignalPayloadActionEnum = 'close'; void enum12;
+const enum13: StartSignalPayloadActionEnum = 'start'; void enum13;
+const enum14: PauseSignalPayloadActionEnum = 'pause'; void enum14;
+const enum15: StopSignalPayloadActionEnum = 'stop'; void enum15;
+const enum16: DeleteSignalPayloadActionEnum = 'delete'; void enum16;
+const enum17: TradingBundleAccessGrantType = 'gift'; void enum17;
+if (false) {
+// @ts-expect-error enums remain types only in the installed package
+void sdk.CheckoutDetailsDiscountTypeEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.OtherGrantRequestGrantTypeEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.PaidExternalGrantRequestGrantTypeEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.OwnedTradingBundleSummaryAccessEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.OwnedTradingBundleSummaryStatusEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.OpenSignalPayloadOrderSideEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.UpdateSignalPayloadOrderSideEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.ListBundleGrantsSortEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.ListBundleGrantsDirEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.OpenSignalPayloadActionEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.UpdateSignalPayloadActionEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.CancelSignalPayloadActionEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.CloseSignalPayloadActionEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.StartSignalPayloadActionEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.PauseSignalPayloadActionEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.StopSignalPayloadActionEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.DeleteSignalPayloadActionEnum;
+// @ts-expect-error enums remain types only in the installed package
+void sdk.TradingBundleAccessGrantType;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum0: CheckoutDetailsDiscountTypeEnum = 'unsupported'; void invalidEnum0;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum1: OtherGrantRequestGrantTypeEnum = 'unsupported'; void invalidEnum1;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum2: PaidExternalGrantRequestGrantTypeEnum = 'unsupported'; void invalidEnum2;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum3: OwnedTradingBundleSummaryAccessEnum = 'unsupported'; void invalidEnum3;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum4: OwnedTradingBundleSummaryStatusEnum = 'unsupported'; void invalidEnum4;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum5: OpenSignalPayloadOrderSideEnum = 'unsupported'; void invalidEnum5;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum6: UpdateSignalPayloadOrderSideEnum = 'unsupported'; void invalidEnum6;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum7: ListBundleGrantsSortEnum = 'unsupported'; void invalidEnum7;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum8: ListBundleGrantsDirEnum = 'unsupported'; void invalidEnum8;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum9: OpenSignalPayloadActionEnum = 'unsupported'; void invalidEnum9;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum10: UpdateSignalPayloadActionEnum = 'unsupported'; void invalidEnum10;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum11: CancelSignalPayloadActionEnum = 'unsupported'; void invalidEnum11;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum12: CloseSignalPayloadActionEnum = 'unsupported'; void invalidEnum12;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum13: StartSignalPayloadActionEnum = 'unsupported'; void invalidEnum13;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum14: PauseSignalPayloadActionEnum = 'unsupported'; void invalidEnum14;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum15: StopSignalPayloadActionEnum = 'unsupported'; void invalidEnum15;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum16: DeleteSignalPayloadActionEnum = 'unsupported'; void invalidEnum16;
+// @ts-expect-error literal unions must not widen to string or any
+const invalidEnum17: TradingBundleAccessGrantType = 'unsupported'; void invalidEnum17;
+// @ts-expect-error discount type remains restricted
+const invalidDiscount: CheckoutDetailsDiscount = {type:'unsupported'}; void invalidDiscount;
+// @ts-expect-error targets require a percent
+const invalidTarget: OpenSignalPayloadOrderTakeProfitsInner = {price:110}; void invalidTarget;
+// @ts-expect-error paid grants require sourceId
+const invalidPaid: PaidExternalGrantRequest = {userId:'b'.repeat(32),grantType:'paid_external'}; void invalidPaid;
+// @ts-expect-error other grant arms exclude paid_external
+const invalidOther: OtherGrantRequest = {userId:'b'.repeat(32),grantType:'paid_external'}; void invalidOther;
+}
+
 const client = new sdk.RestClient({ baseUrl: 'https://example.com/api/rest', accountApiKey: 'vt_synthetic' });
 const message: sdk.StrategySignalPayload = sdk.buildUpdateSignal({ version: 1, marketPrice: 100, order: { side: 'buy', takeProfits: [] } });
 const signals = new sdk.SignalsClient({baseUrl:'https://example.com'});

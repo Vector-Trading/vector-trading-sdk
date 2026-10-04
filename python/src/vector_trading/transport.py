@@ -10,6 +10,8 @@ import httpx
 
 from .errors import SdkError
 
+_MAX_RESPONSE_BYTES = 1_048_576
+
 
 class _SafeURL(httpx.URL):
     # HTTPX logs URL objects. Preserve wire components but hide private paths and queries.
@@ -138,6 +140,7 @@ class Transport:
         request.url = _SafeURL(request.url)
         started = time.monotonic()
         failure: SdkError | None = None
+        selected_sdk_failure = False
         response: httpx.Response | None = None
         data = bytearray()
         try:
@@ -147,20 +150,31 @@ class Transport:
                     raise SdkError("cancelled", "Request was cancelled; its outcome may be unknown")
                 if time.monotonic() - started >= self.__timeout:
                     raise SdkError("timeout", "Request timed out; its outcome may be unknown")
+                if len(data) + len(chunk) > _MAX_RESPONSE_BYTES:
+                    raise SdkError("protocol", "Response exceeds 1 MiB")
                 data.extend(chunk)
             if cancel_event is not None and cancel_event.is_set():
                 raise SdkError("cancelled", "Request was cancelled; its outcome may be unknown")
         except httpx.TimeoutException:
             failure = SdkError("timeout", "Request timed out; its outcome may be unknown")
-        except SdkError:
-            raise
+        except SdkError as error:
+            failure = error
+            selected_sdk_failure = True
         except Exception:
             failure = SdkError("transport", "HTTP transport failed; its outcome may be unknown")
         finally:
             if response is not None:
-                response.close()
+                try:
+                    response.close()
+                except Exception:
+                    if failure is None:
+                        failure = SdkError(
+                            "transport", "HTTP transport failed; its outcome may be unknown"
+                        )
         if failure is not None:
-            if cancel_event is not None and cancel_event.is_set():
+            # Cleanup cannot replace a selected SDK outcome; network failures retain
+            # their existing late cancellation precedence.
+            if not selected_sdk_failure and cancel_event is not None and cancel_event.is_set():
                 raise SdkError("cancelled", "Request was cancelled; its outcome may be unknown")
             raise failure
         if time.monotonic() - started >= self.__timeout:
@@ -173,6 +187,9 @@ class Transport:
             pass
         if not 200 <= response.status_code < 300:
             details = parsed if isinstance(parsed, dict) else {}
+            request_id = details.get("requestId")
+            if not isinstance(request_id, str):
+                request_id = response.headers.get("x-request-id")
             raise SdkError(
                 "http",
                 self._clean(details.get("message", details.get("error")), body, request_secret)
@@ -180,7 +197,7 @@ class Transport:
                 status=response.status_code,
                 code=self._clean(details.get("errorCode"), body, request_secret, submitted=False),
                 request_id=self._clean(
-                    details.get("requestId", response.headers.get("x-request-id")),
+                    request_id,
                     body,
                     request_secret,
                     submitted=False,

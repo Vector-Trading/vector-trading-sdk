@@ -139,6 +139,11 @@ never forwarded. Environment proxy settings are disabled. Optional `transport` a
 an HTTPX `BaseTransport`; supplied transports must honor HTTPX timeout semantics and
 must not introduce retries.
 
+Responses, including errors, have a 1 MiB body limit checked while streaming.
+Exceeding it raises `protocol`, closes the response, and leaves the client available
+for independent calls. See the [shared transport rules](../docs/contracts.md#rest-errors-and-transport)
+for byte counting, request ID precedence, and the memory and delivery guarantees.
+
 `SdkError` exposes `kind`, optional `status`, `code`, and `request_id`, plus a bounded
 safe message. Kinds include `validation`, `http`, `transport`, `timeout`, `cancelled`,
 `protocol`, `pagination`, and `closed`. HTTP errors handle JSON, non-JSON, empty bodies,

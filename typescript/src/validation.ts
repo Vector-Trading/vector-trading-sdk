@@ -143,7 +143,12 @@ export function validateModel(name: string, value: unknown): void {
   validate(schemas[name]!, value, 'input');
 }
 export function validateParameters(operation: string, value: Record<string, unknown>): void {
-  for (const p of operations.find((op) => op.operationId === operation)!.parameters ?? []) {
+  const parameters = operations.find((op) => op.operationId === operation)!.parameters ?? [];
+  const allowed = new Set(parameters.map((parameter) => parameter.name));
+  // The generated request object includes the body alongside path/query parameters.
+  if (operation === 'createBundleGrant') allowed.add('createGrantRequest');
+  for (const key of Object.keys(value)) if (!allowed.has(key)) invalid('input');
+  for (const p of parameters) {
     const field = value[p.name];
     if (field !== undefined) validate(p.schema, field, 'input.' + p.name);
     else if (p.required) invalid('input.' + p.name);

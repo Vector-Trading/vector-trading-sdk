@@ -42,6 +42,49 @@ export function validateCredential(secret: unknown): asserts secret is string {
   if (typeof secret !== 'string' || !secret || /[\r\n]/.test(secret))
     throw new SdkError('validation', 'A valid credential is required');
 }
+async function responseText(response: Response, signal: AbortSignal): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) return '';
+  const decoder = new TextDecoder();
+  let size = 0;
+  let text = '';
+  let completed = false;
+  let cancelled = false;
+  const cancel = () => {
+    if (cancelled) return;
+    cancelled = true;
+    // Caller-provided streams can reject or never settle cancellation.
+    try {
+      void reader.cancel().catch(() => {});
+    } catch {
+      /* Cleanup must not replace the selected request error. */
+    }
+  };
+  signal.addEventListener('abort', cancel, { once: true });
+  try {
+    while (true) {
+      if (signal.aborted) throw new Error('aborted');
+      const chunk = await reader.read();
+      if (signal.aborted) throw new Error('aborted');
+      if (chunk.done) {
+        completed = true;
+        return text + decoder.decode();
+      }
+      if (size + chunk.value.byteLength > 1_048_576)
+        throw new SdkError('protocol', 'Response exceeds 1 MiB');
+      size += chunk.value.byteLength;
+      text += decoder.decode(chunk.value, { stream: true });
+    }
+  } finally {
+    signal.removeEventListener('abort', cancel);
+    if (!completed) cancel();
+    try {
+      reader.releaseLock();
+    } catch {
+      /* Preserve the error even when a custom reader rejects cleanup. */
+    }
+  }
+}
 export class Transport {
   readonly url: string;
   #fetch: Fetch;
@@ -80,7 +123,7 @@ export class Transport {
         signal: controller.signal,
         redirect: 'manual',
       });
-      const text = await response.text();
+      const text = await responseText(response, controller.signal);
       if (controller.signal.aborted) throw new Error('aborted');
       if (!response.ok) {
         let details: unknown;
@@ -118,7 +161,12 @@ export class Transport {
           clean(body['message'] ?? body['error']) ??
           'HTTP request failed (' + response.status + ')';
         const code = clean(body['errorCode'], false);
-        const requestId = clean(body['requestId'] ?? response.headers.get('x-request-id'), false);
+        const requestId = clean(
+          typeof body['requestId'] === 'string'
+            ? body['requestId']
+            : response.headers.get('x-request-id'),
+          false,
+        );
         throw new SdkError('http', message, {
           status: response.status,
           ...(code ? { code } : {}),

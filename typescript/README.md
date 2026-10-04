@@ -69,6 +69,17 @@ Exported request/response types describe the methods; arbitrary internal server 
 are not required. All list methods also have a `Pages` variant returning an async page
 iterator. Empty pages with `nextCursor` continue; repeated cursors fail explicitly.
 
+Unknown own enumerable string keys in REST request objects fail with `validation`
+before HTTP delivery, even when their value is `undefined`. For example, use `userId`
+for grant filtering; a misspelled `userID` is rejected instead of silently omitting
+the filter. The supported body argument is `createGrantRequest`.
+
+Nested transport types are available through root `import type` declarations,
+including `CheckoutDetailsDiscount`, `OpenSignalPayloadOrderTakeProfitsInner`,
+`OtherGrantRequest`, and `PaidExternalGrantRequest`. Named enumeration types describe
+literal values; they do not expose JavaScript enumeration constants. For example,
+`const grantType: TradingBundleAccessGrantType = 'gift'` uses an imported type.
+
 Builders are `buildOpenSignal`, `buildUpdateSignal`, `buildCancelSignal`,
 `buildCloseSignal`, `buildStartSignal`, `buildPauseSignal`, `buildStopSignal`, and
 `buildDeleteSignal`. `buildSignal` accepts an explicit action; `serializeSignal`
@@ -96,6 +107,11 @@ loopback test URLs only. Redirects are not followed. An optional `fetch` impleme
 must honor standard `RequestInit` cancellation and redirect settings.
 The default timeout is 10 seconds; `timeoutMs` covers receiving the response body.
 Every method accepts a final `{ signal: AbortSignal }` option for cancellation.
+
+Responses, including errors, are read incrementally with a 1 MiB body limit. Exceeding
+it fails with `protocol` and leaves the client available for independent calls.
+See the [shared transport rules](../docs/contracts.md#rest-errors-and-transport) for
+byte counting, request ID precedence, and the memory and delivery guarantees.
 
 No requests are automatically retried. Webhook `204` resolves to `undefined` and means
 enqueue acceptance, not a completed trade. A timeout or transport failure may leave

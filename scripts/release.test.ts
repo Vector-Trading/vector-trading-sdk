@@ -313,6 +313,26 @@ it('blocks untrusted publication, prepare credentials, rebuilds, and cancellatio
     expect(() => version(invalid)).toThrow();
 });
 
+it('requires locked tooling dependencies before every publication entry point', async () => {
+  const workflow = parse(
+    await readFile(new URL('../.github/workflows/release.yml', import.meta.url), 'utf8'),
+  );
+  checkRelease(workflow);
+  for (const name of ['gate', 'npm', 'pypi', 'crates', 'go', 'summary']) {
+    const missing = structuredClone(workflow);
+    missing.jobs[name].steps = missing.jobs[name].steps.filter(
+      (step: { run?: string }) => !step.run?.includes('corepack pnpm install'),
+    );
+    expect(() => checkRelease(missing)).toThrow('Release tools must be installed');
+    const late = structuredClone(workflow);
+    const index = late.jobs[name].steps.findIndex((step: { run?: string }) =>
+      step.run?.includes('corepack pnpm install'),
+    );
+    late.jobs[name].steps.push(late.jobs[name].steps.splice(index, 1)[0]);
+    expect(() => checkRelease(late)).toThrow('Release tools must be installed');
+  }
+});
+
 it('rejects publication from forks, pull requests, other workflows, and arbitrary refs', () => {
   const trusted = {
     GITHUB_EVENT_NAME: 'workflow_dispatch',

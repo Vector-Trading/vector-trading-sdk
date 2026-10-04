@@ -29,7 +29,7 @@ maintained privately.
 | STEP-09 | Aggregate CI and clean installed-archive verification          | integrated |
 | STEP-10 | Contribution guidance and release prerequisites                | integrated |
 | STEP-11 | Frozen release preparation, publication gates and recovery     | integrated |
-| STEP-12 | First verified distribution in every selected channel          | partial    |
+| STEP-12 | First verified distribution in every selected channel          | integrated |
 
 ## Integration evidence
 
@@ -117,8 +117,8 @@ and embedded-consumer compilation evidence remains intact.
 The release description now includes confirmed availability, installation commands
 and detailed guides for every language. Exact trusted-publisher bindings use
 `Vector-Trading/vector-trading-sdk`, `release.yml` and the `release` environment.
-Temporary npm authentication has been revoked. STEP-12 remains partial only until
-the temporary crates.io bootstrap credential is revoked.
+Temporary npm authentication and the crates.io bootstrap credential have been
+revoked. All declared distribution and consumer acceptance criteria are complete.
 
 ## Release candidate acceptance
 

@@ -245,7 +245,8 @@ Tests use isolated receivers; Pine editor evidence does not prove live webhook d
 
 - **Language guides:** [TypeScript](typescript/README.md), [Python](python/README.md), [Go](go/README.md), [Rust](rust/README.md), [Pine Script](pinescript/README.md).
 - **Contracts:** [HTTP and signal semantics](docs/contracts.md), [server snapshot provenance](contracts/source.json).
-- **Contributing:** [environment and commands](docs/development.md), [architecture and boundaries](docs/architecture.md), [repository instructions](AGENTS.md).
+- **Contributing:** [contribution guide](CONTRIBUTING.md), [environment and commands](docs/development.md), [architecture and boundaries](docs/architecture.md), [repository instructions](AGENTS.md).
+- **Security and releases:** [private vulnerability reporting](SECURITY.md), [release preparation and access](docs/releasing.md).
 - **Progress:** [implementation plan and verification evidence](docs/plans/public-sdk.plan.md).
 
 ## 📝 License

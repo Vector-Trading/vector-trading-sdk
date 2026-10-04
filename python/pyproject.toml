@@ -6,6 +6,7 @@ build-backend = "hatchling.build"
 name = "vector-trading-sdk"
 version = "0.1.0"
 description = "Typed Vector Trading REST clients and strategy signal builders"
+authors = [{ name = "Vector Trading PE" }]
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"

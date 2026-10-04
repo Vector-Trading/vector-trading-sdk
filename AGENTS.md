@@ -9,7 +9,7 @@
 
 ## Current state and navigation
 
-Shared root tooling, the public contract snapshot in `contracts/`, shared fixtures in `conformance/`, and the contract, architecture, and development guides exist. Reproducible generation, internal derived trial sources, shared regression tests, and four-language probe harnesses also exist. JavaScript/TypeScript, Python, Go, and Rust packages exist in `typescript/`, `python/`, `go/`, and `rust/`; Pine v6 library sources, an embedded example, and actual editor/parser evidence exist in `pinescript/`; aggregate CI and full installed-archive verification exist; release tooling and `docs/releasing.md` remain planned. Check each path before using it; do not assume the entire plan has been implemented.
+Shared root tooling, the public contract snapshot in `contracts/`, shared fixtures in `conformance/`, and the contract, architecture, and development guides exist. Reproducible generation, internal derived trial sources, shared regression tests, and four-language probe harnesses also exist. JavaScript/TypeScript, Python, Go, and Rust packages exist in `typescript/`, `python/`, `go/`, and `rust/`; Pine v6 library sources, an embedded example, and actual editor/parser evidence exist in `pinescript/`; aggregate CI and full installed-archive verification exist; contribution/security instructions and `docs/releasing.md` describe current release preparation; registry bootstrap identities and npm scope ownership are confirmed; first uploads, npm/crates.io trust, and release tooling remain later-step work. Check each path before using it; do not assume the entire plan has been implemented.
 
 - `contracts/` — pinned public contracts and provenance.
 - `conformance/` — shared JSON requests, responses, and expected outcomes.

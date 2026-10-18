@@ -170,7 +170,7 @@ jobs:
           npm install --global corepack@0.36.0
           corepack enable
           corepack pnpm install --frozen-lockfile --ignore-scripts
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
         with:
           version: 0.12.1
           enable-cache: false

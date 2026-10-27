@@ -207,9 +207,13 @@ async function consumer(version: string, archive: string): Promise<void> {
     const sdk = join(temp, `vector-trading-sdk-${packageVersion}`);
     const project = join(temp, 'consumer');
     await mkdir(join(project, 'src'), { recursive: true });
+    const tokioRequirement = (await readFile(join(crate, 'Cargo.toml'), 'utf8')).match(
+      /^tokio = \{ version = "(=[^"]+)"/m,
+    )?.[1];
+    if (!tokioRequirement) throw new Error('Missing pinned Tokio dev-dependency');
     await writeFile(
       join(project, 'Cargo.toml'),
-      `[package]\nname="archive-consumer"\nversion="0.0.0"\nedition="2021"\nrust-version="1.88"\n[dependencies]\nvector-trading-sdk={path=${JSON.stringify(sdk)}}\ntokio={version="=1.53.2",features=["macros","rt-multi-thread","time"]}\n`,
+      `[package]\nname="archive-consumer"\nversion="0.0.0"\nedition="2021"\nrust-version="1.88"\n[dependencies]\nvector-trading-sdk={path=${JSON.stringify(sdk)}}\ntokio={version=${JSON.stringify(tokioRequirement)},features=["macros","rt-multi-thread","time"]}\n`,
     );
     await copyFile(join(sdk, 'examples/integration.rs'), join(project, 'src/main.rs'));
     const metadata = JSON.parse(
